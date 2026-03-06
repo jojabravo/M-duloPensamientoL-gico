@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { playSound } from '../audio';
 
 interface Props {
+  onCorrect?: () => void;
   onFinish: (score: number) => void;
   onBack: () => void;
 }
@@ -38,7 +39,7 @@ const LEVEL3_DATA = [
   { q: "Equivalente a: 'No todos los soles brillan'", options: ["Existe al menos un sol que no brilla", "Ningún sol brilla", "Todos los soles brillan"], correct: 0, hint: "Si no todos brillan, es porque al menos uno falta." }
 ];
 
-const QuantifiersGame: React.FC<Props> = ({ onFinish, onBack }) => {
+const QuantifiersGame: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
   const [state, setState] = useState<GameState>(GameState.INTRO);
   const [score, setScore] = useState(0);
   const [energy, setEnergy] = useState(100);
@@ -67,6 +68,7 @@ const QuantifiersGame: React.FC<Props> = ({ onFinish, onBack }) => {
       playSound('success');
       setScore(s => s + 10);
       setShowHint(false);
+      if (onCorrect) onCorrect();
     } else {
       playSound('error');
       setEnergy(e => e - 15);
@@ -89,6 +91,7 @@ const QuantifiersGame: React.FC<Props> = ({ onFinish, onBack }) => {
       playSound('success');
       setScore(s => s + 20);
       setShowHint(false);
+      if (onCorrect) onCorrect();
       if (currentIdx < LEVEL2_DATA.length - 1) {
         setCurrentIdx(currentIdx + 1);
         setAssembledFormula([]);
@@ -109,6 +112,7 @@ const QuantifiersGame: React.FC<Props> = ({ onFinish, onBack }) => {
       playSound('success');
       setScore(s => s + 30);
       setShowHint(false);
+      if (onCorrect) onCorrect();
     } else {
       playSound('error');
       setEnergy(e => e - 25);

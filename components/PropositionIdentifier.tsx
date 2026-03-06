@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { playSound } from '../audio';
 
 interface Props {
+  onCorrect?: () => void;
   onFinish: (score: number) => void;
   onBack: () => void;
 }
@@ -18,7 +19,7 @@ const ITEMS = [
   { text: "La Luna es de queso y el Sol es de fuego.", type: "COMP", explanation: "Une dos ideas con el conector 'y'." }
 ];
 
-const PropositionIdentifier: React.FC<Props> = ({ onFinish, onBack }) => {
+const PropositionIdentifier: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
   const [current, setCurrent] = useState(0);
   const [feedback, setFeedback] = useState<{ msg: string; correct: boolean } | null>(null);
   const [score, setScore] = useState(0);
@@ -37,6 +38,7 @@ const PropositionIdentifier: React.FC<Props> = ({ onFinish, onBack }) => {
       playSound('success');
       setFeedback({ msg: `¡Bien hecho! ${item.explanation}`, correct: true });
       setScore(s => s + 1);
+      if (onCorrect) onCorrect();
     } else {
       playSound('error');
       setFeedback({ msg: `Ups... ${item.explanation}`, correct: false });

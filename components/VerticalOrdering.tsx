@@ -4,6 +4,7 @@ import { Person } from '../types';
 import { playSound } from '../audio';
 
 interface Props {
+  onCorrect?: () => void;
   floors: (Person | null)[];
   setFloors: React.Dispatch<React.SetStateAction<(Person | null)[]>>;
   available: Person[];
@@ -20,7 +21,7 @@ export const INITIAL_VERTICAL: Person[] = [
   { id: 'p4', name: 'Julio', color: 'bg-rose-400' },
 ];
 
-const VerticalOrdering: React.FC<Props> = ({ floors, setFloors, available, setAvailable, onNext, onBack }) => {
+const VerticalOrdering: React.FC<Props> = ({ onCorrect, floors, setFloors, available, setAvailable, onNext, onBack }) => {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const handlePlace = (person: Person, floorIdx: number) => {
@@ -55,6 +56,7 @@ const VerticalOrdering: React.FC<Props> = ({ floors, setFloors, available, setAv
     if (currentNames.every((name, i) => name === correctNames[i])) {
       playSound('success');
       setFeedback("¡Correcto! Julio vive en el 3er piso.");
+      if (onCorrect) onCorrect();
     } else {
       playSound('error');
       setFeedback("Revisa bien: Raúl va en el primero, y Julio vive justo arriba de Pedro.");

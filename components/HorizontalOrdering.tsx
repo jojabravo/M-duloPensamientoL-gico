@@ -4,6 +4,7 @@ import { Person } from '../types';
 import { playSound } from '../audio';
 
 interface Props {
+  onCorrect?: () => void;
   slots: (Person | null)[];
   setSlots: React.Dispatch<React.SetStateAction<(Person | null)[]>>;
   available: Person[];
@@ -21,7 +22,7 @@ export const INITIAL_PEOPLE: Person[] = [
   { id: '5', name: 'Enma', color: 'bg-pink-400' },
 ];
 
-const HorizontalOrdering: React.FC<Props> = ({ slots, setSlots, available, setAvailable, onNext, onBack }) => {
+const HorizontalOrdering: React.FC<Props> = ({ onCorrect, slots, setSlots, available, setAvailable, onNext, onBack }) => {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const handlePlace = (person: Person, index: number) => {
@@ -66,6 +67,7 @@ const HorizontalOrdering: React.FC<Props> = ({ slots, setSlots, available, setAv
     if (currentNames.every((name, i) => name === correctNames[i])) {
       playSound('success');
       setFeedback("¡Excelente! Has ordenado correctamente de menor a mayor.");
+      if (onCorrect) onCorrect();
     } else {
       playSound('error');
       setFeedback("Revisa: María es la mayor, Inés la menor, y Enma es menor que Ana.");

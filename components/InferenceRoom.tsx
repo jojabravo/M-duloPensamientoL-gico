@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { playSound } from '../audio';
 
 interface Props {
+  onCorrect?: () => void;
   onFinish: (score: number) => void;
   onBack: () => void;
 }
@@ -34,7 +35,7 @@ const SCENARIOS = [
   }
 ];
 
-const InferenceRoom: React.FC<Props> = ({ onFinish, onBack }) => {
+const InferenceRoom: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [showRule, setShowRule] = useState(false);
@@ -50,6 +51,7 @@ const InferenceRoom: React.FC<Props> = ({ onFinish, onBack }) => {
     if (selected === SCENARIOS[current].answer) {
       playSound('success');
       setScore(s => s + 1);
+      if (onCorrect) onCorrect();
     } else {
       playSound('error');
     }

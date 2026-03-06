@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { playSound } from '../audio';
 
 interface Props {
+  onCorrect?: () => void;
   onFinish: (score: number) => void;
   onBack: () => void;
 }
@@ -23,7 +24,7 @@ const TASKS = [
   { phrase: "Iré al cine si y solo si termino la tarea.", correct: '↔', desc: "Indica una condición necesaria y suficiente en ambos sentidos." }
 ];
 
-const LogicConnectors: React.FC<Props> = ({ onFinish, onBack }) => {
+const LogicConnectors: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
   const [current, setCurrent] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [score, setScore] = useState(0);
@@ -33,6 +34,7 @@ const LogicConnectors: React.FC<Props> = ({ onFinish, onBack }) => {
       playSound('success');
       setFeedback(`¡Correcto! ${TASKS[current].desc}`);
       setScore(s => s + 1);
+      if (onCorrect) onCorrect();
     } else {
       playSound('error');
       setFeedback("Incorrecto. Mira las pistas de ayuda abajo.");

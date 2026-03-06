@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { playSound } from '../audio';
 
 interface Props {
+  onCorrect?: () => void;
   onFinish: (score: number) => void;
   onBack: () => void;
 }
@@ -40,7 +41,7 @@ const ICONS = {
   EMPTY: Array(25).fill(0)
 };
 
-const MicrobitGame: React.FC<Props> = ({ onFinish, onBack }) => {
+const MicrobitGame: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
   const [level, setLevel] = useState<MicrobitLevel>(MicrobitLevel.TUTORIAL);
   const [isA, setIsA] = useState(false);
   const [isB, setIsB] = useState(false);
@@ -106,8 +107,9 @@ const MicrobitGame: React.FC<Props> = ({ onFinish, onBack }) => {
       setShowResult(true);
       setCurrentIcon(icon);
       setScore(s => s + 50);
+      if (onCorrect) onCorrect();
     }
-  }, [level, isA, isB, isShaking, blockSelection, showResult]);
+  }, [level, isA, isB, isShaking, blockSelection, showResult, onCorrect]);
 
   useEffect(() => {
     checkLogic();

@@ -4,6 +4,7 @@ import { Person } from '../types';
 import { playSound } from '../audio';
 
 interface Props {
+  onCorrect?: () => void;
   mode: 'PAR' | 'IMPAR';
   setMode: React.Dispatch<React.SetStateAction<'PAR' | 'IMPAR'>>;
   seats: (Person | null)[];
@@ -34,7 +35,7 @@ const PEOPLE_IMPAR: Person[] = [
   { id: 's', name: 'S', color: 'bg-indigo-400' },
 ];
 
-const CircularOrdering: React.FC<Props> = ({ mode, setMode, seats, setSeats, available, setAvailable, onNext, onBack }) => {
+const CircularOrdering: React.FC<Props> = ({ onCorrect, mode, setMode, seats, setSeats, available, setAvailable, onNext, onBack }) => {
   const [feedback, setFeedback] = useState<string | null>(null);
   const numSeats = mode === 'PAR' ? 8 : 5;
 
@@ -96,6 +97,7 @@ const CircularOrdering: React.FC<Props> = ({ mode, setMode, seats, setSeats, ava
       if (wFrenteP && sFrenteF && sIzqX && pEntreByF) {
         playSound('success');
         setFeedback("¡Excelente! Has resuelto la mesa de 8 asientos.");
+        if (onCorrect) onCorrect();
       } else {
         playSound('error');
         setFeedback("Revisa las reglas: ¿W está frente a P? ¿S está a la izquierda de X?");
@@ -114,6 +116,7 @@ const CircularOrdering: React.FC<Props> = ({ mode, setMode, seats, setSeats, ava
       if (isCorrect) {
         playSound('success');
         setFeedback("¡Muy bien! Ordenamiento impar completado.");
+        if (onCorrect) onCorrect();
       } else {
         playSound('error');
         setFeedback("A la derecha de F deben estar W y S.");

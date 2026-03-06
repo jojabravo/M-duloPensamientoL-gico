@@ -3,13 +3,14 @@ import React, { useState } from 'react';
 import { playSound } from '../audio';
 
 interface Props {
+  onCorrect?: () => void;
   grid: (string | null)[][];
   setGrid: React.Dispatch<React.SetStateAction<(string | null)[][]>>;
   onNext: () => void;
   onBack: () => void;
 }
 
-const TableOrdering: React.FC<Props> = ({ grid, setGrid, onNext, onBack }) => {
+const TableOrdering: React.FC<Props> = ({ onCorrect, grid, setGrid, onNext, onBack }) => {
   const friends = ['Julio', 'Luis', 'Pedro', 'Manuel'];
   const games = ['Ajedrez', 'Damas', 'Ludo', 'Dom.'];
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -62,6 +63,7 @@ const TableOrdering: React.FC<Props> = ({ grid, setGrid, onNext, onBack }) => {
     if (correct) {
       playSound('success');
       setFeedback("¡Excelente! Has relacionado correctamente a cada amigo con su juego.");
+      if (onCorrect) onCorrect();
     } else {
       playSound('error');
       setFeedback("Casi... Revisa las pistas: Pedro juega ajedrez y Luis dominó.");

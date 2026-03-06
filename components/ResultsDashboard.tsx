@@ -9,39 +9,11 @@ interface Props {
 }
 
 const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
-  const p = student.progress;
-
-  // 1. MÓDULO ORDENAMIENTO
-  const ordEx = p.ordering.examples;
-  const ordExamplesTotal = [ordEx.horizontal, ordEx.vertical, ordEx.circular, ordEx.table].filter(v => v).length;
-  const ordExamplesPerc = (ordExamplesTotal / 4) * 100;
-  const ordChallengePerc = (p.ordering.challengeScore / 5) * 100;
-  const ordModuleAvg = (ordExamplesPerc + ordChallengePerc) / 2;
-
-  // 2. MÓDULO PROPOSICIONES LÓGICAS
-  const logEx = p.logic.examples;
-  const logExamplesTotal = [logEx.intro, logEx.connectors, logEx.inference].filter(v => v).length;
-  const logExamplesPerc = (logExamplesTotal / 3) * 100;
-  
-  const logScores = p.logic.challengeScores;
-  const logChallengesObtained = logScores.identification + logScores.symbolization + logScores.inference;
-  const logChallengesMax = 8 + 5 + 3; 
-  const logChallengePerc = (logChallengesObtained / logChallengesMax) * 100;
-  const logModuleAvg = (logExamplesPerc + logChallengePerc) / 2;
-
-  // 3. MÓDULO CUANTIFICADORES
-  const quantExamplePerc = logEx.quantifiers ? 100 : 0;
-  const quantMaxGameScore = 180; 
-  const quantGameScore = logScores.quantifiers;
-  const quantChallengePerc = Math.min((quantGameScore / quantMaxGameScore) * 100, 100);
-  const quantModuleAvg = (quantExamplePerc + quantChallengePerc) / 2;
-
-  // 4. MÓDULO MICROBIT
-  const microExamplePerc = logEx.microbit ? 100 : 0;
-  const microMaxScore = 150; 
-  const microGameScore = logScores.microbit;
-  const microChallengePerc = Math.min((microGameScore / microMaxScore) * 100, 100);
-  const microModuleAvg = (microExamplePerc + microChallengePerc) / 2;
+  // Use progress directly from Supabase columns
+  const ordModuleAvg = student.progreso_ordenamiento;
+  const logModuleAvg = student.progreso_proposiciones;
+  const quantModuleAvg = student.progreso_cuantificadores;
+  const microModuleAvg = student.progreso_microbit;
 
   // PROMEDIO TOTAL CAPÍTULO 1
   const totalCap1 = (ordModuleAvg + logModuleAvg + quantModuleAvg + microModuleAvg) / 4;
@@ -67,7 +39,11 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             <div>
               <span className="text-[11px] font-black uppercase tracking-[0.5em] text-purple-400 mb-2 block">Certificación de Pensamiento Lógico</span>
               <h2 className="text-5xl font-black text-gray-800 tracking-tighter">Tu Progreso Académico</h2>
-              <p className="text-gray-500 font-medium text-lg mt-1">Estudiante: <span className="text-purple-600 font-black uppercase tracking-tight">{student.name}</span></p>
+              <p className="text-gray-500 font-medium text-lg mt-1">
+                Estudiante: <span className="text-purple-600 font-black uppercase tracking-tight">
+                  {student.Usuario}
+                </span>
+              </p>
             </div>
           </div>
           <div className="bg-gray-900 p-10 rounded-[3.5rem] text-white text-center shadow-2xl border-b-8 border-purple-500 relative group overflow-hidden">
@@ -89,25 +65,16 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             <div className="space-y-8 flex-grow">
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-gray-400">Teoría</span>
-                  <span className="text-purple-600">{Math.round(ordExamplesPerc)}%</span>
+                  <span className="text-gray-400">Progreso General</span>
+                  <span className="text-purple-600">{Math.round(ordModuleAvg)}%</span>
                 </div>
                 <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-purple-500 transition-all duration-1000" style={{ width: `${ordExamplesPerc}%` }}></div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-gray-400">Retos</span>
-                  <span className="text-blue-600">{Math.round(ordChallengePerc)}%</span>
-                </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${ordChallengePerc}%` }}></div>
+                  <div className="h-full bg-purple-500 transition-all duration-1000" style={{ width: `${ordModuleAvg}%` }}></div>
                 </div>
               </div>
             </div>
             <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-               <span className="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-[10px] font-black">Promedio: {Math.round(ordModuleAvg)}%</span>
+               <span className="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-[10px] font-black">Estado: {ordModuleAvg >= 100 ? 'Completado' : 'En curso'}</span>
             </div>
           </div>
 
@@ -122,25 +89,16 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             <div className="space-y-8 flex-grow">
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-gray-400">Aprendizaje</span>
-                  <span className="text-blue-600">{Math.round(logExamplesPerc)}%</span>
+                  <span className="text-gray-400">Progreso General</span>
+                  <span className="text-blue-600">{Math.round(logModuleAvg)}%</span>
                 </div>
                 <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${logExamplesPerc}%` }}></div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-gray-400">Evaluación</span>
-                  <span className="text-emerald-600">{Math.round(logChallengePerc)}%</span>
-                </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${logChallengePerc}%` }}></div>
+                  <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${logModuleAvg}%` }}></div>
                 </div>
               </div>
             </div>
             <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-               <span className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-[10px] font-black">Promedio: {Math.round(logModuleAvg)}%</span>
+               <span className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-[10px] font-black">Estado: {logModuleAvg >= 100 ? 'Completado' : 'En curso'}</span>
             </div>
           </div>
 
@@ -155,25 +113,16 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             <div className="space-y-8 flex-grow">
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-gray-400">Briefing</span>
-                  <span className="text-pink-600">{quantExamplePerc}%</span>
+                  <span className="text-gray-400">Progreso General</span>
+                  <span className="text-pink-600">{Math.round(quantModuleAvg)}%</span>
                 </div>
                 <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-pink-500 transition-all duration-1000" style={{ width: `${quantExamplePerc}%` }}></div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-gray-400">Game Score</span>
-                  <span className="text-orange-600">{Math.round(quantChallengePerc)}%</span>
-                </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-orange-500 transition-all duration-1000" style={{ width: `${quantChallengePerc}%` }}></div>
+                  <div className="h-full bg-pink-500 transition-all duration-1000" style={{ width: `${quantModuleAvg}%` }}></div>
                 </div>
               </div>
             </div>
             <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-               <span className="bg-pink-50 text-pink-700 px-4 py-1.5 rounded-full text-[10px] font-black">Misión: {quantGameScore} pts</span>
+               <span className="bg-pink-50 text-pink-700 px-4 py-1.5 rounded-full text-[10px] font-black">Estado: {quantModuleAvg >= 100 ? 'Completado' : 'En curso'}</span>
             </div>
           </div>
 
@@ -191,16 +140,12 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             <div className="space-y-8 flex-grow">
               <div className="flex flex-col gap-4">
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-indigo-400">
-                  <span>Reparación Josefa-Bot</span>
-                  <span className="bg-white px-3 py-1 rounded-full text-indigo-700 shadow-sm">{microGameScore} PTS</span>
+                  <span>Progreso General</span>
+                  <span className="bg-white px-3 py-1 rounded-full text-indigo-700 shadow-sm">{Math.round(microModuleAvg)}%</span>
                 </div>
                 <div className="h-5 bg-white rounded-full overflow-hidden shadow-inner border border-indigo-100 p-1">
-                  <div className="h-full bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(79,70,229,0.4)]" style={{ width: `${microChallengePerc}%` }}></div>
+                  <div className="h-full bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(79,70,229,0.4)]" style={{ width: `${microModuleAvg}%` }}></div>
                 </div>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm p-5 rounded-3xl border border-indigo-100 shadow-sm text-center">
-                 <span className="text-[10px] font-black text-indigo-800 uppercase block mb-1 opacity-60">Competencia Técnica</span>
-                 <span className="text-3xl font-black text-indigo-600 tracking-tighter">{Math.round(microModuleAvg)}%</span>
               </div>
             </div>
           </div>
