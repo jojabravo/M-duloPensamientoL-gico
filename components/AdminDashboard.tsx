@@ -84,6 +84,48 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     return ['Todos', ...uniqueGrades.sort()];
   }, [students]);
 
+  const exportToCSV = () => {
+    if (filteredStudents.length === 0) return;
+
+    const headers = [
+      'Estudiante',
+      'Grado',
+      'Ultima Conexion (Colombia)',
+      'Ordenamiento %',
+      'Proposiciones %',
+      'Cuantificadores %',
+      'Microbit %',
+      'Promedio Capitulo 1'
+    ];
+
+    const rows = filteredStudents.map(s => [
+      `"${s.Usuario}"`,
+      `"${s.Grado || 'N/A'}"`,
+      `"${formatColombiaTime(s.ultima_conexion)}"`,
+      s.progreso_ordenamiento || 0,
+      s.progreso_proposiciones || 0,
+      s.progreso_cuantificadores || 0,
+      s.progreso_microbit || 0,
+      s.nota_capitulo_1 || 0
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Reporte_Estudiantes_${selectedGrade}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    playSound('pop');
+  };
+
   const formatColombiaTime = (dateStr?: string) => {
     if (!dateStr || dateStr === 'now') return 'Nunca';
     try {
@@ -193,6 +235,14 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                 <option key={g} value={g}>{g === 'Todos' ? 'Todos los Grados' : `Grado ${g}`}</option>
               ))}
             </select>
+            <button 
+              onClick={exportToCSV}
+              disabled={filteredStudents.length === 0}
+              className="px-6 py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 transition-all shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-95"
+            >
+              <i className="fas fa-file-excel"></i>
+              <span className="hidden sm:inline">Exportar Reporte Excel (CSV)</span>
+            </button>
             <button 
               onClick={onBack}
               className="px-8 py-4 bg-gray-800 text-white rounded-2xl font-black hover:bg-black transition-all shadow-lg"
