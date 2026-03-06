@@ -4,9 +4,10 @@ import { playSound } from '../audio';
 
 interface Props {
   onLogin: (usuario: string, contrasena: string) => Promise<{ success: boolean; message?: string }>;
+  onAdmin: () => void;
 }
 
-const Welcome: React.FC<Props> = ({ onLogin }) => {
+const Welcome: React.FC<Props> = ({ onLogin, onAdmin }) => {
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
@@ -94,14 +95,27 @@ const Welcome: React.FC<Props> = ({ onLogin }) => {
         </button>
       </form>
 
-      <div className="mt-10 flex gap-4 text-gray-400 text-xs font-bold uppercase tracking-widest">
-        <span>Verbal</span>
-        <span className="text-gray-200">|</span>
-        <span>Numérico</span>
-        <span className="text-gray-200">|</span>
-        <span>Espacial</span>
-        <span className="text-gray-200">|</span>
-        <span>Abstracto</span>
+      <div className="mt-10 flex flex-col items-center gap-6">
+        <div className="flex gap-4 text-gray-400 text-xs font-bold uppercase tracking-widest">
+          <span>Verbal</span>
+          <span className="text-gray-200">|</span>
+          <span>Numérico</span>
+          <span className="text-gray-200">|</span>
+          <span>Espacial</span>
+          <span className="text-gray-200">|</span>
+          <span>Abstracto</span>
+        </div>
+
+        <button 
+          onClick={() => {
+            console.log('Admin button clicked');
+            onAdmin();
+          }}
+          className="opacity-20 hover:opacity-100 transition-all mt-8 p-4 cursor-pointer"
+          title="Acceso Docente"
+        >
+          <i className="fas fa-lock text-sm text-gray-400"></i>
+        </button>
       </div>
     </div>
   );

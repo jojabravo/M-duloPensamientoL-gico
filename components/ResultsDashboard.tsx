@@ -19,9 +19,17 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
   const totalCap1 = (ordModuleAvg + logModuleAvg + quantModuleAvg + microModuleAvg) / 4;
 
   const getBadge = (score: number) => {
-    if (score >= 90) return { icon: 'fa-trophy', color: 'text-yellow-500', label: 'Oro - Maestro Lógico' };
-    if (score >= 60) return { icon: 'fa-medal', color: 'text-gray-400', label: 'Plata - Avanzado' };
-    return { icon: 'fa-award', color: 'text-orange-400', label: 'Bronce - Iniciado' };
+    if (score >= 90) return { icon: 'fa-trophy', color: 'text-emerald-500', label: 'Desempeño Superior' };
+    if (score >= 80) return { icon: 'fa-medal', color: 'text-blue-500', label: 'Desempeño Alto' };
+    if (score >= 60) return { icon: 'fa-award', color: 'text-amber-500', label: 'Desempeño Básico' };
+    return { icon: 'fa-exclamation-circle', color: 'text-rose-500', label: 'Desempeño Bajo' };
+  };
+
+  const getStatusLabel = (score: number) => {
+    if (score >= 90) return 'Superior';
+    if (score >= 80) return 'Alto';
+    if (score >= 60) return 'Básico';
+    return 'Bajo';
   };
 
   return (
@@ -74,7 +82,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
               </div>
             </div>
             <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-               <span className="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-[10px] font-black">Estado: {ordModuleAvg >= 100 ? 'Completado' : 'En curso'}</span>
+               <span className="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(ordModuleAvg)}</span>
             </div>
           </div>
 
@@ -98,7 +106,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
               </div>
             </div>
             <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-               <span className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-[10px] font-black">Estado: {logModuleAvg >= 100 ? 'Completado' : 'En curso'}</span>
+               <span className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(logModuleAvg)}</span>
             </div>
           </div>
 
@@ -122,7 +130,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
               </div>
             </div>
             <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-               <span className="bg-pink-50 text-pink-700 px-4 py-1.5 rounded-full text-[10px] font-black">Estado: {quantModuleAvg >= 100 ? 'Completado' : 'En curso'}</span>
+               <span className="bg-pink-50 text-pink-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(quantModuleAvg)}</span>
             </div>
           </div>
 
@@ -146,6 +154,9 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <div className="h-5 bg-white rounded-full overflow-hidden shadow-inner border border-indigo-100 p-1">
                   <div className="h-full bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(79,70,229,0.4)]" style={{ width: `${microModuleAvg}%` }}></div>
                 </div>
+                <div className="text-center mt-2">
+                  <span className="text-[9px] font-black text-indigo-600 bg-white px-3 py-1 rounded-full shadow-sm">Escala: {getStatusLabel(microModuleAvg)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -164,9 +175,10 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                  <div className="text-center md:text-left flex-grow relative z-10">
                    <h4 className="text-3xl font-black text-white mb-2 uppercase tracking-tighter">{badge.label}</h4>
                    <p className="text-indigo-200 font-medium text-lg leading-relaxed italic max-w-2xl">
-                     {totalCap1 >= 90 ? "¡Extraordinario! Has demostrado que la lógica y la ingeniería fluyen por tus venas. Eres un orgullo para la Institución Josefa Campos." : 
-                      totalCap1 >= 60 ? "¡Muy buen trabajo! Tienes las herramientas para pensar con claridad y programar soluciones. Sigue así para llegar al nivel Maestro." :
-                      "¡Buen comienzo! La lógica es un camino de práctica constante. Vuelve a los retos de Microbit para fortalecer tus habilidades deductivas."}
+                     {totalCap1 >= 90 ? "¡Extraordinario! Has alcanzado el Nivel Superior. Tu razonamiento lógico es impecable." : 
+                      totalCap1 >= 80 ? "¡Excelente trabajo! Estás en Nivel Alto. Sigue practicando para llegar a la excelencia total." :
+                      totalCap1 >= 60 ? "Buen desempeño. Estás en Nivel Básico. Tienes las bases, pero puedes mejorar mucho más." :
+                      "Nivel Bajo. Es importante que repases los conceptos y vuelvas a intentar los retos para fortalecer tu lógica."}
                    </p>
                  </div>
                  <div className="shrink-0 relative z-10">

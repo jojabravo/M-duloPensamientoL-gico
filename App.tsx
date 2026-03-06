@@ -44,8 +44,8 @@ const App: React.FC = () => {
   // Persistence: Check for session on mount
   useEffect(() => {
     const checkSession = async () => {
-      // Check for admin route
-      if (window.location.pathname === '/profesor-jorge') {
+      // Check for admin route (pathname or hash for better compatibility in iframes)
+      if (window.location.pathname === '/profesor-jorge' || window.location.hash === '#profesor-jorge') {
         setCurrentView(View.ADMIN);
         setLoading(false);
         return;
@@ -223,10 +223,15 @@ const App: React.FC = () => {
     }
   };
 
+  const handleAdminAccess = () => {
+    console.log('Transitioning to ADMIN view');
+    setCurrentView(View.ADMIN);
+  };
+
   const renderView = () => {
     switch (currentView) {
       case View.WELCOME:
-        return <Welcome onLogin={handleLogin} />;
+        return <Welcome onLogin={handleLogin} onAdmin={handleAdminAccess} />;
       case View.MENU:
         return <CourseMenu onSelect={() => setCurrentView(View.CHAPTER_1_MENU)} onShowResults={() => setCurrentView(View.RESULTS)} />;
       case View.CHAPTER_1_MENU:
@@ -272,9 +277,9 @@ const App: React.FC = () => {
       case View.RESULTS:
         return <ResultsDashboard student={student!} onBack={() => setCurrentView(View.MENU)} />;
       case View.ADMIN:
-        return <AdminDashboard onBack={() => setCurrentView(View.WELCOME)} />;
+        return <AdminDashboard onBack={() => { console.log('Returning to WELCOME'); setCurrentView(View.WELCOME); }} />;
       default:
-        return <Welcome onLogin={handleLogin} />;
+        return <Welcome onLogin={handleLogin} onAdmin={handleAdminAccess} />;
     }
   };
 

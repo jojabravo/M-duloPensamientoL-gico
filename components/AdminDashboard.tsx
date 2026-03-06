@@ -8,7 +8,7 @@ interface Props {
   onBack: () => void;
 }
 
-const ADMIN_PASSWORD = process.env.VITE_ADMIN_PASSWORD || 'Jorge2026';
+const ADMIN_PASSWORD = process.env.VITE_ADMIN_PASSWORD || 'Perla2026*';
 
 const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -99,9 +99,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   };
 
   const getProgressColor = (value: number) => {
-    if (value >= 80) return 'bg-emerald-500';
-    if (value >= 50) return 'bg-amber-500';
-    return 'bg-rose-500';
+    if (value >= 90) return 'bg-emerald-500'; // Superior
+    if (value >= 80) return 'bg-blue-500';    // Alto
+    if (value >= 60) return 'bg-amber-500';   // Básico
+    return 'bg-rose-500';                    // Bajo
   };
 
   if (!isAuthenticated) {
@@ -294,15 +295,19 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-              <span>Excelente (80-100)</span>
+              <span>Superior (90-100)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+              <span>Alto (80-89)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-              <span>Medio (50-79)</span>
+              <span>Básico (60-79)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-rose-500"></div>
-              <span>Bajo (0-49)</span>
+              <span>Bajo (0-59)</span>
             </div>
           </div>
         </footer>
