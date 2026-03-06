@@ -89,6 +89,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
 
     const headers = [
       'Usuario',
+      'Nombre',
       'Grado',
       'Ultima Conexion (Colombia)',
       'Ordenamiento %',
@@ -107,6 +108,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
 
       return [
         `"${s.Usuario}"`,
+        `"${s.Nombre || ''}"`,
         `"${s.Grado || 'N/A'}"`,
         `"${formatColombiaTime(s.ultima_conexion)}"`,
         s.progreso_ordenamiento || 0,
@@ -298,9 +300,12 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                     <td className="bg-gray-50 px-6 py-5 rounded-l-[2rem] border-y-2 border-l-2 border-transparent group-hover:border-purple-200 transition-all">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm font-black">
-                          {student.Usuario.charAt(0).toUpperCase()}
+                          {(student.Nombre || student.Usuario).charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-black text-gray-800">{student.Usuario}</span>
+                        <div className="flex flex-col">
+                          <span className="font-black text-gray-800">{student.Nombre || student.Usuario}</span>
+                          {student.Nombre && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">@{student.Usuario}</span>}
+                        </div>
                       </div>
                     </td>
                     <td className="bg-gray-50 px-6 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">

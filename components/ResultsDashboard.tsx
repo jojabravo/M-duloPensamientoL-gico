@@ -49,7 +49,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
               <h2 className="text-5xl font-black text-gray-800 tracking-tighter">Tu Progreso Académico</h2>
               <p className="text-gray-500 font-medium text-lg mt-1">
                 Estudiante: <span className="text-purple-600 font-black uppercase tracking-tight">
-                  {student.Usuario}
+                  {student.Nombre || student.Usuario}
                 </span>
               </p>
             </div>

@@ -23,6 +23,7 @@ export enum View {
 
 export interface StudentProfile {
   Usuario: string;
+  Nombre?: string;
   Clave: string;
   Grado?: string;
   progreso_ordenamiento: number;

@@ -296,7 +296,7 @@ const App: React.FC = () => {
               <div>
                 <h1 className="text-lg font-black text-gray-800 leading-none">Lógica <span className="text-purple-600">6°/7°</span></h1>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                  Estudiante: {student?.Usuario}
+                  Estudiante: {student?.Nombre || student?.Usuario}
                 </p>
               </div>
             </div>
