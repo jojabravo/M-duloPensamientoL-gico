@@ -88,26 +88,35 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     if (filteredStudents.length === 0) return;
 
     const headers = [
-      'Estudiante',
+      'Usuario',
       'Grado',
       'Ultima Conexion (Colombia)',
       'Ordenamiento %',
       'Proposiciones %',
       'Cuantificadores %',
       'Microbit %',
-      'Promedio Capitulo 1'
+      'Promedio Capitulo 1',
+      'Estado Academico'
     ];
 
-    const rows = filteredStudents.map(s => [
-      `"${s.Usuario}"`,
-      `"${s.Grado || 'N/A'}"`,
-      `"${formatColombiaTime(s.ultima_conexion)}"`,
-      s.progreso_ordenamiento || 0,
-      s.progreso_proposiciones || 0,
-      s.progreso_cuantificadores || 0,
-      s.progreso_microbit || 0,
-      s.nota_capitulo_1 || 0
-    ]);
+    const rows = filteredStudents.map(s => {
+      const avg = s.nota_capitulo_1 || 0;
+      let estado = 'En Proceso';
+      if (avg < 30) estado = 'ALERTA: Refuerzo Urgente';
+      else if (avg > 80) estado = 'Nivel Avanzado';
+
+      return [
+        `"${s.Usuario}"`,
+        `"${s.Grado || 'N/A'}"`,
+        `"${formatColombiaTime(s.ultima_conexion)}"`,
+        s.progreso_ordenamiento || 0,
+        s.progreso_proposiciones || 0,
+        s.progreso_cuantificadores || 0,
+        s.progreso_microbit || 0,
+        avg,
+        `"${estado}"`
+      ];
+    });
 
     const csvContent = [
       headers.join(','),
@@ -118,7 +127,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `Reporte_Estudiantes_${selectedGrade}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Reporte_Notas_${selectedGrade}_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -133,7 +142,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
       return new Intl.DateTimeFormat('es-CO', {
         timeZone: 'America/Bogota',
         dateStyle: 'short',
-        timeStyle: 'short'
+        timeStyle: 'short',
+        hour12: false
       }).format(date);
     } catch (e) {
       return 'Fecha inválida';
@@ -240,8 +250,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               disabled={filteredStudents.length === 0}
               className="px-6 py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 transition-all shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-95"
             >
-              <i className="fas fa-file-excel"></i>
-              <span className="hidden sm:inline">Exportar Reporte Excel (CSV)</span>
+              <i className="fas fa-download"></i>
+              <span className="hidden sm:inline">Descargar Reporte de Notas</span>
             </button>
             <button 
               onClick={onBack}
