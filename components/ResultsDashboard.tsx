@@ -13,6 +13,7 @@ interface Props {
 const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
   const [ranking, setRanking] = useState<StudentProfile[]>([]);
   const [showDiamondModal, setShowDiamondModal] = useState(false);
+  const [hasCelebrated, setHasCelebrated] = useState(false);
 
   // Use progress directly from Supabase columns
   const ordModuleAvg = student.progreso_ordenamiento;
@@ -38,7 +39,8 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
     fetchRanking();
 
     // Trigger confetti based on progress
-    if (totalCap1 >= 100) {
+    if (totalCap1 >= 100 && !hasCelebrated) {
+      setHasCelebrated(true);
       const duration = 5 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -274,7 +276,24 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {totalCap1 < 30 ? (
+            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-12 rounded-[3rem] text-center shadow-2xl animate-fade-up border-8 border-white">
+              <div className="w-24 h-24 bg-white/20 rounded-[2rem] flex items-center justify-center text-white text-5xl mx-auto mb-8 animate-bounce">
+                <i className="fas fa-rocket"></i>
+              </div>
+              <h4 className="text-3xl font-black text-white mb-4 tracking-tighter">¡TU LUGAR EN EL CUADRO DE HONOR TE ESPERA!</h4>
+              <p className="text-purple-100 text-xl font-medium max-w-2xl mx-auto leading-relaxed">
+                Alcanza el <span className="text-yellow-300 font-black">30%</span> de progreso total para obtener tu <span className="font-black">Copa de Bronce</span> y aparecer en la Galería de Logros de tu grado. ¡Tú puedes lograrlo!
+              </p>
+              <div className="mt-8 inline-flex items-center gap-3 bg-white/10 px-6 py-3 rounded-2xl border border-white/20">
+                <div className="w-full h-3 bg-white/20 rounded-full w-48 overflow-hidden">
+                  <div className="h-full bg-yellow-400" style={{ width: `${(totalCap1 / 30) * 100}%` }}></div>
+                </div>
+                <span className="text-white font-black text-sm">{Math.round(totalCap1)}% / 30%</span>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* COLUMNA BRONCE */}
             <div className="flex flex-col gap-4">
               <div className="bg-orange-50/50 p-4 rounded-[2rem] border-2 border-orange-100 text-center">
@@ -282,20 +301,28 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <h4 className="font-black text-orange-800 text-xs uppercase tracking-widest">Bronce (30-59%)</h4>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 30 && (r.nota_capitulo_1 || 0) < 60).map((r, i) => (
-                  <div 
-                    key={r.Usuario} 
-                    className="bg-white p-6 rounded-[1.5rem] border-2 border-orange-100 shadow-[0_10px_30px_rgba(251,146,60,0.1)] animate-fade-up hover:-translate-y-1 hover:shadow-orange-200/40 transition-all duration-300 cursor-default group" 
-                    style={{ animationDelay: `${i * 0.1}s` }}
-                  >
-                    <div className="flex flex-col items-center gap-3 text-center">
-                      <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 font-black text-sm border border-orange-100 group-hover:scale-110 transition-transform">
-                        {Math.round(r.nota_capitulo_1 || 0)}%
+                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 30 && (r.nota_capitulo_1 || 0) < 60).map((r, i) => {
+                  const isMe = r.Usuario === student.Usuario;
+                  return (
+                    <div 
+                      key={r.Usuario} 
+                      className={`bg-white p-6 rounded-[1.5rem] border-2 shadow-[0_10px_30px_rgba(251,146,60,0.1)] animate-fade-up hover:scale-105 hover:brightness-110 hover:shadow-orange-200/40 transition-all duration-300 cursor-default group relative overflow-hidden ${isMe ? 'border-orange-400 bg-orange-50/30 ring-2 ring-orange-200' : 'border-orange-100'}`} 
+                      style={{ animationDelay: `${i * 0.1}s` }}
+                    >
+                      {isMe && (
+                        <div className="absolute top-0 right-0 bg-orange-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl shadow-md z-20 animate-pulse">
+                          ¡TÚ!
+                        </div>
+                      )}
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 font-black text-sm border border-orange-100 group-hover:scale-110 transition-transform">
+                          {Math.round(r.nota_capitulo_1 || 0)}%
+                        </div>
+                        <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-orange-900' : 'text-gray-700'}`}>{r.Nombre || r.Usuario}</span>
                       </div>
-                      <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -306,20 +333,28 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <h4 className="font-black text-slate-800 text-xs uppercase tracking-widest">Plata (60-89%)</h4>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 60 && (r.nota_capitulo_1 || 0) < 90).map((r, i) => (
-                  <div 
-                    key={r.Usuario} 
-                    className="bg-white p-6 rounded-[1.5rem] border-2 border-slate-200 shadow-[0_10px_30px_rgba(148,163,184,0.15)] animate-fade-up hover:-translate-y-1 hover:shadow-slate-200/50 transition-all duration-300 cursor-default group" 
-                    style={{ animationDelay: `${i * 0.1 + 0.2}s` }}
-                  >
-                    <div className="flex flex-col items-center gap-3 text-center">
-                      <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 font-black text-sm border border-slate-200 group-hover:scale-110 transition-transform">
-                        {Math.round(r.nota_capitulo_1 || 0)}%
+                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 60 && (r.nota_capitulo_1 || 0) < 90).map((r, i) => {
+                  const isMe = r.Usuario === student.Usuario;
+                  return (
+                    <div 
+                      key={r.Usuario} 
+                      className={`bg-white p-6 rounded-[1.5rem] border-2 shadow-[0_10px_30px_rgba(148,163,184,0.15)] animate-fade-up hover:scale-105 hover:brightness-110 hover:shadow-slate-200/50 transition-all duration-300 cursor-default group relative overflow-hidden ${isMe ? 'border-slate-400 bg-slate-50/30 ring-2 ring-slate-200' : 'border-slate-200'}`} 
+                      style={{ animationDelay: `${i * 0.1 + 0.2}s` }}
+                    >
+                      {isMe && (
+                        <div className="absolute top-0 right-0 bg-slate-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl shadow-md z-20 animate-pulse">
+                          ¡TÚ!
+                        </div>
+                      )}
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 font-black text-sm border border-slate-200 group-hover:scale-110 transition-transform">
+                          {Math.round(r.nota_capitulo_1 || 0)}%
+                        </div>
+                        <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-slate-900' : 'text-gray-700'}`}>{r.Nombre || r.Usuario}</span>
                       </div>
-                      <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -330,20 +365,28 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <h4 className="font-black text-yellow-800 text-xs uppercase tracking-widest">Oro (90-99%)</h4>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 90 && (r.nota_capitulo_1 || 0) < 100).map((r, i) => (
-                  <div 
-                    key={r.Usuario} 
-                    className="bg-white p-6 rounded-[1.5rem] border-2 border-yellow-400 shadow-[0_15px_40px_rgba(250,204,21,0.2)] animate-fade-up hover:-translate-y-1 hover:shadow-yellow-200/60 transition-all duration-300 cursor-default group ring-4 ring-yellow-50" 
-                    style={{ animationDelay: `${i * 0.1 + 0.4}s` }}
-                  >
-                    <div className="flex flex-col items-center gap-3 text-center">
-                      <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600 font-black text-sm border border-yellow-200 group-hover:scale-110 transition-transform">
-                        {Math.round(r.nota_capitulo_1 || 0)}%
+                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 90 && (r.nota_capitulo_1 || 0) < 100).map((r, i) => {
+                  const isMe = r.Usuario === student.Usuario;
+                  return (
+                    <div 
+                      key={r.Usuario} 
+                      className={`bg-white p-6 rounded-[1.5rem] border-2 shadow-[0_15px_40px_rgba(250,204,21,0.2)] animate-fade-up hover:scale-105 hover:brightness-110 hover:shadow-yellow-200/60 transition-all duration-300 cursor-default group ring-4 ${isMe ? 'border-yellow-500 bg-yellow-50/30 ring-yellow-200' : 'border-yellow-400 ring-yellow-50'} relative overflow-hidden`} 
+                      style={{ animationDelay: `${i * 0.1 + 0.4}s` }}
+                    >
+                      {isMe && (
+                        <div className="absolute top-0 right-0 bg-yellow-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl shadow-md z-20 animate-pulse">
+                          ¡TÚ!
+                        </div>
+                      )}
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600 font-black text-sm border border-yellow-200 group-hover:scale-110 transition-transform">
+                          {Math.round(r.nota_capitulo_1 || 0)}%
+                        </div>
+                        <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-yellow-900' : 'text-gray-800'}`}>{r.Nombre || r.Usuario}</span>
                       </div>
-                      <span className="font-black text-gray-800 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -356,31 +399,40 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <h4 className="font-black text-white text-xs uppercase tracking-widest relative z-10">Diamante (100%)</h4>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 100).map((r, i) => (
-                  <div 
-                    key={r.Usuario} 
-                    className="diamond-bg-animated p-1 rounded-[1.6rem] shadow-[0_20px_50px_rgba(34,211,238,0.3)] animate-fade-up relative overflow-hidden group hover:-translate-y-2 hover:shadow-cyan-300/50 transition-all duration-500 cursor-default" 
-                    style={{ animationDelay: `${i * 0.1 + 0.6}s` }}
-                  >
-                    <div className="bg-white p-6 rounded-[1.3rem] flex flex-col items-center gap-3 relative z-10">
-                      <div className="w-10 h-10 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-600 font-black text-sm border border-cyan-100 group-hover:rotate-12 transition-transform">
-                        100
+                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 100).map((r, i) => {
+                  const isMe = r.Usuario === student.Usuario;
+                  return (
+                    <div 
+                      key={r.Usuario} 
+                      className={`diamond-bg-animated p-1 rounded-[1.6rem] shadow-[0_20px_50px_rgba(34,211,238,0.3)] animate-fade-up relative overflow-hidden group hover:scale-105 hover:brightness-110 hover:shadow-cyan-300/50 transition-all duration-500 cursor-default ${isMe ? 'ring-4 ring-cyan-400 ring-offset-2' : ''}`} 
+                      style={{ animationDelay: `${i * 0.1 + 0.6}s` }}
+                    >
+                      {isMe && (
+                        <div className="absolute top-0 right-0 bg-white text-cyan-600 text-[8px] font-black px-3 py-1 rounded-bl-xl shadow-md z-20 animate-pulse">
+                          ¡TÚ!
+                        </div>
+                      )}
+                      <div className="bg-white p-6 rounded-[1.3rem] flex flex-col items-center gap-3 relative z-10">
+                        <div className="w-10 h-10 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-600 font-black text-sm border border-cyan-100 group-hover:rotate-12 transition-transform">
+                          100
+                        </div>
+                        <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-cyan-900' : 'text-gray-900'}`}>{r.Nombre || r.Usuario}</span>
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <i className="fas fa-sparkles text-cyan-400 text-xs animate-ping"></i>
+                        </div>
                       </div>
-                      <span className="font-black text-gray-900 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <i className="fas fa-sparkles text-cyan-400 text-xs animate-ping"></i>
-                      </div>
+                      {/* Sparkles internos */}
+                      <div className="sparkle-effect top-2 left-3 scale-75"></div>
+                      <div className="sparkle-effect bottom-2 right-3 scale-75" style={{ animationDelay: '0.5s' }}></div>
+                      <div className="sparkle-effect top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-50" style={{ animationDelay: '1.2s' }}></div>
                     </div>
-                    {/* Sparkles internos */}
-                    <div className="sparkle-effect top-2 left-3 scale-75"></div>
-                    <div className="sparkle-effect bottom-2 right-3 scale-75" style={{ animationDelay: '0.5s' }}></div>
-                    <div className="sparkle-effect top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-50" style={{ animationDelay: '1.2s' }}></div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
-        </div>
+        )}
+      </div>
 
         {/* MEDALLA Y RECONOCIMIENTO */}
         <div className="mt-12 p-12 bg-gradient-to-br from-gray-900 to-indigo-950 border-8 border-white rounded-[4rem] flex flex-col md:flex-row items-center gap-12 shadow-[0_30px_80px_rgba(0,0,0,0.3)] relative overflow-hidden group">
@@ -428,24 +480,31 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
 
       {/* MODAL DIAMANTE 100% */}
       {showDiamondModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-fadeIn">
-          <div className="bg-white rounded-[4rem] p-16 max-w-3xl w-full text-center relative overflow-hidden shadow-[0_0_100px_rgba(34,211,238,0.3)] border-8 border-cyan-100">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 bg-black/90 backdrop-blur-2xl animate-fadeIn">
+          <div className="bg-white rounded-[3rem] md:rounded-[4rem] p-8 md:p-16 max-w-3xl w-full text-center relative overflow-y-auto max-h-[90vh] shadow-[0_0_100px_rgba(34,211,238,0.3)] border-8 border-cyan-100">
+            <button 
+              onClick={() => setShowDiamondModal(false)}
+              className="absolute top-6 right-8 text-gray-400 hover:text-cyan-500 transition-colors text-3xl"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 via-cyan-400 to-purple-500 animate-pulse"></div>
             
-            <div className="text-9xl mb-10 animate-float diamond-gradient diamond-shadow">
+            <div className="text-7xl md:text-9xl mb-8 md:mb-10 animate-float diamond-gradient diamond-shadow">
               <i className="fas fa-gem"></i>
             </div>
             
-            <h2 className="text-6xl font-black text-gray-900 tracking-tighter mb-6">¡FELICITACIONES MAESTRO!</h2>
-            <p className="text-2xl font-black text-cyan-600 uppercase tracking-[0.2em] mb-10">HAS ALCANZADO EL DIAMANTE LOGÍSTICO</p>
+            <h2 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tighter mb-4 md:mb-6">¡FELICITACIONES MAESTRO!</h2>
+            <p className="text-xl md:text-2xl font-black text-cyan-600 uppercase tracking-[0.2em] mb-8 md:mb-10">HAS ALCANZADO EL DIAMANTE LOGÍSTICO</p>
             
-            <p className="text-gray-500 text-xl font-medium leading-relaxed mb-12">
+            <p className="text-gray-500 text-lg md:text-xl font-medium leading-relaxed mb-10 md:mb-12">
               Has demostrado un dominio absoluto de todos los módulos del Capítulo 1. Tu capacidad de análisis y deducción te sitúa en la élite de los pensadores lógicos.
             </p>
             
             <button 
-              onClick={() => setShowDiamondModal(false)}
-              className="px-12 py-6 bg-cyan-500 text-white rounded-[2rem] font-black text-xl shadow-2xl hover:bg-cyan-600 transition-all transform hover:scale-105 active:scale-95"
+              onClick={() => { playSound('pop'); setShowDiamondModal(false); }}
+              className="w-full md:w-auto px-12 py-6 bg-cyan-500 text-white rounded-[2rem] font-black text-xl shadow-2xl hover:bg-cyan-600 transition-all transform hover:scale-105 active:scale-95"
             >
               CONTINUAR MI CAMINO
             </button>

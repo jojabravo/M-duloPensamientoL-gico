@@ -22,6 +22,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('Todos');
+  const [viewMode, setViewMode] = useState<'table' | 'gallery'>('table');
+  const [showInProcess, setShowInProcess] = useState(false);
 
   // Handle blocking logic
   useEffect(() => {
@@ -248,6 +250,13 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               ))}
             </select>
             <button 
+              onClick={() => setViewMode(viewMode === 'table' ? 'gallery' : 'table')}
+              className="px-6 py-4 bg-purple-100 text-purple-700 rounded-2xl font-black hover:bg-purple-200 transition-all shadow-sm flex items-center gap-2 transform hover:-translate-y-1 active:scale-95"
+            >
+              <i className={`fas ${viewMode === 'table' ? 'fa-th-large' : 'fa-table'}`}></i>
+              <span className="hidden sm:inline">{viewMode === 'table' ? 'Ver Galería de Logros' : 'Ver Tabla de Control'}</span>
+            </button>
+            <button 
               onClick={exportToCSV}
               disabled={filteredStudents.length === 0}
               className="px-6 py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 transition-all shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-95"
@@ -264,96 +273,252 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
           </div>
         </header>
 
-        <div className="overflow-x-auto -mx-8 md:mx-0">
-          <table className="w-full border-separate border-spacing-y-4">
-            <thead>
-              <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-                <th className="px-6 py-4 text-left">Estudiante</th>
-                <th className="px-6 py-4 text-center">Grado</th>
-                <th className="px-6 py-4 text-center">Última Conexión</th>
-                <th className="px-6 py-4 text-center">Cap. 1: Orden.</th>
-                <th className="px-6 py-4 text-center">Cap. 1: Lógica</th>
-                <th className="px-6 py-4 text-center">Cap. 1: Cuant.</th>
-                <th className="px-6 py-4 text-center">Cap. 1: Micro.</th>
-                <th className="px-6 py-4 text-center">Nota Final</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-20">
-                    <div className="animate-spin text-4xl text-purple-600 mb-4">
-                      <i className="fas fa-circle-notch"></i>
-                    </div>
-                    <p className="font-black text-gray-400 uppercase tracking-widest">Cargando Alumnos...</p>
-                  </td>
+        {viewMode === 'table' ? (
+          <div className="overflow-x-auto -mx-8 md:mx-0">
+            <table className="w-full border-separate border-spacing-y-4">
+              <thead>
+                <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                  <th className="px-6 py-4 text-left">Estudiante</th>
+                  <th className="px-6 py-4 text-center">Grado</th>
+                  <th className="px-6 py-4 text-center">Última Conexión</th>
+                  <th className="px-6 py-4 text-center">Cap. 1: Orden.</th>
+                  <th className="px-6 py-4 text-center">Cap. 1: Lógica</th>
+                  <th className="px-6 py-4 text-center">Cap. 1: Cuant.</th>
+                  <th className="px-6 py-4 text-center">Cap. 1: Micro.</th>
+                  <th className="px-6 py-4 text-center">Nota Final</th>
                 </tr>
-              ) : filteredStudents.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-20">
-                    <p className="font-black text-gray-400 uppercase tracking-widest">No se encontraron estudiantes</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredStudents.map((student) => (
-                  <tr key={student.Usuario} className="group">
-                    <td className="bg-gray-50 px-6 py-5 rounded-l-[2rem] border-y-2 border-l-2 border-transparent group-hover:border-purple-200 transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm font-black">
-                          {(student.Nombre || student.Usuario).charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-black text-gray-800">{student.Nombre || student.Usuario}</span>
-                          {student.Nombre && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">@{student.Usuario}</span>}
-                        </div>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-20">
+                      <div className="animate-spin text-4xl text-purple-600 mb-4">
+                        <i className="fas fa-circle-notch"></i>
                       </div>
+                      <p className="font-black text-gray-400 uppercase tracking-widest">Cargando Alumnos...</p>
                     </td>
-                    <td className="bg-gray-50 px-6 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
-                      <span className="bg-white px-4 py-1.5 rounded-full text-xs font-black text-gray-500 shadow-sm border border-gray-100">
-                        {student.Grado || 'N/A'}
-                      </span>
+                  </tr>
+                ) : filteredStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-20">
+                      <p className="font-black text-gray-400 uppercase tracking-widest">No se encontraron estudiantes</p>
                     </td>
-                    <td className="bg-gray-50 px-6 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
-                      <span className="text-xs font-bold text-gray-400">
-                        {formatColombiaTime(student.ultima_conexion)}
-                      </span>
-                    </td>
-                    
-                    {/* Progress Columns */}
-                    {[
-                      student.progreso_ordenamiento,
-                      student.progreso_proposiciones,
-                      student.progreso_cuantificadores,
-                      student.progreso_microbit
-                    ].map((val, idx) => (
-                      <td key={idx} className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
-                        <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
-                          <span className="text-[10px] font-black text-gray-400">{val || 0}%</span>
-                          <div className="w-full h-2 bg-white rounded-full overflow-hidden shadow-inner border border-gray-100">
-                            <div 
-                              className={`h-full transition-all duration-1000 ${getProgressColor(val || 0)}`}
-                              style={{ width: `${val || 0}%` }}
-                            ></div>
+                  </tr>
+                ) : (
+                  filteredStudents.map((student) => (
+                    <tr key={student.Usuario} className="group">
+                      <td className="bg-gray-50 px-6 py-5 rounded-l-[2rem] border-y-2 border-l-2 border-transparent group-hover:border-purple-200 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm font-black">
+                            {(student.Nombre || student.Usuario).charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-black text-gray-800">{student.Nombre || student.Usuario}</span>
+                            {student.Nombre && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">@{student.Usuario}</span>}
                           </div>
                         </div>
                       </td>
-                    ))}
-
-                    <td className="bg-gray-50 px-6 py-5 rounded-r-[2rem] text-center border-y-2 border-r-2 border-transparent group-hover:border-purple-200 transition-all">
-                      <div className="inline-flex flex-col items-center">
-                        <span className="text-xl font-black text-gray-800 leading-none">
-                          {student.nota_capitulo_1 || 0}
-                          <span className="text-[10px] text-purple-400 ml-0.5">%</span>
+                      <td className="bg-gray-50 px-6 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                        <span className="bg-white px-4 py-1.5 rounded-full text-xs font-black text-gray-500 shadow-sm border border-gray-100">
+                          {student.Grado || 'N/A'}
                         </span>
-                        <div className={`w-12 h-1 mt-1 rounded-full ${getProgressColor(student.nota_capitulo_1 || 0)}`}></div>
+                      </td>
+                      <td className="bg-gray-50 px-6 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                        <span className="text-xs font-bold text-gray-400">
+                          {formatColombiaTime(student.ultima_conexion)}
+                        </span>
+                      </td>
+                      
+                      {/* Progress Columns */}
+                      {[
+                        student.progreso_ordenamiento,
+                        student.progreso_proposiciones,
+                        student.progreso_cuantificadores,
+                        student.progreso_microbit
+                      ].map((val, idx) => (
+                        <td key={idx} className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                          <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
+                            <span className="text-[10px] font-black text-gray-400">{val || 0}%</span>
+                            <div className="w-full h-2 bg-white rounded-full overflow-hidden shadow-inner border border-gray-100">
+                              <div 
+                                className={`h-full transition-all duration-1000 ${getProgressColor(val || 0)}`}
+                                style={{ width: `${val || 0}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </td>
+                      ))}
+
+                      <td className="bg-gray-50 px-6 py-5 rounded-r-[2rem] text-center border-y-2 border-r-2 border-transparent group-hover:border-purple-200 transition-all">
+                        <div className="inline-flex flex-col items-center">
+                          <span className="text-xl font-black text-gray-800 leading-none">
+                            {student.nota_capitulo_1 || 0}
+                            <span className="text-[10px] text-purple-400 ml-0.5">%</span>
+                          </span>
+                          <div className={`w-12 h-1 mt-1 rounded-full ${getProgressColor(student.nota_capitulo_1 || 0)}`}></div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="animate-fadeIn">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-black text-gray-800 tracking-tighter mb-2">Galería de Logros Maestra</h3>
+              <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Visualización de Excelencia por Grado</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* COLUMNA BRONCE */}
+              <div className="flex flex-col gap-4">
+                <div className="bg-orange-50/50 p-4 rounded-[2rem] border-2 border-orange-100 text-center">
+                  <i className="fas fa-trophy text-orange-400 text-2xl mb-1"></i>
+                  <h4 className="font-black text-orange-800 text-[10px] uppercase tracking-widest">Bronce (30-59%)</h4>
+                </div>
+                <div className="space-y-4">
+                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 30 && (r.nota_capitulo_1 || 0) < 60).map((r, i) => (
+                    <div 
+                      key={r.Usuario} 
+                      className="bg-white p-6 rounded-[1.5rem] border-2 border-orange-100 shadow-[0_10px_30px_rgba(251,146,60,0.1)] animate-fade-up hover:scale-105 hover:brightness-110 transition-all duration-300 group" 
+                      style={{ animationDelay: `${i * 0.05}s` }}
+                    >
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 font-black text-sm border border-orange-100">
+                          {Math.round(r.nota_capitulo_1 || 0)}%
+                        </div>
+                        <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
                       </div>
-                    </td>
-                  </tr>
-                ))
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* COLUMNA PLATA */}
+              <div className="flex flex-col gap-4">
+                <div className="bg-slate-50/50 p-4 rounded-[2rem] border-2 border-slate-200 text-center">
+                  <i className="fas fa-trophy text-slate-400 text-2xl mb-1"></i>
+                  <h4 className="font-black text-slate-800 text-[10px] uppercase tracking-widest">Plata (60-89%)</h4>
+                </div>
+                <div className="space-y-4">
+                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 60 && (r.nota_capitulo_1 || 0) < 90).map((r, i) => (
+                    <div 
+                      key={r.Usuario} 
+                      className="bg-white p-6 rounded-[1.5rem] border-2 border-slate-200 shadow-[0_10px_30px_rgba(148,163,184,0.15)] animate-fade-up hover:scale-105 hover:brightness-110 transition-all duration-300 group" 
+                      style={{ animationDelay: `${i * 0.05 + 0.1}s` }}
+                    >
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 font-black text-sm border border-slate-200">
+                          {Math.round(r.nota_capitulo_1 || 0)}%
+                        </div>
+                        <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* COLUMNA ORO */}
+              <div className="flex flex-col gap-4">
+                <div className="bg-yellow-50/50 p-4 rounded-[2rem] border-2 border-yellow-200 text-center shadow-[0_0_20px_rgba(250,204,21,0.1)]">
+                  <i className="fas fa-trophy text-yellow-400 text-2xl mb-1 drop-shadow-sm"></i>
+                  <h4 className="font-black text-yellow-800 text-[10px] uppercase tracking-widest">Oro (90-99%)</h4>
+                </div>
+                <div className="space-y-4">
+                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 90 && (r.nota_capitulo_1 || 0) < 100).map((r, i) => (
+                    <div 
+                      key={r.Usuario} 
+                      className="bg-white p-6 rounded-[1.5rem] border-2 border-yellow-400 shadow-[0_15px_40px_rgba(250,204,21,0.2)] animate-fade-up hover:scale-105 hover:brightness-110 transition-all duration-300 group ring-4 ring-yellow-50" 
+                      style={{ animationDelay: `${i * 0.05 + 0.2}s` }}
+                    >
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600 font-black text-sm border border-yellow-200">
+                          {Math.round(r.nota_capitulo_1 || 0)}%
+                        </div>
+                        <span className="font-black text-gray-800 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* COLUMNA DIAMANTE */}
+              <div className="flex flex-col gap-4">
+                <div className="diamond-bg-animated p-4 rounded-[2rem] text-center shadow-xl relative overflow-hidden">
+                  <div className="sparkle-effect top-2 left-4"></div>
+                  <div className="sparkle-effect bottom-2 right-4" style={{ animationDelay: '1s' }}></div>
+                  <i className="fas fa-gem text-white text-2xl mb-1 drop-shadow-md"></i>
+                  <h4 className="font-black text-white text-[10px] uppercase tracking-widest relative z-10">Diamante (100%)</h4>
+                </div>
+                <div className="space-y-4">
+                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 100).map((r, i) => (
+                    <div 
+                      key={r.Usuario} 
+                      className="diamond-bg-animated p-1 rounded-[1.6rem] shadow-[0_20px_50px_rgba(34,211,238,0.3)] animate-fade-up relative overflow-hidden group hover:scale-105 hover:brightness-110 transition-all duration-500" 
+                      style={{ animationDelay: `${i * 0.05 + 0.3}s` }}
+                    >
+                      <div className="bg-white p-6 rounded-[1.3rem] flex flex-col items-center gap-3 relative z-10">
+                        <div className="w-10 h-10 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-600 font-black text-sm border border-cyan-100 group-hover:rotate-12 transition-transform">
+                          100
+                        </div>
+                        <span className="font-black text-gray-900 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <i className="fas fa-sparkles text-cyan-400 text-xs animate-ping"></i>
+                        </div>
+                      </div>
+                      <div className="sparkle-effect top-2 left-3 scale-75"></div>
+                      <div className="sparkle-effect bottom-2 right-3 scale-75" style={{ animationDelay: '0.5s' }}></div>
+                      <div className="sparkle-effect top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-50" style={{ animationDelay: '1.2s' }}></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* SECCIÓN ESTUDIANTES EN PROCESO (<30%) */}
+            <div className="mt-12 border-t-2 border-gray-100 pt-12">
+              <button 
+                onClick={() => setShowInProcess(!showInProcess)}
+                className="w-full flex items-center justify-between p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 shadow-sm">
+                    <i className="fas fa-user-clock"></i>
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-black text-gray-700 uppercase tracking-tighter">Estudiantes en Proceso de Activación (&lt;30%)</h4>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Alumnos que requieren apoyo pedagógico</p>
+                  </div>
+                </div>
+                <i className={`fas fa-chevron-${showInProcess ? 'up' : 'down'} text-gray-400 group-hover:text-purple-600 transition-all`}></i>
+              </button>
+
+              {showInProcess && (
+                <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fadeIn">
+                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) < 30).length === 0 ? (
+                    <div className="col-span-full py-10 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                      <p className="font-black text-gray-400 uppercase tracking-widest text-xs">Todos los estudiantes de este grado han superado el 30%</p>
+                    </div>
+                  ) : (
+                    filteredStudents.filter(r => (r.nota_capitulo_1 || 0) < 30).map((r) => (
+                      <div key={r.Usuario} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-700 text-sm truncate max-w-[120px]">{r.Nombre || r.Usuario}</span>
+                          <span className="text-[10px] text-gray-400 font-black">@{r.Usuario}</span>
+                        </div>
+                        <div className="bg-rose-50 text-rose-600 px-3 py-1 rounded-lg font-black text-xs">
+                          {Math.round(r.nota_capitulo_1 || 0)}%
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </div>
+        )}
 
         <footer className="mt-12 flex flex-col md:flex-row justify-between items-center gap-6 text-gray-400 font-bold text-sm">
           <p>Total Estudiantes: {filteredStudents.length} / {students.length}</p>
