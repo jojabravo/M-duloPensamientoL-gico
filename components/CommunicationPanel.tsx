@@ -13,10 +13,10 @@ interface Props {
 const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = false }) => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [messages, setMessages] = useState<MailMessage[]>([]);
-  const [showMailModal, setShowMailModal] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchData();
@@ -36,6 +36,12 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
       supabase.removeChannel(messagesChannel);
     };
   }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -76,7 +82,6 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
 
     if (!error) {
       setNewMessage('');
-      setShowMailModal(false);
       playSound('pop');
       fetchData();
     } else {
@@ -87,156 +92,148 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
 
   const hasUnread = messages.some(m => m.receptor === student.Usuario && !m.leido);
 
+  if (compact) {
+    return (
+      <div className="relative group">
+        <button 
+          className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2 relative"
+          onClick={() => {
+            const el = document.getElementById('student-mailbox-section');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth' });
+              playSound('pop');
+            }
+          }}
+        >
+          <i className="fas fa-envelope"></i>
+          <span>Buzón</span>
+          {hasUnread && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
+          )}
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-12 animate-fadeIn">
       {/* SECCIÓN ANUNCIOS */}
       {(mode === 'all' || mode === 'announcements') && (
         <section>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
-            <i className="fas fa-bullhorn"></i>
-          </div>
-          <div>
-            <h3 className="text-xl font-black text-gray-800 tracking-tighter">Avisos del Profe Jorge</h3>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Comunicados oficiales para tu grado</p>
-          </div>
-        </div>
-
-        <div className="grid gap-4">
-          {announcements.length === 0 ? (
-            <div className="bg-white/50 border-2 border-dashed border-gray-100 p-8 rounded-[2rem] text-center">
-              <p className="text-gray-400 font-bold text-sm">No hay avisos recientes</p>
-            </div>
-          ) : (
-            announcements.map((ann) => (
-              <div key={ann.id} className="bg-white p-6 rounded-[1.5rem] border-2 border-amber-50 shadow-sm hover:shadow-md transition-all flex gap-4 items-start group">
-                <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 shrink-0 group-hover:scale-110 transition-transform">
-                  <i className="fas fa-bell"></i>
-                </div>
-                <div>
-                  <p className="text-gray-700 font-medium leading-relaxed">{ann.mensaje}</p>
-                  <p className="text-[10px] text-gray-400 font-black mt-2 uppercase tracking-widest">
-                    {new Date(ann.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-      )}
-
-      {/* SECCIÓN BUZÓN */}
-      {(mode === 'all' || mode === 'mailbox') && (
-        compact ? (
-          <button 
-            onClick={() => { playSound('pop'); setShowMailModal(true); }}
-            className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2 relative"
-          >
-            <i className="fas fa-envelope"></i>
-            <span>Buzón</span>
-            {hasUnread && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
-            )}
-          </button>
-        ) : (
-          <section className="bg-gradient-to-br from-purple-50 to-indigo-50 p-8 rounded-[2.5rem] border-2 border-purple-100 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-purple-600 shadow-lg relative">
-              <i className="fas fa-envelope-open-text text-2xl"></i>
-              {hasUnread && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
-              )}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
+              <i className="fas fa-bullhorn"></i>
             </div>
             <div>
-              <h3 className="text-2xl font-black text-gray-800 tracking-tighter">Buzón Privado</h3>
-              <p className="text-gray-500 font-medium">¿Tienes dudas? Escríbele directamente al Profe Jorge</p>
+              <h3 className="text-xl font-black text-gray-800 tracking-tighter">Avisos del Profe Jorge</h3>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Comunicados oficiales para tu grado</p>
             </div>
           </div>
 
-          <button 
-            onClick={() => { playSound('pop'); setShowMailModal(true); }}
-            className="px-8 py-4 bg-purple-600 text-white rounded-2xl font-black shadow-xl hover:bg-purple-700 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-3"
-          >
-            <i className="fas fa-paper-plane"></i>
-            ESCRIBIR AL PROFE JORGE
-          </button>
-        </div>
-
-        {/* LISTA DE MENSAJES RECIENTES (OPCIONAL) */}
-        {messages.length > 0 && (
-          <div className="mt-8 space-y-3">
-            <p className="text-[10px] text-purple-400 font-black uppercase tracking-[0.2em] mb-4">Conversaciones recientes</p>
-            {messages.slice(0, 3).map((msg) => (
-              <div key={msg.id} className={`p-4 rounded-xl border shadow-sm flex justify-between items-center ${msg.emisor === student.Usuario ? 'bg-white border-gray-100' : 'bg-purple-100 border-purple-200'}`}>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-gray-700 line-clamp-1">{msg.mensaje}</span>
-                  <span className="text-[9px] text-gray-400 font-black uppercase mt-1">
-                    {msg.emisor === student.Usuario ? 'Tú' : 'Profe Jorge'} • {new Date(msg.fecha).toLocaleDateString()}
-                  </span>
-                </div>
-                {!msg.leido && msg.receptor === student.Usuario && (
-                  <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
-                )}
+          <div className="grid gap-4">
+            {announcements.length === 0 ? (
+              <div className="bg-white/50 border-2 border-dashed border-gray-100 p-8 rounded-[2rem] text-center">
+                <p className="text-gray-400 font-bold text-sm">No hay avisos recientes</p>
               </div>
-            ))}
+            ) : (
+              announcements.map((ann) => (
+                <div key={ann.id} className="bg-white p-6 rounded-[1.5rem] border-2 border-amber-50 shadow-sm hover:shadow-md transition-all flex gap-4 items-start group">
+                  <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 shrink-0 group-hover:scale-110 transition-transform">
+                    <i className="fas fa-bell"></i>
+                  </div>
+                  <div>
+                    <p className="text-gray-700 font-medium leading-relaxed">{ann.mensaje}</p>
+                    <p className="text-[10px] text-gray-400 font-black mt-2 uppercase tracking-widest">
+                      {new Date(ann.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-        )}
-      </section>
-        )
+        </section>
       )}
 
-      {/* MODAL PARA ESCRIBIR MENSAJE */}
-      {showMailModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-[3rem] p-10 max-w-xl w-full shadow-2xl border-8 border-purple-50 relative animate-scaleIn">
-            <button 
-              onClick={() => setShowMailModal(false)}
-              className="absolute top-6 right-8 text-gray-400 hover:text-red-500 transition-colors text-2xl"
-            >
-              <i className="fas fa-times"></i>
-            </button>
-
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 text-2xl mx-auto mb-4">
-                <i className="fas fa-comment-dots"></i>
+      {/* SECCIÓN BUZÓN INTEGRADO */}
+      {(mode === 'all' || mode === 'mailbox') && (
+        <section id="student-mailbox-section" className="bg-white rounded-[3rem] shadow-2xl border-8 border-indigo-50 overflow-hidden flex flex-col h-[600px] animate-fade-up">
+          {/* CABECERA DEL BUZÓN */}
+          <div className="p-8 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-lg relative">
+                <i className="fas fa-envelope-open-text text-2xl"></i>
+                {hasUnread && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
+                )}
               </div>
-              <h4 className="text-2xl font-black text-gray-800 tracking-tighter">Enviar Mensaje Privado</h4>
-              <p className="text-gray-500 font-medium mt-1">Tu mensaje será recibido únicamente por el Profe Jorge</p>
+              <div>
+                <h3 className="text-2xl font-black text-gray-800 tracking-tighter">Mi Buzón con el Profe</h3>
+                <p className="text-gray-500 font-medium text-sm">Conversación privada con el Profe Jorge</p>
+              </div>
             </div>
+            <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+              Conectado
+            </div>
+          </div>
 
-            <textarea 
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Escribe aquí tu duda o comentario..."
-              className="w-full h-40 p-6 bg-gray-50 border-2 border-gray-100 rounded-[2rem] focus:border-purple-500 outline-none transition-all font-medium text-gray-700 resize-none"
-            ></textarea>
+          {/* HISTORIAL DE CONVERSACIÓN (BURBUJAS) */}
+          <div 
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-gray-50/20"
+          >
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center opacity-30">
+                <i className="fas fa-comments text-5xl mb-4"></i>
+                <p className="font-black text-xs uppercase tracking-widest">No hay mensajes aún. ¡Escríbele al profe!</p>
+              </div>
+            ) : (
+              [...messages].reverse().map((msg, idx) => {
+                const isMe = msg.emisor === student.Usuario;
+                return (
+                  <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-up`}>
+                    <div className={`max-w-[80%] md:max-w-[70%] p-5 rounded-[2rem] shadow-sm relative ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none border border-gray-100'}`}>
+                      <p className="text-sm leading-relaxed font-medium">{msg.mensaje}</p>
+                      <div className={`flex items-center gap-2 mt-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <span className={`text-[9px] font-bold uppercase tracking-tighter ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
+                          {new Date(msg.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {isMe && (
+                          <i className={`fas fa-check-double text-[8px] ${msg.leido ? 'text-emerald-300' : 'text-indigo-300'}`}></i>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
 
-            <div className="mt-8 flex gap-4">
-              <button 
-                onClick={() => setShowMailModal(false)}
-                className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black hover:bg-gray-200 transition-all"
-              >
-                CANCELAR
-              </button>
+          {/* CAJA DE RESPUESTA ESTILIZADA */}
+          <div className="p-6 bg-white border-t border-gray-100">
+            <div className="flex items-center gap-4 bg-gray-50 rounded-[2.5rem] p-2 border-2 border-gray-100 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
+              <input 
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder="Escribe tu duda o comentario..."
+                className="flex-1 bg-transparent border-none outline-none px-6 py-4 font-medium text-gray-700"
+              />
               <button 
                 onClick={sendMessage}
                 disabled={sending || !newMessage.trim()}
-                className="flex-[2] py-4 bg-purple-600 text-white rounded-2xl font-black shadow-xl hover:bg-purple-700 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                className="w-14 h-14 bg-indigo-600 text-white rounded-[1.5rem] flex items-center justify-center shadow-lg hover:bg-indigo-700 transition-all transform active:scale-90 disabled:opacity-50"
               >
                 {sending ? (
                   <i className="fas fa-circle-notch animate-spin"></i>
                 ) : (
                   <i className="fas fa-paper-plane"></i>
                 )}
-                ENVIAR MENSAJE
               </button>
             </div>
           </div>
-        </div>
+        </section>
       )}
     </div>
   );

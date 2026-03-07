@@ -104,6 +104,11 @@ const CourseMenu: React.FC<Props> = ({ student, onSelect, onShowResults }) => {
           Los resultados se muestran por cada capítulo y subcontenido, discriminado por <strong>Ejemplos</strong> (Simulaciones) y <strong>Retos</strong> (Evaluación Final).
         </p>
       </div>
+
+      {/* BUZÓN INTEGRADO AL FINAL */}
+      <div className="mt-16">
+        <CommunicationPanel student={student} mode="mailbox" />
+      </div>
     </div>
   );
 };
