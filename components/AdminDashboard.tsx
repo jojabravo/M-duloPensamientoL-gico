@@ -122,7 +122,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     if (!chatInput.trim()) return;
     
     const recipients = isMassMode ? selectedMassRecipients : (selectedChatStudent ? [selectedChatStudent] : []);
-    if (recipients.length === 0) return;
+    if (recipients.length === 0) {
+      alert('Por favor, selecciona al menos un destinatario.');
+      return;
+    }
 
     setIsSendingChat(true);
     const messagesToInsert = recipients.map(studentId => ({
@@ -133,40 +136,58 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
       leido: false
     }));
 
-    const { error } = await supabase
-      .from('buzon')
-      .insert(messagesToInsert);
-    
-    if (!error) {
-      setChatInput('');
-      playSound('pop');
-      fetchCommunicationData();
-      if (isMassMode) {
-        setIsMassMode(false);
-        setSelectedMassRecipients([]);
-        alert(`Mensaje enviado a ${recipients.length} estudiantes.`);
+    try {
+      const { error } = await supabase
+        .from('buzon')
+        .insert(messagesToInsert);
+      
+      if (!error) {
+        setChatInput('');
+        playSound('pop');
+        fetchCommunicationData();
+        alert('¡Mensaje enviado con éxito!');
+        if (isMassMode) {
+          setIsMassMode(false);
+          setSelectedMassRecipients([]);
+        }
+      } else {
+        console.error('Error al enviar mensaje:', error);
+        alert('Error al enviar el mensaje. Revisa la consola.');
       }
+    } catch (err) {
+      console.error('Excepción al enviar mensaje:', err);
+      alert('Ocurrió un error inesperado.');
+    } finally {
+      setIsSendingChat(false);
     }
-    setIsSendingChat(false);
   };
 
   const publishAnnouncement = async () => {
     if (!newAnnouncement.trim()) return;
-    const { error } = await supabase
-      .from('anuncios')
-      .insert([
-        {
-          mensaje: newAnnouncement.trim(),
-          grado: announcementGrade,
-          fecha: new Date().toISOString(),
-          autor: 'Jorge'
-        }
-      ]);
     
-    if (!error) {
-      setNewAnnouncement('');
-      playSound('pop');
-      alert('Anuncio publicado con éxito');
+    try {
+      const { error } = await supabase
+        .from('anuncios')
+        .insert([
+          {
+            mensaje: newAnnouncement.trim(),
+            grado: announcementGrade,
+            fecha: new Date().toISOString(),
+            autor: 'Jorge'
+          }
+        ]);
+      
+      if (!error) {
+        setNewAnnouncement('');
+        playSound('pop');
+        alert('¡Anuncio publicado con éxito!');
+      } else {
+        console.error('Error al publicar anuncio:', error);
+        alert('Error al publicar el anuncio. Revisa la consola.');
+      }
+    } catch (err) {
+      console.error('Excepción al publicar anuncio:', err);
+      alert('Ocurrió un error inesperado.');
     }
   };
 
