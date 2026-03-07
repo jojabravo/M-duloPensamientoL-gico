@@ -20,6 +20,60 @@
             background-position: 0 0, 10px 10px;
             opacity: 0.1;
         }
+        @keyframes diamond-shine {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .diamond-gradient {
+            background: linear-gradient(
+                45deg,
+                #22d3ee,
+                #818cf8,
+                #c084fc,
+                #22d3ee
+            );
+            background-size: 300% 300%;
+            animation: diamond-shine 3s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        .diamond-bg-animated {
+            background: linear-gradient(
+                45deg,
+                #22d3ee,
+                #818cf8,
+                #c084fc,
+                #22d3ee
+            );
+            background-size: 400% 400%;
+            animation: diamond-shine 5s ease infinite;
+        }
+        .sparkle-effect {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px white, 0 0 20px #22d3ee;
+            animation: sparkle 2s infinite;
+        }
+        .diamond-shadow {
+            filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.6));
+        }
+        .animate-fade-up {
+            animation: fade-up 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fade-up {
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 <script type="importmap">
 {
