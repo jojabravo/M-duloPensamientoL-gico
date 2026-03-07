@@ -53,3 +53,20 @@ export interface Person {
   name: string;
   color: string;
 }
+
+export interface Announcement {
+  id: string;
+  mensaje: string;
+  grado: string; // '6.1', '7.3', etc. or 'TODOS'
+  fecha: string;
+  autor: string;
+}
+
+export interface MailMessage {
+  id: string;
+  emisor: string;
+  receptor: string;
+  mensaje: string;
+  fecha: string;
+  leido: boolean;
+}

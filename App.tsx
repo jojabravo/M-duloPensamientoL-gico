@@ -21,6 +21,7 @@ import MicrobitGame from './components/MicrobitGame';
 import Challenge from './components/Challenge';
 import ResultsDashboard from './components/ResultsDashboard';
 import AdminDashboard from './components/AdminDashboard';
+import CommunicationPanel from './components/CommunicationPanel';
 import Footer from './components/Footer';
 
 const App: React.FC = () => {
@@ -233,7 +234,7 @@ const App: React.FC = () => {
       case View.WELCOME:
         return <Welcome onLogin={handleLogin} onAdmin={handleAdminAccess} />;
       case View.MENU:
-        return <CourseMenu onSelect={() => setCurrentView(View.CHAPTER_1_MENU)} onShowResults={() => setCurrentView(View.RESULTS)} />;
+        return <CourseMenu student={student!} onSelect={() => setCurrentView(View.CHAPTER_1_MENU)} onShowResults={() => setCurrentView(View.RESULTS)} />;
       case View.CHAPTER_1_MENU:
         return (
           <ChapterOneMenu 
@@ -301,6 +302,7 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <CommunicationPanel student={student!} mode="mailbox" compact={true} />
               <button onClick={handleLogout} className="px-4 py-2 bg-red-50 text-red-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">
                 <i className="fas fa-sign-out-alt mr-2"></i> Salir
               </button>

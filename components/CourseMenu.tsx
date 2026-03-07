@@ -1,13 +1,16 @@
 
 import React from 'react';
 import { playSound } from '../audio';
+import { StudentProfile } from '../types';
+import CommunicationPanel from './CommunicationPanel';
 
 interface Props {
+  student: StudentProfile;
   onSelect: () => void;
   onShowResults: () => void;
 }
 
-const CourseMenu: React.FC<Props> = ({ onSelect, onShowResults }) => {
+const CourseMenu: React.FC<Props> = ({ student, onSelect, onShowResults }) => {
   const sections = [
     { 
       id: 'verbal', 
@@ -45,6 +48,11 @@ const CourseMenu: React.FC<Props> = ({ onSelect, onShowResults }) => {
 
   return (
     <div className="max-w-5xl mx-auto animate-fadeIn px-4">
+      {/* ANUNCIOS AL PRINCIPIO */}
+      <div className="mb-12">
+        <CommunicationPanel student={student} mode="announcements" />
+      </div>
+
       <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
         <div className="text-center md:text-left">
           <h2 className="text-2xl md:text-3xl font-black text-gray-800">Unidades de Aprendizaje</h2>

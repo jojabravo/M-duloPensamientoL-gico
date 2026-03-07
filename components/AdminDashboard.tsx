@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../src/supabaseClient';
-import { StudentProfile } from '../types';
+import { StudentProfile, MailMessage, Announcement } from '../types';
 import { playSound } from '../audio';
 
 interface Props {
@@ -25,6 +25,21 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   const [viewMode, setViewMode] = useState<'table' | 'gallery'>('table');
   const [showInProcess, setShowInProcess] = useState(false);
 
+  // Unified Messaging Center States
+  const [allBuzonMessages, setAllBuzonMessages] = useState<MailMessage[]>([]);
+  const [selectedChatStudent, setSelectedChatStudent] = useState<string | null>(null);
+  const [chatInput, setChatInput] = useState('');
+  const [isSendingChat, setIsSendingChat] = useState(false);
+  const [chatSidebarSearch, setChatSidebarSearch] = useState('');
+  const [chatSidebarGrade, setChatSidebarGrade] = useState('Todos');
+  const [selectedMassRecipients, setSelectedMassRecipients] = useState<string[]>([]);
+  const [isMassMode, setIsMassMode] = useState(false);
+  const [commLoading, setCommLoading] = useState(false);
+
+  // Legacy/Other communication states (keeping for announcements)
+  const [newAnnouncement, setNewAnnouncement] = useState('');
+  const [announcementGrade, setAnnouncementGrade] = useState('TODOS');
+
   // Handle blocking logic
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -47,6 +62,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
       setIsAuthenticated(true);
       playSound('pop');
       fetchStudents();
+      fetchCommunicationData();
     } else {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
@@ -71,6 +87,110 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
       setStudents(data);
     }
     setLoading(false);
+  };
+
+  const fetchCommunicationData = async () => {
+    setCommLoading(true);
+    // Fetch all messages involving Jorge
+    const { data: msgData } = await supabase
+      .from('buzon')
+      .select('*')
+      .or(`emisor.eq.Jorge,receptor.eq.Jorge`)
+      .order('fecha', { ascending: true });
+    
+    if (msgData) setAllBuzonMessages(msgData);
+    setCommLoading(false);
+  };
+
+  const markAsRead = async (studentId: string) => {
+    const unreadFromStudent = allBuzonMessages.filter(m => m.emisor === studentId && m.receptor === 'Jorge' && !m.leido);
+    if (unreadFromStudent.length === 0) return;
+
+    const { error } = await supabase
+      .from('buzon')
+      .update({ leido: true })
+      .in('id', unreadFromStudent.map(m => m.id));
+    
+    if (!error) {
+      setAllBuzonMessages(prev => prev.map(m => 
+        (m.emisor === studentId && m.receptor === 'Jorge') ? { ...m, leido: true } : m
+      ));
+    }
+  };
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim()) return;
+    
+    const recipients = isMassMode ? selectedMassRecipients : (selectedChatStudent ? [selectedChatStudent] : []);
+    if (recipients.length === 0) return;
+
+    setIsSendingChat(true);
+    const messagesToInsert = recipients.map(studentId => ({
+      emisor: 'Jorge',
+      receptor: studentId,
+      mensaje: chatInput.trim(),
+      fecha: new Date().toISOString(),
+      leido: false
+    }));
+
+    const { error } = await supabase
+      .from('buzon')
+      .insert(messagesToInsert);
+    
+    if (!error) {
+      setChatInput('');
+      playSound('pop');
+      fetchCommunicationData();
+      if (isMassMode) {
+        setIsMassMode(false);
+        setSelectedMassRecipients([]);
+        alert(`Mensaje enviado a ${recipients.length} estudiantes.`);
+      }
+    }
+    setIsSendingChat(false);
+  };
+
+  const publishAnnouncement = async () => {
+    if (!newAnnouncement.trim()) return;
+    const { error } = await supabase
+      .from('anuncios')
+      .insert([
+        {
+          mensaje: newAnnouncement.trim(),
+          grado: announcementGrade,
+          fecha: new Date().toISOString(),
+          autor: 'Jorge'
+        }
+      ]);
+    
+    if (!error) {
+      setNewAnnouncement('');
+      playSound('pop');
+      alert('Anuncio publicado con éxito');
+    }
+  };
+
+  const filteredChatStudents = useMemo(() => {
+    return students.filter(s => {
+      const matchesGrade = chatSidebarGrade === 'Todos' || s.Grado === chatSidebarGrade;
+      const matchesSearch = (s.Nombre || s.Usuario).toLowerCase().includes(chatSidebarSearch.toLowerCase());
+      return matchesGrade && matchesSearch;
+    });
+  }, [students, chatSidebarGrade, chatSidebarSearch]);
+
+  const activeChatHistory = useMemo(() => {
+    if (!selectedChatStudent) return [];
+    return allBuzonMessages.filter(m => 
+      (m.emisor === selectedChatStudent && m.receptor === 'Jorge') ||
+      (m.emisor === 'Jorge' && m.receptor === selectedChatStudent)
+    );
+  }, [allBuzonMessages, selectedChatStudent]);
+
+  const getPerformanceLevel = (nota: number) => {
+    if (nota >= 90) return { label: 'Superior', color: 'text-emerald-600 bg-emerald-50' };
+    if (nota >= 80) return { label: 'Alto', color: 'text-blue-600 bg-blue-50' };
+    if (nota >= 60) return { label: 'Básico', color: 'text-amber-600 bg-amber-50' };
+    return { label: 'Bajo', color: 'text-rose-600 bg-rose-50' };
   };
 
   const filteredStudents = useMemo(() => {
@@ -249,6 +369,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                 <option key={g} value={g}>{g === 'Todos' ? 'Todos los Grados' : `Grado ${g}`}</option>
               ))}
             </select>
+
             <button 
               onClick={() => setViewMode(viewMode === 'table' ? 'gallery' : 'table')}
               className="px-6 py-4 bg-purple-100 text-purple-700 rounded-2xl font-black hover:bg-purple-200 transition-all shadow-sm flex items-center gap-2 transform hover:-translate-y-1 active:scale-95"
@@ -272,6 +393,287 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
             </button>
           </div>
         </header>
+
+        {/* SECCIÓN DE COMUNICACIÓN PROACTIVA */}
+        <div className="mb-12 space-y-8 animate-fade-down">
+          {/* PUBLICAR ANUNCIO (Compacto) */}
+          <div className="bg-white rounded-[2.5rem] shadow-xl border-4 border-amber-50 p-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
+                  <i className="fas fa-bullhorn text-xl"></i>
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-gray-800 tracking-tighter">Publicar Anuncio General</h3>
+                  <p className="text-gray-500 text-xs font-medium">Avisos rápidos para grados completos</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-1 flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                <select 
+                  value={announcementGrade}
+                  onChange={(e) => setAnnouncementGrade(e.target.value)}
+                  className="w-full md:w-48 px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-amber-500 outline-none font-bold text-sm cursor-pointer"
+                >
+                  <option value="TODOS">Todos los Grados</option>
+                  {grades.filter(g => g !== 'Todos').map(g => (
+                    <option key={g} value={g}>Grado {g}</option>
+                  ))}
+                </select>
+                <div className="relative flex-1 w-full">
+                  <input 
+                    type="text"
+                    value={newAnnouncement}
+                    onChange={(e) => setNewAnnouncement(e.target.value)}
+                    placeholder="Escribe el aviso importante aquí..."
+                    className="w-full px-6 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-amber-500 outline-none font-medium text-sm"
+                  />
+                </div>
+                <button 
+                  onClick={publishAnnouncement}
+                  disabled={!newAnnouncement.trim()}
+                  className="w-full md:w-auto px-8 py-3 bg-amber-500 text-white rounded-xl font-black text-sm shadow-lg hover:bg-amber-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-paper-plane"></i>
+                  PUBLICAR
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* CENTRO DE MENSAJERÍA PROFESIONAL (ESTILO GMAIL) */}
+          <div className="bg-white rounded-[3rem] shadow-2xl border-8 border-indigo-50 overflow-hidden flex flex-col lg:flex-row h-[750px]">
+            {/* PANEL DE NAVEGACIÓN Y FILTROS (SIDEBAR) */}
+            <div className="w-full lg:w-96 border-r border-gray-100 flex flex-col bg-gray-50/30">
+              <div className="p-6 border-b border-gray-100 space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xl font-black text-gray-800 tracking-tighter">Mensajería</h3>
+                  <button 
+                    onClick={fetchCommunicationData}
+                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-400 hover:text-indigo-600 shadow-sm transition-all"
+                  >
+                    <i className={`fas fa-sync-alt text-xs ${commLoading ? 'animate-spin' : ''}`}></i>
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="relative">
+                    <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input 
+                      type="text"
+                      value={chatSidebarSearch}
+                      onChange={(e) => setChatSidebarSearch(e.target.value)}
+                      placeholder="Buscar estudiante..."
+                      className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-100 rounded-xl focus:border-indigo-500 outline-none font-bold text-xs"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <select 
+                      value={chatSidebarGrade}
+                      onChange={(e) => setChatSidebarGrade(e.target.value)}
+                      className="flex-1 px-4 py-3 bg-white border-2 border-gray-100 rounded-xl focus:border-indigo-500 outline-none font-bold text-xs cursor-pointer"
+                    >
+                      <option value="Todos">Todos los Grados</option>
+                      {grades.filter(g => g !== 'Todos').map(g => (
+                        <option key={g} value={g}>Grado {g}</option>
+                      ))}
+                    </select>
+                    <button 
+                      onClick={() => {
+                        setIsMassMode(!isMassMode);
+                        setSelectedMassRecipients([]);
+                        setSelectedChatStudent(null);
+                      }}
+                      className={`px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-sm ${isMassMode ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400 border-2 border-gray-100'}`}
+                    >
+                      {isMassMode ? 'Cancelar' : 'Masivo'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* LISTA DE ESTUDIANTES (BANDEJA DE ENTRADA INTELIGENTE) */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
+                {filteredChatStudents.length === 0 ? (
+                  <div className="py-20 text-center opacity-30">
+                    <i className="fas fa-users text-4xl mb-4"></i>
+                    <p className="font-black text-xs uppercase tracking-widest">No hay estudiantes</p>
+                  </div>
+                ) : (
+                  filteredChatStudents.map(student => {
+                    const unreadCount = allBuzonMessages.filter(m => m.emisor === student.Usuario && m.receptor === 'Jorge' && !m.leido).length;
+                    const isSelected = isMassMode ? selectedMassRecipients.includes(student.Usuario) : selectedChatStudent === student.Usuario;
+                    const perf = getPerformanceLevel(student.nota_capitulo_1 || 0);
+
+                    return (
+                      <div 
+                        key={student.Usuario}
+                        onClick={() => {
+                          if (isMassMode) {
+                            setSelectedMassRecipients(prev => 
+                              prev.includes(student.Usuario) ? prev.filter(id => id !== student.Usuario) : [...prev, student.Usuario]
+                            );
+                          } else {
+                            setSelectedChatStudent(student.Usuario);
+                            markAsRead(student.Usuario);
+                          }
+                        }}
+                        className={`group p-4 rounded-2xl cursor-pointer transition-all border-2 flex items-center justify-between ${isSelected ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg scale-[1.02]' : 'bg-white border-transparent hover:border-indigo-100 text-gray-700 shadow-sm'}`}
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-inner ${isSelected ? 'bg-white/20' : 'bg-gray-50 text-indigo-600'}`}>
+                            {student.Nombre ? student.Nombre.charAt(0).toUpperCase() : student.Usuario.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex flex-col overflow-hidden">
+                            <span className={`font-black text-sm truncate ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                              {student.Nombre || student.Usuario}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[9px] font-bold uppercase tracking-tighter ${isSelected ? 'text-indigo-100' : 'text-gray-400'}`}>
+                                Grado {student.Grado}
+                              </span>
+                              <span className={`w-1 h-1 rounded-full ${isSelected ? 'bg-indigo-300' : 'bg-gray-300'}`}></span>
+                              <span className={`text-[9px] font-black uppercase ${isSelected ? 'text-indigo-200' : perf.color.split(' ')[0]}`}>
+                                {perf.label}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {isMassMode ? (
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-white border-white text-indigo-600' : 'border-gray-200 bg-gray-50'}`}>
+                            {isSelected && <i className="fas fa-check text-[10px]"></i>}
+                          </div>
+                        ) : (
+                          unreadCount > 0 && (
+                            <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm">
+                              {unreadCount}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* PANEL CENTRAL (HISTORIAL DE MENSAJES / CHAT) */}
+            <div className="flex-1 flex flex-col bg-white relative">
+              {(!selectedChatStudent && !isMassMode) || (isMassMode && selectedMassRecipients.length === 0) ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                  <div className="w-32 h-32 bg-indigo-50 rounded-[3rem] flex items-center justify-center text-indigo-200 text-5xl mb-8 animate-float">
+                    <i className="fas fa-comments"></i>
+                  </div>
+                  <h4 className="text-2xl font-black text-gray-800 tracking-tighter">Centro de Mensajería Profesional</h4>
+                  <p className="text-gray-500 font-medium max-w-md mt-2">
+                    Selecciona un estudiante para ver su historial o activa el modo masivo para enviar instrucciones a varios alumnos a la vez.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* CABECERA DEL CHAT */}
+                  <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 text-xl shadow-sm">
+                        <i className={isMassMode ? "fas fa-users" : "fas fa-user"}></i>
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-black text-gray-800 tracking-tighter">
+                          {isMassMode ? `Envío Masivo (${selectedMassRecipients.length} seleccionados)` : (students.find(s => s.Usuario === selectedChatStudent)?.Nombre || selectedChatStudent)}
+                        </h4>
+                        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+                          {isMassMode ? "Los mensajes se enviarán individualmente" : `Grado ${students.find(s => s.Usuario === selectedChatStudent)?.Grado}`}
+                        </p>
+                      </div>
+                    </div>
+                    {!isMassMode && selectedChatStudent && (
+                      <div className="flex items-center gap-3">
+                        {(() => {
+                          const student = students.find(s => s.Usuario === selectedChatStudent);
+                          const perf = getPerformanceLevel(student?.nota_capitulo_1 || 0);
+                          return (
+                            <div className={`px-4 py-2 rounded-xl font-black text-xs shadow-sm border ${perf.color}`}>
+                              Desempeño: {perf.label} ({student?.nota_capitulo_1 || 0}%)
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CUERPO DEL CHAT (HISTORIAL) */}
+                  <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-gray-50/20">
+                    {isMassMode ? (
+                      <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+                        <div className="p-8 bg-white rounded-[2rem] shadow-xl border-2 border-indigo-50 max-w-sm">
+                          <i className="fas fa-paper-plane text-4xl text-indigo-200 mb-4"></i>
+                          <h5 className="font-black text-gray-800">Modo Masivo Activo</h5>
+                          <p className="text-gray-500 text-sm mt-2">
+                            Escribe tu mensaje abajo. Se enviará una copia personalizada a cada uno de los {selectedMassRecipients.length} estudiantes marcados.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      activeChatHistory.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full opacity-20">
+                          <i className="fas fa-comment-slash text-4xl mb-4"></i>
+                          <p className="font-black text-xs uppercase tracking-widest">No hay historial de mensajes</p>
+                        </div>
+                      ) : (
+                        activeChatHistory.map((msg, idx) => {
+                          const isMe = msg.emisor === 'Jorge';
+                          return (
+                            <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-up`}>
+                              <div className={`max-w-[70%] p-5 rounded-[2rem] shadow-sm relative ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none border border-gray-100'}`}>
+                                <p className="text-sm leading-relaxed font-medium">{msg.mensaje}</p>
+                                <span className={`text-[9px] font-bold mt-2 block ${isMe ? 'text-indigo-200 text-right' : 'text-gray-400'}`}>
+                                  {new Date(msg.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )
+                    )}
+                  </div>
+
+                  {/* ÁREA DE ENTRADA (GESTIÓN DE RESPUESTAS) */}
+                  <div className="p-6 bg-white border-t border-gray-100">
+                    <div className="flex items-end gap-4 bg-gray-50 rounded-[2.5rem] p-3 border-2 border-gray-100 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
+                      <textarea 
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        placeholder={isMassMode ? "Escribe el mensaje masivo..." : "Escribe tu respuesta aquí..."}
+                        className="flex-1 bg-transparent border-none outline-none p-4 font-medium text-gray-700 resize-none max-h-32 min-h-[56px]"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendChatMessage();
+                          }
+                        }}
+                      ></textarea>
+                      <button 
+                        onClick={sendChatMessage}
+                        disabled={isSendingChat || !chatInput.trim()}
+                        className="w-14 h-14 bg-indigo-600 text-white rounded-[1.5rem] flex items-center justify-center shadow-lg hover:bg-indigo-700 transition-all transform active:scale-90 disabled:opacity-50"
+                      >
+                        {isSendingChat ? (
+                          <i className="fas fa-circle-notch animate-spin"></i>
+                        ) : (
+                          <i className="fas fa-paper-plane"></i>
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-3 text-center">
+                      Presiona Enter para enviar • Shift + Enter para nueva línea
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
 
         {viewMode === 'table' ? (
           <div className="overflow-x-auto -mx-8 md:mx-0">
