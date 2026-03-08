@@ -66,7 +66,9 @@ export interface MailMessage {
   id: string;
   emisor: string;
   receptor: string;
-  mensaje: string;
+  contenido: string;
+  mensaje?: string; // Keep for backward compatibility
+  grado: string;
   fecha: string;
   leido: boolean;
 }

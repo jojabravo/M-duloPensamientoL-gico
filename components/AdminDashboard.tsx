@@ -128,13 +128,15 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     }
 
     setIsSendingChat(true);
-    const messagesToInsert = recipients.map(studentId => ({
-      emisor: 'Jorge',
-      receptor: studentId,
-      mensaje: chatInput.trim(),
-      fecha: new Date().toISOString(),
-      leido: false
-    }));
+    const messagesToInsert = recipients.map(studentId => {
+      const student = students.find(s => s.Usuario === studentId);
+      return {
+        emisor: 'Jorge',
+        receptor: studentId,
+        contenido: chatInput.trim(),
+        grado: student?.Grado || 'N/A'
+      };
+    });
 
     try {
       const { error } = await supabase
@@ -172,7 +174,6 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
           {
             mensaje: newAnnouncement.trim(),
             grado: announcementGrade,
-            fecha: new Date().toISOString(),
             autor: 'Jorge'
           }
         ]);
@@ -432,6 +433,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               
               <div className="flex flex-1 flex-col md:flex-row items-center gap-4 w-full md:w-auto">
                 <select 
+                  id="grado"
+                  name="grado"
                   value={announcementGrade}
                   onChange={(e) => setAnnouncementGrade(e.target.value)}
                   className="w-full md:w-48 px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-amber-500 outline-none font-bold text-sm cursor-pointer"
@@ -443,6 +446,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                 </select>
                 <div className="relative flex-1 w-full">
                   <input 
+                    id="mensaje"
+                    name="mensaje"
                     type="text"
                     value={newAnnouncement}
                     onChange={(e) => setNewAnnouncement(e.target.value)}
@@ -647,7 +652,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                           return (
                             <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-up`}>
                               <div className={`max-w-[70%] p-5 rounded-[2rem] shadow-sm relative ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none border border-gray-100'}`}>
-                                <p className="text-sm leading-relaxed font-medium">{msg.mensaje}</p>
+                                <p className="text-sm leading-relaxed font-medium">{msg.contenido || msg.mensaje}</p>
                                 <span className={`text-[9px] font-bold mt-2 block ${isMe ? 'text-indigo-200 text-right' : 'text-gray-400'}`}>
                                   {new Date(msg.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
@@ -663,6 +668,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   <div className="p-6 bg-white border-t border-gray-100">
                     <div className="flex items-end gap-4 bg-gray-50 rounded-[2.5rem] p-3 border-2 border-gray-100 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
                       <textarea 
+                        id="contenido"
+                        name="contenido"
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         placeholder={isMassMode ? "Escribe el mensaje masivo..." : "Escribe tu respuesta aquí..."}

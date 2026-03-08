@@ -59,7 +59,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
       .from('buzon')
       .select('*')
       .or(`emisor.eq.${student.Usuario},receptor.eq.${student.Usuario}`)
-      .order('fecha', { ascending: false });
+      .order('id', { ascending: false }); // Use id for ordering if fecha is not sent
 
     if (msgData) setMessages(msgData);
     setLoading(false);
@@ -74,9 +74,8 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
         {
           emisor: student.Usuario,
           receptor: 'Jorge',
-          mensaje: newMessage.trim(),
-          fecha: new Date().toISOString(),
-          leido: false
+          contenido: newMessage.trim(),
+          grado: student.Grado
         }
       ]);
 
@@ -193,7 +192,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
                 return (
                   <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-up`}>
                     <div className={`max-w-[80%] md:max-w-[70%] p-5 rounded-[2rem] shadow-sm relative ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none border border-gray-100'}`}>
-                      <p className="text-sm leading-relaxed font-medium">{msg.mensaje}</p>
+                      <p className="text-sm leading-relaxed font-medium">{msg.contenido || msg.mensaje}</p>
                       <div className={`flex items-center gap-2 mt-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
                         <span className={`text-[9px] font-bold uppercase tracking-tighter ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
                           {new Date(msg.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -213,6 +212,8 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
           <div className="p-6 bg-white border-t border-gray-100">
             <div className="flex items-center gap-4 bg-gray-50 rounded-[2.5rem] p-2 border-2 border-gray-100 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
               <input 
+                id="contenido"
+                name="contenido"
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
