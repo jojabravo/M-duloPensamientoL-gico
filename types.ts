@@ -59,7 +59,7 @@ export interface Announcement {
   mensaje: string;
   Grado: string; // '6.1', '7.3', etc. or 'TODOS'
   grado?: string; // Keep for backward compatibility
-  creado_at: string;
+  fecha: string;
   autor: string;
 }
 
@@ -69,7 +69,7 @@ export interface MailMessage {
   receptor: string;
   contenido: string;
   mensaje?: string; // Keep for backward compatibility
-  grado: string;
+  Grado: string;
   fecha: string;
   leido: boolean;
 }

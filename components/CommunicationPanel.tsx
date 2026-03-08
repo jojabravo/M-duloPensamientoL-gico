@@ -50,7 +50,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
       .from('anuncios')
       .select('*')
       .or(`Grado.eq.${student.Grado},Grado.eq.TODOS`)
-      .order('creado_at', { ascending: false });
+      .order('fecha', { ascending: false });
     
     if (annData) setAnnouncements(annData);
 
@@ -59,7 +59,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
       .from('buzon')
       .select('*')
       .or(`emisor.eq.${student.Usuario},receptor.eq.${student.Usuario}`)
-      .order('id', { ascending: false }); // Use id for ordering if fecha is not sent
+      .order('fecha', { ascending: false });
 
     if (msgData) setMessages(msgData);
     setLoading(false);
@@ -75,7 +75,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
           emisor: student.Usuario,
           receptor: 'Jorge',
           contenido: newMessage.trim(),
-          grado: student.Grado
+          Grado: student.Grado
         }
       ]);
 
@@ -143,7 +143,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
                   <div>
                     <p className="text-gray-700 font-medium leading-relaxed">{ann.mensaje}</p>
                     <p className="text-[10px] text-gray-400 font-black mt-2 uppercase tracking-widest">
-                      {new Date(ann.creado_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}
+                      {new Date(ann.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}
                     </p>
                   </div>
                 </div>

@@ -134,7 +134,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
         emisor: 'Jorge',
         receptor: studentId,
         contenido: chatInput.trim(),
-        grado: student?.Grado || 'N/A'
+        Grado: student?.Grado || 'N/A'
       };
     });
 
