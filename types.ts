@@ -57,7 +57,8 @@ export interface Person {
 export interface Announcement {
   id: string;
   mensaje: string;
-  grado: string; // '6.1', '7.3', etc. or 'TODOS'
+  Grado: string; // '6.1', '7.3', etc. or 'TODOS'
+  grado?: string; // Keep for backward compatibility
   fecha: string;
   autor: string;
 }

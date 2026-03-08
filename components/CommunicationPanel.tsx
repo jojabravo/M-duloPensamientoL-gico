@@ -49,7 +49,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
     const { data: annData } = await supabase
       .from('anuncios')
       .select('*')
-      .or(`grado.eq.${student.Grado},grado.eq.TODOS`)
+      .or(`Grado.eq.${student.Grado},Grado.eq.TODOS`)
       .order('fecha', { ascending: false });
     
     if (annData) setAnnouncements(annData);

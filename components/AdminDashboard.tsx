@@ -173,7 +173,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
         .insert([
           {
             mensaje: newAnnouncement.trim(),
-            grado: announcementGrade,
+            Grado: announcementGrade,
             autor: 'Jorge'
           }
         ]);
@@ -433,8 +433,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               
               <div className="flex flex-1 flex-col md:flex-row items-center gap-4 w-full md:w-auto">
                 <select 
-                  id="grado"
-                  name="grado"
+                  id="Grado"
+                  name="Grado"
                   value={announcementGrade}
                   onChange={(e) => setAnnouncementGrade(e.target.value)}
                   className="w-full md:w-48 px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-amber-500 outline-none font-bold text-sm cursor-pointer"
