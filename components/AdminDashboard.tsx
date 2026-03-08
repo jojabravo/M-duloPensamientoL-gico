@@ -154,7 +154,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
         }
       } else {
         console.error('Error al enviar mensaje:', error);
-        alert('Error al enviar el mensaje. Revisa la consola.');
+        alert(`Error al enviar el mensaje: ${error.message}`);
       }
     } catch (err) {
       console.error('Excepción al enviar mensaje:', err);
@@ -184,7 +184,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
         alert('¡Anuncio publicado en la Josefa Campos!');
       } else {
         console.error('Error al publicar anuncio:', error);
-        alert('Error al publicar el anuncio. Revisa la consola.');
+        alert(`Error al publicar el anuncio: ${error.message}`);
       }
     } catch (err) {
       console.error('Excepción al publicar anuncio:', err);
