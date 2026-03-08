@@ -181,7 +181,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
       if (!error) {
         setNewAnnouncement('');
         playSound('pop');
-        alert('¡Anuncio publicado con éxito!');
+        alert('¡Anuncio publicado en la Josefa Campos!');
       } else {
         console.error('Error al publicar anuncio:', error);
         alert('Error al publicar el anuncio. Revisa la consola.');

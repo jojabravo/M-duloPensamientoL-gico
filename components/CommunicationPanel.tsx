@@ -50,7 +50,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
       .from('anuncios')
       .select('*')
       .or(`Grado.eq.${student.Grado},Grado.eq.TODOS`)
-      .order('fecha', { ascending: false });
+      .order('creado_at', { ascending: false });
     
     if (annData) setAnnouncements(annData);
 
@@ -143,7 +143,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
                   <div>
                     <p className="text-gray-700 font-medium leading-relaxed">{ann.mensaje}</p>
                     <p className="text-[10px] text-gray-400 font-black mt-2 uppercase tracking-widest">
-                      {new Date(ann.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}
+                      {new Date(ann.creado_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}
                     </p>
                   </div>
                 </div>
