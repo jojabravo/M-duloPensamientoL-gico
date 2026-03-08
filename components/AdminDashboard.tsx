@@ -36,6 +36,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   const [isMassMode, setIsMassMode] = useState(false);
   const [commLoading, setCommLoading] = useState(false);
   const [lastNotification, setLastNotification] = useState<{show: boolean, message: string}>({ show: false, message: '' });
+  const [activeTab, setActiveTab] = useState<'students' | 'messaging'>('students');
 
   // Legacy/Other communication states (keeping for announcements)
   const [newAnnouncement, setNewAnnouncement] = useState('');
@@ -444,41 +445,6 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
           </div>
 
           <div className="flex flex-wrap justify-center gap-4 w-full lg:w-auto">
-            <div className="relative flex-grow lg:flex-grow-0">
-              <i className="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-gray-400"></i>
-              <input
-                type="text"
-                placeholder="Buscar usuario..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-14 pr-8 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-purple-500 outline-none w-full lg:w-64 font-bold"
-              />
-            </div>
-            <select
-              value={selectedGrade}
-              onChange={(e) => setSelectedGrade(e.target.value)}
-              className="px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-purple-500 outline-none font-bold cursor-pointer"
-            >
-              {grades.map(g => (
-                <option key={g} value={g}>{g === 'Todos' ? 'Todos los Grados' : `Grado ${g}`}</option>
-              ))}
-            </select>
-
-            <button 
-              onClick={() => setViewMode(viewMode === 'table' ? 'gallery' : 'table')}
-              className="px-6 py-4 bg-purple-100 text-purple-700 rounded-2xl font-black hover:bg-purple-200 transition-all shadow-sm flex items-center gap-2 transform hover:-translate-y-1 active:scale-95"
-            >
-              <i className={`fas ${viewMode === 'table' ? 'fa-th-large' : 'fa-table'}`}></i>
-              <span className="hidden sm:inline">{viewMode === 'table' ? 'Ver Galería de Logros' : 'Ver Tabla de Control'}</span>
-            </button>
-            <button 
-              onClick={exportToCSV}
-              disabled={filteredStudents.length === 0}
-              className="px-6 py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 transition-all shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-95"
-            >
-              <i className="fas fa-download"></i>
-              <span className="hidden sm:inline">Descargar Reporte de Notas</span>
-            </button>
             <button 
               onClick={onBack}
               className="px-8 py-4 bg-gray-800 text-white rounded-2xl font-black hover:bg-black transition-all shadow-lg"
@@ -487,62 +453,124 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
             </button>
           </div>
         </header>
+        
+        {/* TAB SWITCHER */}
+        <div className="flex gap-4 mb-10 bg-gray-50 p-2 rounded-[2rem] w-fit mx-auto lg:mx-0">
+          <button 
+            onClick={() => setActiveTab('students')}
+            className={`px-8 py-4 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all flex items-center gap-3 ${activeTab === 'students' ? 'bg-white text-purple-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <i className="fas fa-users"></i>
+            <span>Estudiantes y Notas</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('messaging')}
+            className={`px-8 py-4 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all flex items-center gap-3 relative ${activeTab === 'messaging' ? 'bg-white text-indigo-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <i className="fas fa-comments"></i>
+            <span>Mensajería y Avisos</span>
+            {allBuzonMessages.some(m => m.receptor === 'Jorge' && !m.leido) && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
+            )}
+          </button>
+        </div>
 
-        {/* SECCIÓN DE COMUNICACIÓN PROACTIVA */}
-        <div className="mb-12 space-y-8 animate-fade-down">
-          {/* PUBLICAR ANUNCIO (Compacto) */}
-          <div className="bg-white rounded-[2.5rem] shadow-xl border-4 border-amber-50 p-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
-                  <i className="fas fa-bullhorn text-xl"></i>
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-gray-800 tracking-tighter">Publicar Anuncio General</h3>
-                  <p className="text-gray-500 text-xs font-medium">Avisos rápidos para grados completos</p>
-                </div>
+        {activeTab === 'students' && (
+          <div className="animate-fadeIn">
+            {/* SEARCH AND FILTERS (Moved inside students tab) */}
+            <div className="flex flex-wrap items-center gap-4 mb-8">
+              <div className="relative flex-grow lg:flex-grow-0">
+                <i className="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input
+                  type="text"
+                  placeholder="Buscar usuario..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-14 pr-8 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-purple-500 outline-none w-full lg:w-64 font-bold"
+                />
               </div>
-              
-              <div className="flex flex-1 flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                <select 
-                  id="Grado"
-                  name="Grado"
-                  value={announcementGrade}
-                  onChange={(e) => setAnnouncementGrade(e.target.value)}
-                  className="w-full md:w-48 px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-amber-500 outline-none font-bold text-sm cursor-pointer"
-                >
-                  <option value="TODOS">Todos los Grados</option>
-                  {grades.filter(g => g !== 'Todos').map(g => (
-                    <option key={g} value={g}>Grado {g}</option>
-                  ))}
-                </select>
-                <div className="relative flex-1 w-full">
-                  <input 
-                    id="mensaje"
-                    name="mensaje"
-                    type="text"
-                    value={newAnnouncement}
-                    onChange={(e) => setNewAnnouncement(e.target.value)}
-                    placeholder="Escribe el aviso importante aquí..."
-                    className="w-full px-6 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-amber-500 outline-none font-medium text-sm"
-                  />
-                </div>
-                <button 
-                  onClick={publishAnnouncement}
-                  disabled={!newAnnouncement.trim()}
-                  className="w-full md:w-auto px-8 py-3 bg-amber-500 text-white rounded-xl font-black text-sm shadow-lg hover:bg-amber-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <i className="fas fa-paper-plane"></i>
-                  PUBLICAR
-                </button>
-              </div>
+              <select
+                value={selectedGrade}
+                onChange={(e) => setSelectedGrade(e.target.value)}
+                className="px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-purple-500 outline-none font-bold cursor-pointer"
+              >
+                {grades.map(g => (
+                  <option key={g} value={g}>{g === 'Todos' ? 'Todos los Grados' : `Grado ${g}`}</option>
+                ))}
+              </select>
+
+              <button 
+                onClick={() => setViewMode(viewMode === 'table' ? 'gallery' : 'table')}
+                className="px-6 py-4 bg-purple-100 text-purple-700 rounded-2xl font-black hover:bg-purple-200 transition-all shadow-sm flex items-center gap-2 transform hover:-translate-y-1 active:scale-95"
+              >
+                <i className={`fas ${viewMode === 'table' ? 'fa-th-large' : 'fa-table'}`}></i>
+                <span className="hidden sm:inline">{viewMode === 'table' ? 'Ver Galería de Logros' : 'Ver Tabla de Control'}</span>
+              </button>
+              <button 
+                onClick={exportToCSV}
+                disabled={filteredStudents.length === 0}
+                className="px-6 py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 transition-all shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-95"
+              >
+                <i className="fas fa-download"></i>
+                <span className="hidden sm:inline">Descargar Reporte de Notas</span>
+              </button>
             </div>
           </div>
+        )}
 
-          {/* CENTRO DE MENSAJERÍA PROFESIONAL (ESTILO GMAIL) */}
-          <div className="bg-white rounded-[3rem] shadow-2xl border-8 border-indigo-50 overflow-hidden flex flex-col lg:flex-row h-[750px]">
-            {/* PANEL DE NAVEGACIÓN Y FILTROS (SIDEBAR) */}
-            <div className="w-full lg:w-96 border-r border-gray-100 flex flex-col bg-gray-50/30">
+        {activeTab === 'messaging' && (
+          <div className="space-y-12 animate-fadeIn">
+            {/* PUBLICAR ANUNCIO (Compacto) */}
+            <div className="bg-white rounded-[2.5rem] shadow-xl border-4 border-amber-50 p-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
+                    <i className="fas fa-bullhorn text-xl"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-gray-800 tracking-tighter">Publicar Anuncio General</h3>
+                    <p className="text-gray-500 text-xs font-medium">Avisos rápidos para grados completos</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-1 flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                  <select 
+                    id="Grado"
+                    name="Grado"
+                    value={announcementGrade}
+                    onChange={(e) => setAnnouncementGrade(e.target.value)}
+                    className="w-full md:w-48 px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-amber-500 outline-none font-bold text-sm cursor-pointer"
+                  >
+                    <option value="TODOS">Todos los Grados</option>
+                    {grades.filter(g => g !== 'Todos').map(g => (
+                      <option key={g} value={g}>Grado {g}</option>
+                    ))}
+                  </select>
+                  <div className="relative flex-1 w-full">
+                    <input 
+                      id="mensaje"
+                      name="mensaje"
+                      type="text"
+                      value={newAnnouncement}
+                      onChange={(e) => setNewAnnouncement(e.target.value)}
+                      placeholder="Escribe el aviso importante aquí..."
+                      className="w-full px-6 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-amber-500 outline-none font-medium text-sm"
+                    />
+                  </div>
+                  <button 
+                    onClick={publishAnnouncement}
+                    disabled={!newAnnouncement.trim()}
+                    className="w-full md:w-auto px-8 py-3 bg-amber-500 text-white rounded-xl font-black text-sm shadow-lg hover:bg-amber-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <i className="fas fa-paper-plane"></i>
+                    PUBLICAR
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* CENTRO DE MENSAJERÍA PROFESIONAL (ESTILO GMAIL) */}
+            <div className="bg-white rounded-[3rem] shadow-2xl border-8 border-indigo-50 overflow-hidden flex flex-col lg:flex-row h-[750px]">
               <div className="p-6 border-b border-gray-100 space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-xl font-black text-gray-800 tracking-tighter">Mensajería</h3>
@@ -773,10 +801,11 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               )}
             </div>
           </div>
-        </div>
+        )}
 
-        {viewMode === 'table' ? (
-          <div className="overflow-x-auto -mx-8 md:mx-0">
+        {activeTab === 'students' && (
+          <div className="mt-12 animate-fadeIn">
+            <div className="overflow-x-auto -mx-8 md:mx-0">
             <table className="w-full border-separate border-spacing-y-4">
               <thead>
                 <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
@@ -1020,7 +1049,9 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               )}
             </div>
           </div>
-        )}
+        )
+      </div>
+    )}
 
         <footer className="mt-12 flex flex-col md:flex-row justify-between items-center gap-6 text-gray-400 font-bold text-sm">
           <p>Total Estudiantes: {filteredStudents.length} / {students.length}</p>

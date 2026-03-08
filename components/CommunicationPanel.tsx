@@ -61,8 +61,29 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
       .or(`emisor.eq.${student.Usuario},receptor.eq.${student.Usuario}`)
       .order('fecha', { ascending: false });
 
-    if (msgData) setMessages(msgData);
+    if (msgData) {
+      setMessages(msgData);
+      // If mailbox is visible (not compact), mark as read
+      if (!compact && (mode === 'all' || mode === 'mailbox')) {
+        const unreadIds = msgData
+          .filter(m => m.receptor === student.Usuario && !m.leido)
+          .map(m => m.id);
+        
+        if (unreadIds.length > 0) {
+          markAsRead(unreadIds);
+        }
+      }
+    }
     setLoading(false);
+  };
+
+  const markAsRead = async (ids: string[]) => {
+    const { error } = await supabase
+      .from('buzon')
+      .update({ leido: true })
+      .in('id', ids);
+    
+    if (error) console.error('Error marking as read:', error);
   };
 
   const sendMessage = async () => {
@@ -101,6 +122,13 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
             if (el) {
               el.scrollIntoView({ behavior: 'smooth' });
               playSound('pop');
+              // Mark current unread as read immediately
+              const unreadIds = messages
+                .filter(m => m.receptor === student.Usuario && !m.leido)
+                .map(m => m.id);
+              if (unreadIds.length > 0) {
+                markAsRead(unreadIds);
+              }
             }
           }}
         >
