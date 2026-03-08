@@ -35,6 +35,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   const [selectedMassRecipients, setSelectedMassRecipients] = useState<string[]>([]);
   const [isMassMode, setIsMassMode] = useState(false);
   const [commLoading, setCommLoading] = useState(false);
+  const [lastNotification, setLastNotification] = useState<{show: boolean, message: string}>({ show: false, message: '' });
 
   // Legacy/Other communication states (keeping for announcements)
   const [newAnnouncement, setNewAnnouncement] = useState('');
@@ -101,6 +102,56 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     if (msgData) setAllBuzonMessages(msgData);
     setCommLoading(false);
   };
+
+  // Real-time subscription for new messages
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const channel = supabase
+      .channel('admin-buzon-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'buzon',
+          filter: 'receptor=eq.Jorge',
+        },
+        (payload) => {
+          const newMessage = payload.new as MailMessage;
+          
+          // Update messages state
+          setAllBuzonMessages((prev) => {
+            // Avoid duplicates if fetch and real-time overlap
+            if (prev.some(m => m.id === newMessage.id)) return prev;
+            return [...prev, newMessage];
+          });
+          
+          // Play notification sound
+          playSound('pop');
+          
+          // Find student name
+          const student = students.find(s => s.Usuario === newMessage.emisor);
+          const senderName = student?.Nombre || newMessage.emisor;
+          
+          // Show notification
+          setLastNotification({
+            show: true,
+            message: `📩 Nuevo mensaje de ${senderName}: "${newMessage.contenido.substring(0, 40)}${newMessage.contenido.length > 40 ? '...' : ''}"`
+          });
+          
+          // Auto-hide after 6 seconds
+          setTimeout(() => {
+            setLastNotification(prev => ({ ...prev, show: false }));
+          }, 6000);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAuthenticated, students]);
 
   const markAsRead = async (studentId: string) => {
     const unreadFromStudent = allBuzonMessages.filter(m => m.emisor === studentId && m.receptor === 'Jorge' && !m.leido);
@@ -359,6 +410,27 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 animate-fadeIn pb-20">
+      {/* Real-time Notification Toast */}
+      {lastNotification.show && (
+        <div className="fixed top-6 right-6 z-[100] animate-bounce-in">
+          <div className="bg-white border-l-4 border-indigo-600 shadow-2xl rounded-2xl p-5 flex items-center gap-4 max-w-md">
+            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 shrink-0">
+              <i className="fas fa-comment-dots text-xl"></i>
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-black text-indigo-600 uppercase tracking-widest mb-1">Nueva Notificación</p>
+              <p className="text-sm text-gray-700 font-bold leading-tight">{lastNotification.message}</p>
+            </div>
+            <button 
+              onClick={() => setLastNotification({ show: false, message: '' })}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-[4rem] shadow-2xl border-8 border-purple-50 p-8 md:p-12">
         <header className="flex flex-col lg:flex-row justify-between items-center gap-8 mb-12">
           <div className="flex items-center gap-6">
