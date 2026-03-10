@@ -261,10 +261,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   }, [allBuzonMessages, selectedChatStudent]);
 
   const getPerformanceLevel = (nota: number) => {
-    if (nota >= 90) return { label: 'Superior', color: 'text-emerald-600 bg-emerald-50' };
-    if (nota >= 80) return { label: 'Alto', color: 'text-blue-600 bg-blue-50' };
-    if (nota >= 60) return { label: 'Básico', color: 'text-amber-600 bg-amber-50' };
-    return { label: 'Bajo', color: 'text-rose-600 bg-rose-50' };
+    if (nota >= 96) return { label: 'SUPERIOR', color: 'text-cyan-600 bg-cyan-50' };
+    if (nota >= 60) return { label: 'ALTO', color: 'text-yellow-600 bg-yellow-50' };
+    if (nota >= 30) return { label: 'BÁSICO', color: 'text-slate-600 bg-slate-50' };
+    return { label: 'BAJO', color: 'text-rose-600 bg-rose-50' };
   };
 
   const filteredStudents = useMemo(() => {
@@ -298,9 +298,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
 
     const rows = filteredStudents.map(s => {
       const avg = s.nota_capitulo_1 || 0;
-      let estado = 'En Proceso';
-      if (avg < 30) estado = 'ALERTA: Refuerzo Urgente';
-      else if (avg > 80) estado = 'Nivel Avanzado';
+      let estado = 'BAJO';
+      if (avg >= 96) estado = 'SUPERIOR';
+      else if (avg >= 60) estado = 'ALTO';
+      else if (avg >= 30) estado = 'BÁSICO';
 
       return [
         `"${s.Usuario}"`,
@@ -817,12 +818,13 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   <th className="px-6 py-4 text-center">Cap. 1: Cuant.</th>
                   <th className="px-6 py-4 text-center">Cap. 1: Micro.</th>
                   <th className="px-6 py-4 text-center">Nota Final</th>
+                  <th className="px-6 py-4 text-center">Desempeño</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-20">
+                    <td colSpan={9} className="text-center py-20">
                       <div className="animate-spin text-4xl text-purple-600 mb-4">
                         <i className="fas fa-circle-notch"></i>
                       </div>
@@ -831,7 +833,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   </tr>
                 ) : filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-20">
+                    <td colSpan={9} className="text-center py-20">
                       <p className="font-black text-gray-400 uppercase tracking-widest">No se encontraron estudiantes</p>
                     </td>
                   </tr>
@@ -880,7 +882,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </td>
                       ))}
 
-                      <td className="bg-gray-50 px-6 py-5 rounded-r-[2rem] text-center border-y-2 border-r-2 border-transparent group-hover:border-purple-200 transition-all">
+                      <td className="bg-gray-50 px-6 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
                         <div className="inline-flex flex-col items-center">
                           <span className="text-xl font-black text-gray-800 leading-none">
                             {student.nota_capitulo_1 || 0}
@@ -888,6 +890,17 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                           </span>
                           <div className={`w-12 h-1 mt-1 rounded-full ${getProgressColor(student.nota_capitulo_1 || 0)}`}></div>
                         </div>
+                      </td>
+
+                      <td className="bg-gray-50 px-6 py-5 rounded-r-[2rem] text-center border-y-2 border-r-2 border-transparent group-hover:border-purple-200 transition-all">
+                        {(() => {
+                          const perf = getPerformanceLevel(student.nota_capitulo_1 || 0);
+                          return (
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border border-black/5 ${perf.color}`}>
+                              {perf.label}
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))
@@ -908,6 +921,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                 <div className="bg-orange-50/50 p-4 rounded-[2rem] border-2 border-orange-100 text-center">
                   <i className="fas fa-trophy text-orange-400 text-2xl mb-1"></i>
                   <h4 className="font-black text-orange-800 text-[10px] uppercase tracking-widest">Bronce (30-59%)</h4>
+                  <p className="text-[8px] font-black text-orange-600 uppercase">Desempeño Básico</p>
                 </div>
                 <div className="space-y-4">
                   {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 30 && (r.nota_capitulo_1 || 0) < 60).map((r, i) => (
@@ -920,7 +934,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 font-black text-sm border border-orange-100">
                           {Math.round(r.nota_capitulo_1 || 0)}%
                         </div>
-                        <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                        <div className="flex flex-col">
+                          <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                          <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest mt-1">Desempeño Básico</span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -931,10 +948,11 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               <div className="flex flex-col gap-4">
                 <div className="bg-slate-50/50 p-4 rounded-[2rem] border-2 border-slate-200 text-center">
                   <i className="fas fa-trophy text-slate-400 text-2xl mb-1"></i>
-                  <h4 className="font-black text-slate-800 text-[10px] uppercase tracking-widest">Plata (60-89%)</h4>
+                  <h4 className="font-black text-slate-800 text-[10px] uppercase tracking-widest">Plata (60-95%)</h4>
+                  <p className="text-[8px] font-black text-slate-600 uppercase">Desempeño Alto</p>
                 </div>
                 <div className="space-y-4">
-                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 60 && (r.nota_capitulo_1 || 0) < 90).map((r, i) => (
+                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 60 && (r.nota_capitulo_1 || 0) < 96).map((r, i) => (
                     <div 
                       key={r.Usuario} 
                       className="bg-white p-6 rounded-[1.5rem] border-2 border-slate-200 shadow-[0_10px_30px_rgba(148,163,184,0.15)] animate-fade-up hover:scale-105 hover:brightness-110 transition-all duration-300 group" 
@@ -944,7 +962,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 font-black text-sm border border-slate-200">
                           {Math.round(r.nota_capitulo_1 || 0)}%
                         </div>
-                        <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                        <div className="flex flex-col">
+                          <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">Desempeño Alto</span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -955,10 +976,11 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               <div className="flex flex-col gap-4">
                 <div className="bg-yellow-50/50 p-4 rounded-[2rem] border-2 border-yellow-200 text-center shadow-[0_0_20px_rgba(250,204,21,0.1)]">
                   <i className="fas fa-trophy text-yellow-400 text-2xl mb-1 drop-shadow-sm"></i>
-                  <h4 className="font-black text-yellow-800 text-[10px] uppercase tracking-widest">Oro (90-99%)</h4>
+                  <h4 className="font-black text-yellow-800 text-[10px] uppercase tracking-widest">Oro (96-99%)</h4>
+                  <p className="text-[8px] font-black text-yellow-600 uppercase">Desempeño Superior</p>
                 </div>
                 <div className="space-y-4">
-                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 90 && (r.nota_capitulo_1 || 0) < 100).map((r, i) => (
+                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 96 && (r.nota_capitulo_1 || 0) < 100).map((r, i) => (
                     <div 
                       key={r.Usuario} 
                       className="bg-white p-6 rounded-[1.5rem] border-2 border-yellow-400 shadow-[0_15px_40px_rgba(250,204,21,0.2)] animate-fade-up hover:scale-105 hover:brightness-110 transition-all duration-300 group ring-4 ring-yellow-50" 
@@ -968,7 +990,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600 font-black text-sm border border-yellow-200">
                           {Math.round(r.nota_capitulo_1 || 0)}%
                         </div>
-                        <span className="font-black text-gray-800 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                        <div className="flex flex-col">
+                          <span className="font-black text-gray-800 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                          <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest mt-1">Desempeño Superior</span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -982,6 +1007,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   <div className="sparkle-effect bottom-2 right-4" style={{ animationDelay: '1s' }}></div>
                   <i className="fas fa-gem text-white text-2xl mb-1 drop-shadow-md"></i>
                   <h4 className="font-black text-white text-[10px] uppercase tracking-widest relative z-10">Diamante (100%)</h4>
+                  <p className="text-[8px] font-black text-white/80 uppercase relative z-10">Desempeño Superior</p>
                 </div>
                 <div className="space-y-4">
                   {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 100).map((r, i) => (
@@ -994,7 +1020,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         <div className="w-10 h-10 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-600 font-black text-sm border border-cyan-100 group-hover:rotate-12 transition-transform">
                           100
                         </div>
-                        <span className="font-black text-gray-900 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                        <div className="flex flex-col">
+                          <span className="font-black text-gray-900 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
+                          <span className="text-[9px] font-black text-cyan-500 uppercase tracking-widest mt-1">Desempeño Superior</span>
+                        </div>
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                            <i className="fas fa-sparkles text-cyan-400 text-xs animate-ping"></i>
                         </div>
@@ -1039,8 +1068,9 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                           <span className="font-bold text-gray-700 text-sm truncate max-w-[120px]">{r.Nombre || r.Usuario}</span>
                           <span className="text-[10px] text-gray-400 font-black">@{r.Usuario}</span>
                         </div>
-                        <div className="bg-rose-50 text-rose-600 px-3 py-1 rounded-lg font-black text-xs">
-                          {Math.round(r.nota_capitulo_1 || 0)}%
+                        <div className="bg-rose-50 text-rose-600 px-3 py-1 rounded-lg font-black text-[10px] flex flex-col items-center">
+                          <span>{Math.round(r.nota_capitulo_1 || 0)}%</span>
+                          <span className="text-[7px] uppercase tracking-tighter">Bajo</span>
                         </div>
                       </div>
                     ))
@@ -1057,20 +1087,20 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
           <p>Total Estudiantes: {filteredStudents.length} / {students.length}</p>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-              <span>Superior (90-100)</span>
+              <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+              <span>Superior (96-100)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-              <span>Alto (80-89)</span>
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <span>Alto (60-95)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-              <span>Básico (60-79)</span>
+              <div className="w-3 h-3 rounded-full bg-slate-500"></div>
+              <span>Básico (30-59)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-rose-500"></div>
-              <span>Bajo (0-59)</span>
+              <span>Bajo (0-29)</span>
             </div>
           </div>
         </footer>

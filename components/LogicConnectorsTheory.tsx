@@ -78,7 +78,7 @@ const LogicConnectorsTheory: React.FC<Props> = ({ onNext, onBack }) => {
     <div className="max-w-4xl mx-auto animate-fadeIn px-2 sm:px-4">
       <div className="bg-white p-5 md:p-12 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl border-4 border-purple-50">
         <header className="mb-8 text-center">
-          <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 bg-purple-50 px-4 py-1.5 rounded-full">Ejemplos Interactivos</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 bg-purple-50 px-4 py-1.5 rounded-full">Práctica Interactiva</span>
           <h2 className="text-2xl md:text-3xl font-black text-gray-800 mt-4">Conectores Lógicos</h2>
           <p className="text-gray-500 mt-2 font-medium text-sm">Completa los ejemplos para aprender</p>
         </header>

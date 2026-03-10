@@ -26,7 +26,7 @@ const CourseMenu: React.FC<Props> = ({ student, onSelect, onShowResults }) => {
       icon: 'fa-arrow-up-9-1', 
       color: 'bg-blue-500', 
       active: false,
-      desc: 'Sucesiones, series numéricas y razonamiento matemático.'
+      desc: 'Criptogramas, Ecuaciones Gráficas, Crucinúmeros y Mensaje Oculto.'
     },
     { 
       id: 'esp', 
@@ -98,10 +98,15 @@ const CourseMenu: React.FC<Props> = ({ student, onSelect, onShowResults }) => {
         ))}
       </div>
       
-      <div className="mt-12 bg-white/50 border border-purple-100 p-6 rounded-3xl text-center">
-        <p className="text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">Metodología de Evaluación</p>
-        <p className="text-sm text-gray-600 mt-2">
-          Los resultados se muestran por cada capítulo y subcontenido, discriminado por <strong>Ejemplos</strong> (Simulaciones) y <strong>Retos</strong> (Evaluación Final).
+      <div className="mt-12 bg-white/50 border border-purple-100 p-8 rounded-[2.5rem] text-center shadow-sm">
+        <p className="text-xs text-purple-400 font-black uppercase tracking-[0.3em] mb-4">Metodología de Evaluación</p>
+        <p className="text-sm text-gray-600 leading-relaxed max-w-3xl mx-auto">
+          Tu éxito se mide por una <strong>Progresión por Insignias</strong> basada en tu porcentaje total de progreso. 
+          A medida que avances, obtendrás las Copas de <strong>Bronce, Plata y Oro</strong>, culminando con el prestigioso <strong>Diamante Multicolor</strong>. 
+          <br /><br />
+          <span className="bg-purple-50 text-purple-700 px-4 py-1 rounded-full text-[10px] font-black uppercase">
+            Importante: El ingreso al Cuadro de Honor requiere un umbral mínimo del 30% (Desempeño Básico).
+          </span>
         </p>
       </div>
 
