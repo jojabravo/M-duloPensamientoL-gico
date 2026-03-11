@@ -1,13 +1,15 @@
 
 import React from 'react';
 import { playSound } from '../audio';
+import { StudentProfile } from '../types';
 
 interface Props {
+  student: StudentProfile;
   onSelectModule: (moduleId: string) => void;
   onBack: () => void;
 }
 
-const ChapterOneMenu: React.FC<Props> = ({ onSelectModule, onBack }) => {
+const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) => {
   const modules = [
     {
       id: 'ordering',
@@ -22,24 +24,27 @@ const ChapterOneMenu: React.FC<Props> = ({ onSelectModule, onBack }) => {
       title: 'Proposiciones Lógicas',
       icon: 'fa-project-diagram',
       color: 'bg-blue-500',
-      active: true,
-      desc: 'Definición, tipos, conectores, simbologías y reglas de inferencia.'
+      active: (student.progreso_ordenamiento || 0) >= 60,
+      desc: 'Definición, tipos, conectores, simbologías y reglas de inferencia.',
+      required: 'Supera Ordenamiento (60%)'
     },
     {
       id: 'quantifiers',
       title: 'Cuantificadores Lógicos',
       icon: 'fa-infinity',
       color: 'bg-pink-500',
-      active: true,
-      desc: 'Videojuego: Reconocimiento, simbolización y negación de cuantificadores.'
+      active: (student.progreso_proposiciones || 0) >= 60,
+      desc: 'Videojuego: Reconocimiento, simbolización y negación de cuantificadores.',
+      required: 'Supera Proposiciones (60%)'
     },
     {
       id: 'microbit',
       title: 'Microbit en Lógica',
       icon: 'fa-microchip',
       color: 'bg-emerald-500',
-      active: true,
-      desc: 'Programación lógica aplicada a dispositivos Microbit reales y virtuales.'
+      active: (student.progreso_cuantificadores || 0) >= 60,
+      desc: 'Programación lógica aplicada a dispositivos Microbit reales y virtuales.',
+      required: 'Supera Cuantificadores (60%)'
     }
   ];
 
@@ -73,9 +78,14 @@ const ChapterOneMenu: React.FC<Props> = ({ onSelectModule, onBack }) => {
                 <h3 className="font-black text-gray-800 text-lg md:text-xl mb-2 tracking-tight">{m.title}</h3>
                 <p className="text-xs md:text-sm text-gray-500 leading-relaxed font-medium">{m.desc}</p>
                 {!m.active ? (
-                  <span className="inline-block mt-3 text-[9px] bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">
-                    <i className="fas fa-tools mr-1"></i> En mantenimiento
-                  </span>
+                  <div className="mt-3 flex flex-col gap-2">
+                    <span className="inline-block text-[9px] bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">
+                      <i className="fas fa-lock mr-1"></i> Bloqueado
+                    </span>
+                    <p className="text-[10px] font-bold text-amber-600 uppercase tracking-tight">
+                      Requisito: {m.required}
+                    </p>
+                  </div>
                 ) : (
                   <div className="mt-4 flex items-center text-xs font-black text-purple-600 group-hover:translate-x-2 transition-transform">
                     <span>INICIAR MÓDULO</span>

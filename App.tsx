@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Person, StudentProfile } from './types';
+import { View, Person, StudentProfile, AppConfig } from './types';
 import { supabase } from './src/supabaseClient';
 import Welcome from './components/Welcome';
 import CourseMenu from './components/CourseMenu';
@@ -28,6 +28,12 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.WELCOME);
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [config, setConfig] = useState<AppConfig>({
+    capitulo_1_activo: true,
+    capitulo_2_activo: false,
+    capitulo_3_activo: false,
+    capitulo_4_activo: false
+  });
 
   // Simulation states
   const [hSlots, setHSlots] = useState<(Person | null)[]>(Array(5).fill(null));
@@ -45,6 +51,15 @@ const App: React.FC = () => {
   // Persistence: Check for session on mount
   useEffect(() => {
     const checkSession = async () => {
+      // Fetch config first
+      const { data: configData } = await supabase
+        .from('configuracion')
+        .select('*')
+        .maybeSingle();
+      if (configData) {
+        setConfig(configData);
+      }
+
       // Check for admin route (pathname or hash for better compatibility in iframes)
       if (window.location.pathname === '/profesor-jorge' || window.location.hash === '#profesor-jorge') {
         setCurrentView(View.ADMIN);
@@ -134,9 +149,8 @@ const App: React.FC = () => {
       const { error: updateError } = await supabase
         .from('Estudiantes')
         .update({ 
-          ultima_conexion: 'now', // Use Postgres 'now' literal to let DB handle timezone
-          nota_capitulo_1: average,
-          nivel_desempeno: performanceLevel
+          ultima_conexion: new Date().toISOString(),
+          nota_capitulo_1: average
         })
         .eq('Usuario', studentData.Usuario);
 
@@ -184,21 +198,25 @@ const App: React.FC = () => {
     setStudent(updatedStudent);
     localStorage.setItem('student_session', JSON.stringify(updatedStudent));
 
-    console.log(`Updating Supabase: ${column}=${newValue}, nota_capitulo_1=${average}, nivel_desempeno=${performanceLevel}, ultima_conexion=now() for user ${student.Usuario}`);
-
-    const { error } = await supabase
-      .from('Estudiantes')
-      .update({ 
-        [column]: newValue,
-        nota_capitulo_1: average,
-        nivel_desempeno: performanceLevel,
-        ultima_conexion: 'now' // Use Postgres 'now' literal to let DB handle timezone
-      })
-      .eq('Usuario', student.Usuario);
-
-    if (error) {
-      console.error('Error updating progress', error);
-      // Rollback if needed, but for progress it's usually fine to stay optimistic
+    console.log(`Updating Supabase: ${column}=${newValue}, nota_capitulo_1=${average}, ultima_conexion=${nowLocal} for user ${student.Usuario}`);
+ 
+    try {
+      const { error } = await supabase
+        .from('Estudiantes')
+        .update({ 
+          [column]: newValue,
+          nota_capitulo_1: average,
+          ultima_conexion: new Date().toISOString()
+        })
+        .eq('Usuario', student.Usuario);
+ 
+      if (error) {
+        console.error('Error updating progress in Supabase:', error);
+      } else {
+        console.log('Progress successfully saved to Supabase');
+      }
+    } catch (err) {
+      console.error('Exception during Supabase update:', err);
     }
   };
 
@@ -246,10 +264,11 @@ const App: React.FC = () => {
       case View.WELCOME:
         return <Welcome onLogin={handleLogin} onAdmin={handleAdminAccess} />;
       case View.MENU:
-        return <CourseMenu student={student!} onSelect={() => setCurrentView(View.CHAPTER_1_MENU)} onShowResults={() => setCurrentView(View.RESULTS)} />;
+        return <CourseMenu student={student!} config={config} onSelect={() => setCurrentView(View.CHAPTER_1_MENU)} onShowResults={() => setCurrentView(View.RESULTS)} />;
       case View.CHAPTER_1_MENU:
         return (
           <ChapterOneMenu 
+            student={student!}
             onSelectModule={(id) => {
               if (id === 'ordering') setCurrentView(View.THEORY);
               if (id === 'logic') setCurrentView(View.LOGIC_THEORY);

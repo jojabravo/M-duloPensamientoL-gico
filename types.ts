@@ -1,4 +1,11 @@
 
+export interface AppConfig {
+  capitulo_1_activo: boolean;
+  capitulo_2_activo: boolean;
+  capitulo_3_activo: boolean;
+  capitulo_4_activo: boolean;
+}
+
 export enum View {
   WELCOME = 'WELCOME',
   MENU = 'MENU',
