@@ -98,6 +98,7 @@ const App: React.FC = () => {
     if (score >= 90) return 'SUPERIOR';
     if (score >= 80) return 'ALTO';
     if (score >= 60) return 'BÁSICO';
+    if (score >= 30) return 'EN PROGRESO';
     return 'BAJO';
   };
 
@@ -270,8 +271,24 @@ const App: React.FC = () => {
           <ChapterOneMenu 
             student={student!}
             onSelectModule={(id) => {
-              if (id === 'ordering') setCurrentView(View.THEORY);
-              if (id === 'logic') setCurrentView(View.LOGIC_THEORY);
+              if (id === 'ordering') {
+                const prog = student?.progreso_ordenamiento || 0;
+                if (prog >= 75) setCurrentView(View.CHALLENGE);
+                else if (prog >= 60) setCurrentView(View.TABLE);
+                else if (prog >= 45) setCurrentView(View.CIRCULAR);
+                else if (prog >= 30) setCurrentView(View.VERTICAL);
+                else if (prog >= 15) setCurrentView(View.HORIZONTAL);
+                else setCurrentView(View.THEORY);
+              }
+              if (id === 'logic') {
+                const prog = student?.progreso_proposiciones || 0;
+                if (prog >= 75) setCurrentView(View.INFERENCE_ROOM);
+                else if (prog >= 60) setCurrentView(View.LOGIC_CONNECTORS);
+                else if (prog >= 45) setCurrentView(View.PROP_IDENTIFIER);
+                else if (prog >= 30) setCurrentView(View.LOGIC_INFERENCE_THEORY);
+                else if (prog >= 15) setCurrentView(View.LOGIC_CONNECTORS_THEORY);
+                else setCurrentView(View.LOGIC_THEORY);
+              }
               if (id === 'quantifiers') setCurrentView(View.QUANTIFIERS_GAME);
               if (id === 'microbit') setCurrentView(View.MICROBIT_GAME);
             }}
@@ -279,7 +296,7 @@ const App: React.FC = () => {
           />
         );
       case View.THEORY:
-        return <Theory onNext={() => setCurrentView(View.HORIZONTAL)} />;
+        return <Theory onNext={() => { updateExampleProgress('ordering', 'theory'); setCurrentView(View.HORIZONTAL); }} />;
       case View.HORIZONTAL:
         return <HorizontalOrdering onCorrect={() => handleCorrectAction('ordering')} slots={hSlots} setSlots={setHSlots} available={hAvailable} setAvailable={setHAvailable} onNext={() => { updateExampleProgress('ordering', 'horizontal'); setCurrentView(View.VERTICAL); }} onBack={() => setCurrentView(View.CHAPTER_1_MENU)} />;
       case View.VERTICAL:

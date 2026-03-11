@@ -17,7 +17,8 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       icon: 'fa-layer-group',
       color: 'bg-purple-600',
       active: true,
-      desc: 'Lineal (horizontal y vertical), circular y tablas de doble entrada.'
+      desc: 'Lineal (horizontal y vertical), circular y tablas de doble entrada.',
+      progress: student.progreso_ordenamiento || 0
     },
     {
       id: 'logic',
@@ -26,7 +27,8 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       color: 'bg-blue-500',
       active: (student.progreso_ordenamiento || 0) >= 60,
       desc: 'Definición, tipos, conectores, simbologías y reglas de inferencia.',
-      required: 'Supera Ordenamiento (60%)'
+      required: 'Supera Ordenamiento (60%)',
+      progress: student.progreso_proposiciones || 0
     },
     {
       id: 'quantifiers',
@@ -35,7 +37,8 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       color: 'bg-pink-500',
       active: (student.progreso_proposiciones || 0) >= 60,
       desc: 'Videojuego: Reconocimiento, simbolización y negación de cuantificadores.',
-      required: 'Supera Proposiciones (60%)'
+      required: 'Supera Proposiciones (60%)',
+      progress: student.progreso_cuantificadores || 0
     },
     {
       id: 'microbit',
@@ -44,7 +47,8 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       color: 'bg-emerald-500',
       active: (student.progreso_cuantificadores || 0) >= 60,
       desc: 'Programación lógica aplicada a dispositivos Microbit reales y virtuales.',
-      required: 'Supera Cuantificadores (60%)'
+      required: 'Supera Cuantificadores (60%)',
+      progress: student.progreso_microbit || 0
     }
   ];
 
@@ -76,7 +80,32 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
               </div>
               <div className="flex-grow w-full">
                 <h3 className="font-black text-gray-800 text-lg md:text-xl mb-2 tracking-tight">{m.title}</h3>
+                
+                {/* Progress Bar */}
+                {m.active && (
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Progreso General</span>
+                      <span className="text-[10px] font-black text-purple-600">{Math.round(m.progress)}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full ${m.color} transition-all duration-1000`} 
+                        style={{ width: `${m.progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-xs md:text-sm text-gray-500 leading-relaxed font-medium">{m.desc}</p>
+                
+                {m.active && (
+                  <div className="mt-4 flex justify-center">
+                    <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[9px] font-black uppercase tracking-widest">
+                      Escala:
+                    </span>
+                  </div>
+                )}
                 {!m.active ? (
                   <div className="mt-3 flex flex-col gap-2">
                     <span className="inline-block text-[9px] bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">
@@ -88,7 +117,7 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
                   </div>
                 ) : (
                   <div className="mt-4 flex items-center text-xs font-black text-purple-600 group-hover:translate-x-2 transition-transform">
-                    <span>INICIAR MÓDULO</span>
+                    <span>{m.progress > 0 ? 'CONTINUAR MÓDULO' : 'INICIAR MÓDULO'}</span>
                     <i className="fas fa-arrow-right ml-2"></i>
                   </div>
                 )}

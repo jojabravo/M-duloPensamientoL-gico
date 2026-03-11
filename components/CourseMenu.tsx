@@ -106,7 +106,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults 
           A medida que avances, obtendrás las Copas de <strong>Bronce, Plata y Oro</strong>, culminando con el prestigioso <strong>Diamante Multicolor</strong>. 
           <br /><br />
           <span className="bg-purple-50 text-purple-700 px-4 py-1 rounded-full text-[10px] font-black uppercase">
-            Importante: El ingreso al Cuadro de Honor requiere un umbral mínimo del 30% (Desempeño Básico).
+            Importante: El ingreso al Cuadro de Honor requiere un umbral mínimo del 30% (En Progreso). El Desempeño Básico se alcanza al 60%.
           </span>
         </p>
       </div>
