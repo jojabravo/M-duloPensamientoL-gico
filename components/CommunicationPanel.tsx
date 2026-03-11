@@ -18,6 +18,8 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
   const [loading, setLoading] = useState(true);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
+  const [showModal, setShowModal] = useState(false);
+
   useEffect(() => {
     fetchData();
     // Subscribe to changes
@@ -41,7 +43,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, showModal]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -63,8 +65,8 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
 
     if (msgData) {
       setMessages(msgData);
-      // If mailbox is visible (not compact), mark as read
-      if (!compact && (mode === 'all' || mode === 'mailbox')) {
+      // If mailbox is visible (not compact) or modal is open, mark as read
+      if ((!compact || showModal) && (mode === 'all' || mode === 'mailbox')) {
         const unreadIds = msgData
           .filter(m => m.receptor === student.Usuario && !m.leido)
           .map(m => m.id);
@@ -114,7 +116,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
 
   if (compact) {
     return (
-      <div className="relative group">
+      <div className="relative">
         <button 
           className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2 relative"
           onClick={() => {
@@ -122,13 +124,9 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
             if (el) {
               el.scrollIntoView({ behavior: 'smooth' });
               playSound('pop');
-              // Mark current unread as read immediately
-              const unreadIds = messages
-                .filter(m => m.receptor === student.Usuario && !m.leido)
-                .map(m => m.id);
-              if (unreadIds.length > 0) {
-                markAsRead(unreadIds);
-              }
+            } else {
+              setShowModal(true);
+              playSound('pop');
             }
           }}
         >
@@ -138,6 +136,76 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
           )}
         </button>
+
+        {/* MODAL PARA EL BUZÓN CUANDO NO ESTÁ EN EL MENÚ */}
+        {showModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-fadeIn">
+            <div className="w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col h-[80vh] animate-scaleIn">
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-indigo-50/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
+                    <i className="fas fa-envelope-open-text"></i>
+                  </div>
+                  <h3 className="font-black text-gray-800 tracking-tight">Mi Buzón</h3>
+                </div>
+                <button 
+                  onClick={() => setShowModal(false)}
+                  className="w-10 h-10 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all flex items-center justify-center"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+
+              <div 
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/30"
+              >
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center opacity-30">
+                    <i className="fas fa-comments text-4xl mb-4"></i>
+                    <p className="font-black text-[10px] uppercase tracking-widest">No hay mensajes aún</p>
+                  </div>
+                ) : (
+                  [...messages].reverse().map((msg, idx) => {
+                    const isMe = msg.emisor === student.Usuario;
+                    return (
+                      <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[85%] p-4 rounded-[1.5rem] shadow-sm ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none border border-gray-100'}`}>
+                          <p className="text-sm font-medium break-words">{msg.contenido || msg.mensaje}</p>
+                          <div className={`flex items-center gap-2 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            <span className={`text-[8px] font-bold uppercase ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
+                              {new Date(msg.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="p-6 bg-white border-t border-gray-100">
+                <div className="flex items-center gap-3 bg-gray-50 rounded-2xl p-2 border border-gray-100">
+                  <input 
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder="Escribe al profe..."
+                    className="flex-1 bg-transparent border-none outline-none px-4 py-2 text-sm font-medium"
+                  />
+                  <button 
+                    onClick={sendMessage}
+                    disabled={sending || !newMessage.trim()}
+                    className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-md hover:bg-indigo-700 transition-all disabled:opacity-50"
+                  >
+                    <i className={`fas ${sending ? 'fa-circle-notch animate-spin' : 'fa-paper-plane'}`}></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
