@@ -74,17 +74,17 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
   }, [totalCap1, student.Grado]);
 
   const getBadge = (score: number) => {
-    if (score >= 96) return { icon: 'fa-gem', color: 'diamond-gradient diamond-shadow', label: 'DESEMPEÑO SUPERIOR' };
-    if (score >= 60) return { icon: 'fa-trophy', color: 'text-yellow-400', label: 'DESEMPEÑO ALTO' };
-    if (score >= 30) return { icon: 'fa-trophy', color: 'text-slate-400', label: 'DESEMPEÑO BÁSICO' };
+    if (score >= 90) return { icon: 'fa-gem', color: 'diamond-gradient diamond-shadow', label: 'DESEMPEÑO SUPERIOR' };
+    if (score >= 80) return { icon: 'fa-trophy', color: 'text-yellow-400', label: 'DESEMPEÑO ALTO' };
+    if (score >= 60) return { icon: 'fa-trophy', color: 'text-slate-400', label: 'DESEMPEÑO BÁSICO' };
     return { icon: 'fa-exclamation-circle', color: 'text-rose-500', label: 'DESEMPEÑO BAJO' };
   };
 
   const getStatusLabel = (score: number) => {
-    if (score >= 96) return 'DESEMPEÑO SUPERIOR';
-    if (score >= 60) return 'DESEMPEÑO ALTO';
-    if (score >= 30) return 'DESEMPEÑO BÁSICO';
-    return 'DESEMPEÑO BAJO';
+    if (score >= 90) return 'DESEMPEÑO SUPERIOR';
+    if (score >= 80) return 'DESEMPEÑO ALTO';
+    if (score >= 60) return 'DESEMPEÑO BÁSICO';
+    return ''; // Hide 'DESEMPEÑO BAJO' for students
   };
 
   return (
@@ -102,9 +102,10 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             <div>
               <span className="text-[11px] font-black uppercase tracking-[0.5em] text-purple-400 mb-2 block">Certificación de Pensamiento Lógico</span>
               <h2 className="text-5xl font-black text-gray-800 tracking-tighter">Tu Progreso Académico</h2>
-              <p className="text-gray-500 font-medium text-lg mt-1">
-                Estudiante: <span className="text-purple-600 font-black uppercase tracking-tight">
+              <p className="text-gray-500 font-medium text-lg mt-1 flex items-center justify-center gap-2">
+                Estudiante: <span className="text-purple-600 font-black uppercase tracking-tight flex items-center gap-1">
                   {student.Nombre || student.Usuario}
+                  {totalCap1 >= 90 && <i className="fas fa-gem diamond-gradient text-sm animate-pulse"></i>}
                 </span>
               </p>
             </div>
@@ -118,34 +119,33 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
 
         {/* BARRA DE PROGRESO GAMIFICADA */}
         <div className="mb-20 px-4">
-          <div className="flex justify-between items-end mb-6">
-            <div>
-              <h3 className="text-2xl font-black text-gray-800 tracking-tight">Camino al Maestro Lógico</h3>
+          <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-10 gap-4">
+            <div className="text-center md:text-left">
+              <h3 className="text-3xl font-black text-gray-800 tracking-tight">Camino al Maestro Lógico</h3>
               <p className="text-gray-500 font-bold text-sm uppercase tracking-widest">Capítulo 1: Pensamiento Verbal</p>
             </div>
             <div className="text-right">
-              <span className="text-5xl font-black text-purple-600 tabular-nums">{Math.round(totalCap1)}%</span>
+              <span className="text-6xl font-black text-purple-600 tabular-nums">{Math.round(totalCap1)}%</span>
             </div>
           </div>
           
-          <div className="relative pt-12 pb-8">
-            {/* Hitos */}
-            <div className="absolute top-0 left-0 w-full flex justify-between px-2 z-10">
+          <div className="relative pt-4 pb-8">
+            {/* Hitos - Grid layout for better spacing and responsiveness */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-8 relative z-10">
               {[
-                { pct: 30, icon: 'fa-trophy', color: 'text-orange-400', label: 'Bronce (Básico)' },
-                { pct: 60, icon: 'fa-trophy', color: 'text-slate-400', label: 'Plata (Alto)' },
-                { pct: 96, icon: 'fa-trophy', color: 'text-yellow-400', label: 'Oro (Superior)' },
-                { pct: 100, icon: 'fa-gem', color: 'diamond-gradient diamond-shadow', label: 'Diamante (Superior)' }
+                { pct: 30, icon: 'fa-trophy', color: 'text-orange-400', label: 'Bronce (30-59%)' },
+                { pct: 60, icon: 'fa-trophy', color: 'text-slate-400', label: 'Plata (60-79%)' },
+                { pct: 80, icon: 'fa-trophy', color: 'text-yellow-400', label: 'Oro (80-89%)' },
+                { pct: 90, icon: 'fa-gem', color: 'diamond-gradient diamond-shadow', label: 'Diamante (90-100%)' }
               ].map((hito) => (
                 <div 
                   key={hito.pct} 
-                  className={`flex flex-col items-center transition-all duration-500 ${totalCap1 >= hito.pct ? 'scale-110 opacity-100' : 'opacity-30 grayscale'}`}
-                  style={{ position: 'absolute', left: `${hito.pct}%`, transform: 'translateX(-50%)' }}
+                  className={`flex flex-col items-center transition-all duration-500 ${totalCap1 >= hito.pct ? 'scale-105 md:scale-110 opacity-100' : 'opacity-30 grayscale'}`}
                 >
-                  <div className={`w-12 h-12 rounded-2xl bg-white shadow-xl flex items-center justify-center text-2xl mb-2 border-4 ${totalCap1 >= hito.pct ? 'border-purple-400 animate-bounce' : 'border-gray-100'}`}>
+                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white shadow-xl flex items-center justify-center text-2xl md:text-3xl mb-3 border-4 ${totalCap1 >= hito.pct ? 'border-purple-400 animate-bounce' : 'border-gray-100'}`}>
                     <i className={`fas ${hito.icon} ${hito.color}`}></i>
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-tighter text-gray-600">{hito.label}</span>
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter text-gray-600 text-center leading-tight">{hito.label}</span>
                 </div>
               ))}
             </div>
@@ -299,7 +299,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
               <div className="bg-orange-50/50 p-4 rounded-[2rem] border-2 border-orange-100 text-center">
                 <i className="fas fa-trophy text-orange-400 text-2xl mb-1"></i>
                 <h4 className="font-black text-orange-800 text-[10px] uppercase tracking-widest">Bronce (30-59%)</h4>
-                <p className="text-[8px] font-black text-orange-600 uppercase">Desempeño Básico</p>
+                <p className="text-[8px] font-black text-orange-600 uppercase">En Progreso</p>
               </div>
               <div className="space-y-4">
                 {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 30 && (r.nota_capitulo_1 || 0) < 60).map((r, i) => {
@@ -321,7 +321,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                         </div>
                         <div className="flex flex-col">
                           <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-orange-900' : 'text-gray-700'}`}>{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest mt-1">Desempeño Básico</span>
+                          <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest mt-1">En Progreso</span>
                         </div>
                       </div>
                     </div>
@@ -334,11 +334,11 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             <div className="flex flex-col gap-4">
               <div className="bg-slate-50/50 p-4 rounded-[2rem] border-2 border-slate-200 text-center">
                 <i className="fas fa-trophy text-slate-400 text-2xl mb-1"></i>
-                <h4 className="font-black text-slate-800 text-[10px] uppercase tracking-widest">Plata (60-95%)</h4>
-                <p className="text-[8px] font-black text-slate-600 uppercase">Desempeño Alto</p>
+                <h4 className="font-black text-slate-800 text-[10px] uppercase tracking-widest">Plata (60-79%)</h4>
+                <p className="text-[8px] font-black text-slate-600 uppercase">Desempeño Básico</p>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 60 && (r.nota_capitulo_1 || 0) < 96).map((r, i) => {
+                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 60 && (r.nota_capitulo_1 || 0) < 80).map((r, i) => {
                   const isMe = r.Usuario === student.Usuario;
                   return (
                     <div 
@@ -357,7 +357,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                         </div>
                         <div className="flex flex-col">
                           <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-slate-900' : 'text-gray-700'}`}>{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">Desempeño Alto</span>
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">Desempeño Básico</span>
                         </div>
                       </div>
                     </div>
@@ -370,11 +370,11 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             <div className="flex flex-col gap-4">
               <div className="bg-yellow-50/50 p-4 rounded-[2rem] border-2 border-yellow-200 text-center shadow-[0_0_20px_rgba(250,204,21,0.1)]">
                 <i className="fas fa-trophy text-yellow-400 text-2xl mb-1 drop-shadow-sm"></i>
-                <h4 className="font-black text-yellow-800 text-[10px] uppercase tracking-widest">Oro (96-99%)</h4>
-                <p className="text-[8px] font-black text-yellow-600 uppercase">Desempeño Superior</p>
+                <h4 className="font-black text-yellow-800 text-[10px] uppercase tracking-widest">Oro (80-89%)</h4>
+                <p className="text-[8px] font-black text-yellow-600 uppercase">Desempeño Alto</p>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 96 && (r.nota_capitulo_1 || 0) < 100).map((r, i) => {
+                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 80 && (r.nota_capitulo_1 || 0) < 90).map((r, i) => {
                   const isMe = r.Usuario === student.Usuario;
                   return (
                     <div 
@@ -393,7 +393,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                         </div>
                         <div className="flex flex-col">
                           <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-yellow-900' : 'text-gray-800'}`}>{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest mt-1">Desempeño Superior</span>
+                          <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest mt-1">Desempeño Alto</span>
                         </div>
                       </div>
                     </div>
@@ -408,11 +408,11 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <div className="sparkle-effect top-2 left-4"></div>
                 <div className="sparkle-effect bottom-2 right-4" style={{ animationDelay: '1s' }}></div>
                 <i className="fas fa-gem text-white text-2xl mb-1 drop-shadow-md"></i>
-                <h4 className="font-black text-white text-[10px] uppercase tracking-widest relative z-10">Diamante (100%)</h4>
+                <h4 className="font-black text-white text-[10px] uppercase tracking-widest relative z-10">Diamante (90-100%)</h4>
                 <p className="text-[8px] font-black text-white/80 uppercase relative z-10">Desempeño Superior</p>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 100).map((r, i) => {
+                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 90).map((r, i) => {
                   const isMe = r.Usuario === student.Usuario;
                   return (
                     <div 
@@ -430,7 +430,10 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                           100
                         </div>
                         <div className="flex flex-col">
-                          <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-cyan-900' : 'text-gray-900'}`}>{r.Nombre || r.Usuario}</span>
+                          <span className={`font-black text-sm tracking-tight leading-tight flex items-center justify-center gap-1 ${isMe ? 'text-cyan-900' : 'text-gray-900'}`}>
+                            {r.Nombre || r.Usuario}
+                            <i className="fas fa-gem diamond-gradient text-[10px] animate-pulse"></i>
+                          </span>
                           <span className="text-[9px] font-black text-cyan-500 uppercase tracking-widest mt-1">Desempeño Superior</span>
                         </div>
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">

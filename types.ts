@@ -46,6 +46,7 @@ export interface StudentProfile {
   progreso_lateral?: number;
   progreso_historia_final?: number;
   ultima_conexion?: string;
+  nivel_desempeno?: string;
 }
 
 export interface Person {

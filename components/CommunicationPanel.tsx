@@ -146,9 +146,9 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
     <div className="space-y-12 animate-fadeIn">
       {/* SECCIÓN ANUNCIOS */}
       {(mode === 'all' || mode === 'announcements') && (
-        <section>
+        <section className="w-full max-w-full overflow-hidden">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
+            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shadow-sm shrink-0">
               <i className="fas fa-bullhorn"></i>
             </div>
             <div>
@@ -157,19 +157,19 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
             </div>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-4 w-full">
             {announcements.length === 0 ? (
               <div className="bg-white/50 border-2 border-dashed border-gray-100 p-8 rounded-[2rem] text-center">
                 <p className="text-gray-400 font-bold text-sm">No hay avisos recientes</p>
               </div>
             ) : (
               announcements.map((ann) => (
-                <div key={ann.id} className="bg-white p-6 rounded-[1.5rem] border-2 border-amber-50 shadow-sm hover:shadow-md transition-all flex gap-4 items-start group">
+                <div key={ann.id} className="bg-white p-6 rounded-[1.5rem] border-2 border-amber-50 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 items-start group w-full overflow-hidden">
                   <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 shrink-0 group-hover:scale-110 transition-transform">
                     <i className="fas fa-bell"></i>
                   </div>
-                  <div>
-                    <p className="text-gray-700 font-medium leading-relaxed">{ann.mensaje}</p>
+                  <div className="flex-1 w-full overflow-hidden">
+                    <p className="text-gray-700 font-medium leading-relaxed break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{ann.mensaje}</p>
                     <p className="text-[10px] text-gray-400 font-black mt-2 uppercase tracking-widest">
                       {new Date(ann.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}
                     </p>
@@ -183,19 +183,19 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
 
       {/* SECCIÓN BUZÓN INTEGRADO */}
       {(mode === 'all' || mode === 'mailbox') && (
-        <section id="student-mailbox-section" className="bg-white rounded-[3rem] shadow-2xl border-8 border-indigo-50 overflow-hidden flex flex-col h-[600px] animate-fade-up">
+        <section id="student-mailbox-section" className="bg-white rounded-[3rem] shadow-2xl border-8 border-indigo-50 overflow-hidden flex flex-col h-[600px] animate-fade-up w-full max-w-full">
           {/* CABECERA DEL BUZÓN */}
-          <div className="p-8 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 flex items-center justify-between">
+          <div className="p-6 md:p-8 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-lg relative">
-                <i className="fas fa-envelope-open-text text-2xl"></i>
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-lg relative shrink-0">
+                <i className="fas fa-envelope-open-text text-xl md:text-2xl"></i>
                 {hasUnread && (
                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
                 )}
               </div>
               <div>
-                <h3 className="text-2xl font-black text-gray-800 tracking-tighter">Mi Buzón con el Profe</h3>
-                <p className="text-gray-500 font-medium text-sm">Conversación privada con el Profe Jorge</p>
+                <h3 className="text-xl md:text-2xl font-black text-gray-800 tracking-tighter">Mi Buzón con el Profe</h3>
+                <p className="text-gray-500 font-medium text-xs md:text-sm">Conversación privada con el Profe Jorge</p>
               </div>
             </div>
             <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest">
@@ -207,7 +207,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
           {/* HISTORIAL DE CONVERSACIÓN (BURBUJAS) */}
           <div 
             ref={scrollRef}
-            className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-gray-50/20"
+            className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 custom-scrollbar bg-gray-50/20"
           >
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center opacity-30">
@@ -219,8 +219,8 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
                 const isMe = msg.emisor === student.Usuario;
                 return (
                   <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-up`}>
-                    <div className={`max-w-[80%] md:max-w-[70%] p-5 rounded-[2rem] shadow-sm relative ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none border border-gray-100'}`}>
-                      <p className="text-sm leading-relaxed font-medium">{msg.contenido || msg.mensaje}</p>
+                    <div className={`max-w-[90%] md:max-w-[70%] p-4 md:p-5 rounded-[2rem] shadow-sm relative ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none border border-gray-100'}`}>
+                      <p className="text-sm leading-relaxed font-medium break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{msg.contenido || msg.mensaje}</p>
                       <div className={`flex items-center gap-2 mt-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
                         <span className={`text-[9px] font-bold uppercase tracking-tighter ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
                           {new Date(msg.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

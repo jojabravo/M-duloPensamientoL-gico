@@ -79,6 +79,13 @@ const App: React.FC = () => {
     checkSession();
   }, []);
 
+  const getPerformanceLevel = (score: number): string => {
+    if (score >= 90) return 'SUPERIOR';
+    if (score >= 80) return 'ALTO';
+    if (score >= 60) return 'BÁSICO';
+    return 'BAJO';
+  };
+
   const handleLogin = async (usuario: string, contrasena: string) => {
     try {
       // 1. Check if user exists (case-insensitive)
@@ -121,13 +128,15 @@ const App: React.FC = () => {
         studentData.progreso_microbit || 0
       ];
       const average = Math.round(modules.reduce((a, b) => a + b, 0) / modules.length);
+      const performanceLevel = getPerformanceLevel(average);
 
       console.log(`Logging in: Updating ultima_conexion (DB side) and nota_capitulo_1 for ${studentData.Usuario}`);
       const { error: updateError } = await supabase
         .from('Estudiantes')
         .update({ 
           ultima_conexion: 'now', // Use Postgres 'now' literal to let DB handle timezone
-          nota_capitulo_1: average
+          nota_capitulo_1: average,
+          nivel_desempeno: performanceLevel
         })
         .eq('Usuario', studentData.Usuario);
 
@@ -168,18 +177,21 @@ const App: React.FC = () => {
       updatedStudent.progreso_microbit || 0
     ];
     const average = Math.round(modules.reduce((a, b) => a + b, 0) / modules.length);
+    const performanceLevel = getPerformanceLevel(average);
     updatedStudent.nota_capitulo_1 = average;
+    updatedStudent.nivel_desempeno = performanceLevel;
 
     setStudent(updatedStudent);
     localStorage.setItem('student_session', JSON.stringify(updatedStudent));
 
-    console.log(`Updating Supabase: ${column}=${newValue}, nota_capitulo_1=${average}, ultima_conexion=now() for user ${student.Usuario}`);
+    console.log(`Updating Supabase: ${column}=${newValue}, nota_capitulo_1=${average}, nivel_desempeno=${performanceLevel}, ultima_conexion=now() for user ${student.Usuario}`);
 
     const { error } = await supabase
       .from('Estudiantes')
       .update({ 
         [column]: newValue,
         nota_capitulo_1: average,
+        nivel_desempeno: performanceLevel,
         ultima_conexion: 'now' // Use Postgres 'now' literal to let DB handle timezone
       })
       .eq('Usuario', student.Usuario);
@@ -296,8 +308,11 @@ const App: React.FC = () => {
               </button>
               <div>
                 <h1 className="text-lg font-black text-gray-800 leading-none">Lógica <span className="text-purple-600">6°/7°</span></h1>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 flex items-center gap-1">
                   Estudiante: {student?.Nombre || student?.Usuario}
+                  {(student?.nota_capitulo_1 || 0) >= 90 && (
+                    <i className="fas fa-gem diamond-gradient text-[8px] animate-pulse"></i>
+                  )}
                 </p>
               </div>
             </div>

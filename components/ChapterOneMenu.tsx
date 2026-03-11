@@ -58,20 +58,20 @@ const ChapterOneMenu: React.FC<Props> = ({ onSelectModule, onBack }) => {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
         {modules.map(m => (
           <div 
             key={m.id}
             onClick={() => m.active && (playSound('pop'), onSelectModule(m.id))}
-            className={`group p-6 rounded-[2.5rem] border-4 transition-all relative ${m.active ? 'bg-white border-purple-50 hover:border-purple-400 hover:shadow-2xl cursor-pointer shadow-xl' : 'bg-gray-50 border-gray-100 grayscale opacity-60 cursor-not-allowed'}`}
+            className={`group p-6 md:p-10 rounded-[2.5rem] border-4 transition-all relative ${m.active ? 'bg-white border-purple-50 hover:border-purple-400 hover:shadow-2xl cursor-pointer shadow-xl' : 'bg-gray-50 border-gray-100 grayscale opacity-60 cursor-not-allowed'}`}
           >
-            <div className="flex gap-6 items-center">
-              <div className={`w-16 h-16 rounded-3xl flex items-center justify-center text-white text-3xl shadow-lg shrink-0 ${m.color}`}>
+            <div className="flex flex-col sm:flex-row gap-4 md:gap-6 items-center sm:items-start text-center sm:text-left">
+              <div className={`w-16 h-16 md:w-20 md:h-20 rounded-3xl flex items-center justify-center text-white text-3xl md:text-4xl shadow-lg shrink-0 ${m.color}`}>
                 <i className={`fas ${m.icon}`}></i>
               </div>
-              <div className="flex-grow">
-                <h3 className="font-bold text-gray-800 text-lg mb-1">{m.title}</h3>
-                <p className="text-sm text-gray-500 leading-snug">{m.desc}</p>
+              <div className="flex-grow w-full">
+                <h3 className="font-black text-gray-800 text-lg md:text-xl mb-2 tracking-tight">{m.title}</h3>
+                <p className="text-xs md:text-sm text-gray-500 leading-relaxed font-medium">{m.desc}</p>
                 {!m.active ? (
                   <span className="inline-block mt-3 text-[9px] bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">
                     <i className="fas fa-tools mr-1"></i> En mantenimiento

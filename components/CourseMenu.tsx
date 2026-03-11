@@ -34,7 +34,7 @@ const CourseMenu: React.FC<Props> = ({ student, onSelect, onShowResults }) => {
       icon: 'fa-cube', 
       color: 'bg-pink-500', 
       active: false,
-      desc: 'Rotaciones, vistas de sólidos y ubicación en el espacio.'
+      desc: 'Transformaciones Isométricas (traslación, rotación, simetría), uso de GeoGebra y diseño de mosaicos.'
     },
     { 
       id: 'abs', 
