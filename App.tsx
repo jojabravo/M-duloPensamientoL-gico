@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Person, StudentProfile, AppConfig } from './types';
 import { supabase } from './src/supabaseClient';
+import { playSound } from './audio';
 import Welcome from './components/Welcome';
 import CourseMenu from './components/CourseMenu';
 import ChapterOneMenu from './components/ChapterOneMenu';
@@ -343,29 +344,40 @@ const App: React.FC = () => {
     <div className="min-h-screen flex flex-col relative overflow-hidden pb-10">
       <div className="absolute inset-0 bg-pattern -z-10"></div>
       {currentView !== View.WELCOME && currentView !== View.ADMIN && (
-        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-purple-100">
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setCurrentView(View.MENU)} className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 hover:bg-purple-600 hover:text-white transition-all">
+        <header className="bg-white/90 backdrop-blur-xl sticky top-0 z-50 shadow-sm border-b border-purple-100">
+          <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <button 
+                onClick={() => { playSound('pop'); setCurrentView(View.MENU); }} 
+                className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+              >
                 <i className="fas fa-home"></i>
               </button>
-              <div>
-                <h1 className="text-lg font-black text-gray-800 leading-none">Lógica <span className="text-purple-600">6°/7°</span></h1>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 flex items-center gap-1">
-                  Estudiante: {student?.Nombre || student?.Usuario}
+              <div className="flex-1">
+                <h1 className="text-base md:text-lg font-black text-gray-800 leading-none">Lógica <span className="text-purple-600">6°/7°</span></h1>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1 flex items-center gap-1">
+                  {student?.Nombre || student?.Usuario}
                   {(student?.nota_capitulo_1 || 0) >= 90 && (
                     <i className="fas fa-gem diamond-gradient text-[8px] animate-pulse"></i>
                   )}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center gap-2 md:gap-3 w-full md:w-auto">
               <CommunicationPanel student={student!} mode="mailbox" compact={true} />
-              <button onClick={handleLogout} className="px-4 py-2 bg-red-50 text-red-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">
-                <i className="fas fa-sign-out-alt mr-2"></i> Salir
+              <button 
+                onClick={() => { playSound('pop'); setCurrentView(View.RESULTS); }} 
+                className="flex-1 md:flex-none px-4 py-2.5 bg-purple-50 text-purple-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
+              >
+                <i className="fas fa-chart-bar"></i>
+                <span>Notas</span>
               </button>
-              <button onClick={() => setCurrentView(View.RESULTS)} className="px-4 py-2 bg-purple-50 text-purple-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all">
-                <i className="fas fa-chart-bar mr-2"></i> Mis Notas
+              <button 
+                onClick={handleLogout} 
+                className="flex-1 md:flex-none px-4 py-2.5 bg-rose-50 text-rose-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
+              >
+                <i className="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
               </button>
             </div>
           </div>
