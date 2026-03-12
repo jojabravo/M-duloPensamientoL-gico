@@ -73,11 +73,10 @@ export interface Announcement {
 
 export interface MailMessage {
   id: string;
-  emisor: string;
-  receptor: string;
-  contenido: string;
-  mensaje?: string; // Keep for backward compatibility
+  Emisor: string;
+  Receptor: string;
+  Contenido: string;
   Grado: string;
   fecha: string;
-  leido: boolean;
+  Leido: boolean;
 }

@@ -101,7 +101,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     const { data: msgData } = await supabase
       .from('buzon')
       .select('*')
-      .or(`emisor.eq.Jorge,receptor.eq.Jorge`)
+      .or(`Emisor.eq.Jorge,Receptor.eq.Jorge`)
       .order('fecha', { ascending: true });
     
     if (msgData) setAllBuzonMessages(msgData);
@@ -148,7 +148,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
           event: 'INSERT',
           schema: 'public',
           table: 'buzon',
-          filter: 'receptor=eq.Jorge',
+          filter: 'Receptor=eq.Jorge',
         },
         (payload) => {
           const newMessage = payload.new as MailMessage;
@@ -164,13 +164,13 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
           playSound('pop');
           
           // Find student name
-          const student = students.find(s => s.Usuario === newMessage.emisor);
-          const senderName = student?.Nombre || newMessage.emisor;
+          const student = students.find(s => s.Usuario === newMessage.Emisor);
+          const senderName = student?.Nombre || newMessage.Emisor;
           
           // Show notification
           setLastNotification({
             show: true,
-            message: `📩 Nuevo mensaje de ${senderName}: "${newMessage.contenido.substring(0, 40)}${newMessage.contenido.length > 40 ? '...' : ''}"`
+            message: `📩 Nuevo mensaje de ${senderName}: "${newMessage.Contenido.substring(0, 40)}${newMessage.Contenido.length > 40 ? '...' : ''}"`
           });
           
           // Auto-hide after 6 seconds
@@ -187,17 +187,17 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   }, [isAuthenticated, students]);
 
   const markAsRead = async (studentId: string) => {
-    const unreadFromStudent = allBuzonMessages.filter(m => m.emisor === studentId && m.receptor === 'Jorge' && !m.leido);
+    const unreadFromStudent = allBuzonMessages.filter(m => m.Emisor === studentId && m.Receptor === 'Jorge' && !m.Leido);
     if (unreadFromStudent.length === 0) return;
 
     const { error } = await supabase
       .from('buzon')
-      .update({ leido: true })
+      .update({ Leido: true })
       .in('id', unreadFromStudent.map(m => m.id));
     
     if (!error) {
       setAllBuzonMessages(prev => prev.map(m => 
-        (m.emisor === studentId && m.receptor === 'Jorge') ? { ...m, leido: true } : m
+        (m.Emisor === studentId && m.Receptor === 'Jorge') ? { ...m, Leido: true } : m
       ));
     }
   };
@@ -215,10 +215,11 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     const messagesToInsert = recipients.map(studentId => {
       const student = students.find(s => s.Usuario === studentId);
       return {
-        emisor: 'Jorge',
-        receptor: studentId,
-        contenido: chatInput.trim(),
-        Grado: student?.Grado || 'N/A'
+        Emisor: 'Jorge',
+        Receptor: studentId,
+        Contenido: chatInput.trim(),
+        Grado: student?.Grado || 'N/A',
+        Leido: false
       };
     });
 
@@ -277,10 +278,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   };
 
   const unreadConversations = useMemo(() => {
-    const unread = allBuzonMessages.filter(m => m.receptor === 'Jorge' && !m.leido);
+    const unread = allBuzonMessages.filter(m => m.Receptor === 'Jorge' && !m.Leido);
     const grouped = unread.reduce((acc, msg) => {
-      if (!acc[msg.emisor] || new Date(msg.fecha) > new Date(acc[msg.emisor].fecha)) {
-        acc[msg.emisor] = msg;
+      if (!acc[msg.Emisor] || new Date(msg.fecha) > new Date(acc[msg.Emisor].fecha)) {
+        acc[msg.Emisor] = msg;
       }
       return acc;
     }, {} as Record<string, MailMessage>);
@@ -298,8 +299,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   const activeChatHistory = useMemo(() => {
     if (!selectedChatStudent) return [];
     return allBuzonMessages.filter(m => 
-      (m.emisor === selectedChatStudent && m.receptor === 'Jorge') ||
-      (m.emisor === 'Jorge' && m.receptor === selectedChatStudent)
+      (m.Emisor === selectedChatStudent && m.Receptor === 'Jorge') ||
+      (m.Emisor === 'Jorge' && m.Receptor === selectedChatStudent)
     );
   }, [allBuzonMessages, selectedChatStudent]);
 
@@ -520,7 +521,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
           >
             <i className="fas fa-comments"></i>
             <span>Mensajería y Avisos</span>
-            {allBuzonMessages.some(m => m.receptor === 'Jorge' && !m.leido) && (
+            {allBuzonMessages.some(m => m.Receptor === 'Jorge' && !m.Leido) && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
             )}
           </button>
@@ -796,7 +797,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                                   </div>
                                   <div className="flex flex-col overflow-hidden">
                                     <span className="font-black text-sm truncate">{student?.Nombre || msg.emisor} - {student?.Grado || 'N/A'}</span>
-                                    <p className={`text-[10px] truncate font-medium ${isSelected ? 'text-indigo-100' : 'text-gray-500'}`}>{msg.contenido}</p>
+                                    <p className={`text-[10px] truncate font-medium ${isSelected ? 'text-indigo-100' : 'text-gray-500'}`}>{msg.Contenido}</p>
                                   </div>
                                 </div>
                                 <span className="w-2.5 h-2.5 bg-red-500 rounded-full shadow-sm shrink-0"></span>
@@ -809,7 +810,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                       {chatSidebarSearch && (
                         <div>
                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-2">Resultados de Búsqueda</p>
-                          {filteredChatStudents.filter(s => !unreadConversations.some(u => u.emisor === s.Usuario)).map(student => {
+                          {filteredChatStudents.filter(s => !unreadConversations.some(u => u.Emisor === s.Usuario)).map(student => {
                             const isSelected = selectedChatStudent === student.Usuario;
                             return (
                               <div 
@@ -892,12 +893,12 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </div>
                       ) : (
                         activeChatHistory.map((msg, idx) => {
-                          const isMe = msg.emisor === 'Jorge';
+                          const isMe = msg.Emisor === 'Jorge';
                           return (
                             <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-up`}>
                               <div className={`max-w-[85%] md:max-w-[70%] p-5 rounded-[2rem] shadow-sm relative ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 rounded-tl-none border border-gray-100'}`}>
                                 <p className="text-sm leading-relaxed font-medium break-words overflow-wrap-anywhere" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-                                  {msg.contenido || msg.mensaje}
+                                  {msg.Contenido}
                                 </p>
                                 <span className={`text-[9px] font-bold mt-2 block ${isMe ? 'text-indigo-200 text-right' : 'text-gray-400'}`}>
                                   {new Date(msg.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

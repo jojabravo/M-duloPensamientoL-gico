@@ -72,14 +72,14 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
           <div 
             key={m.id}
             onClick={() => m.active && (playSound('pop'), onSelectModule(m.id))}
-            className={`group p-6 md:p-10 rounded-[2.5rem] border-4 transition-all relative ${m.active ? 'bg-white border-purple-50 hover:border-purple-400 hover:shadow-2xl cursor-pointer shadow-xl' : 'bg-gray-50 border-gray-100 grayscale opacity-60 cursor-not-allowed'}`}
+            className={`group p-8 md:p-10 rounded-[2.5rem] border-4 transition-all relative ${m.active ? 'bg-white border-purple-50 hover:border-purple-400 hover:shadow-2xl cursor-pointer shadow-xl' : 'bg-gray-50 border-gray-100 grayscale opacity-60 cursor-not-allowed'}`}
           >
-            <div className="flex flex-col sm:flex-row gap-4 md:gap-6 items-center sm:items-start text-center sm:text-left">
-              <div className={`w-16 h-16 md:w-20 md:h-20 rounded-3xl flex items-center justify-center text-white text-3xl md:text-4xl shadow-lg shrink-0 ${m.color}`}>
+            <div className="flex flex-col gap-6 items-center text-center">
+              <div className={`w-20 h-20 md:w-24 md:h-24 rounded-3xl flex items-center justify-center text-white text-4xl md:text-5xl shadow-lg shrink-0 ${m.color}`}>
                 <i className={`fas ${m.icon}`}></i>
               </div>
               <div className="flex-grow w-full">
-                <h3 className="font-black text-gray-800 text-lg md:text-xl mb-2 tracking-tight">{m.title}</h3>
+                <h3 className="font-black text-gray-800 text-xl md:text-2xl mb-3 tracking-tight leading-tight">{m.title}</h3>
                 
                 {/* Progress Bar */}
                 {m.active && (
