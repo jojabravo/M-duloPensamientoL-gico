@@ -25,14 +25,40 @@ const PropositionIdentifier: React.FC<Props> = ({ onCorrect, onFinish, onBack })
   const [score, setScore] = useState(0);
   const [dragOver, setDragOver] = useState<string | null>(null);
 
+  const [isSelected, setIsSelected] = useState(false);
+
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('source', 'card');
     playSound('pop');
   };
 
+  const handleCardClick = () => {
+    if (feedback) return;
+    playSound('pop');
+    setIsSelected(!isSelected);
+  };
+
+  const handleBucketClick = (targetType: string) => {
+    if (!isSelected) return;
+    
+    const item = ITEMS[current];
+    setIsSelected(false);
+    
+    if (targetType === item.type) {
+      playSound('success');
+      setFeedback({ msg: `¡Bien hecho! ${item.explanation}`, correct: true });
+      setScore(s => s + 1);
+      if (onCorrect) onCorrect();
+    } else {
+      playSound('error');
+      setFeedback({ msg: `Ups... ${item.explanation}`, correct: false });
+    }
+  };
+
   const handleDrop = (e: React.DragEvent, targetType: string) => {
     e.preventDefault();
     setDragOver(null);
+    setIsSelected(false);
     const item = ITEMS[current];
     if (targetType === item.type) {
       playSound('success');
@@ -79,15 +105,16 @@ const PropositionIdentifier: React.FC<Props> = ({ onCorrect, onFinish, onBack })
                 <div 
                   draggable="true"
                   onDragStart={handleDragStart}
-                  className="w-full aspect-[4/5] bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 flex items-center justify-center text-center shadow-2xl cursor-grab active:cursor-grabbing transform hover:scale-105 transition-all border-4 border-white/20 relative"
+                  onClick={handleCardClick}
+                  className={`w-full aspect-[4/5] rounded-3xl p-6 flex items-center justify-center text-center shadow-2xl cursor-grab active:cursor-grabbing transform hover:scale-105 transition-all border-4 relative ${isSelected ? 'bg-indigo-700 border-indigo-300 ring-4 ring-indigo-500/30 scale-105' : 'bg-gradient-to-br from-purple-500 to-indigo-600 border-white/20'}`}
                 >
                    <div className="absolute top-4 left-4 text-white/20 text-3xl"><i className="fas fa-quote-left"></i></div>
                    <p className="text-white font-bold text-lg leading-snug drop-shadow-md italic">
                      {item.text}
                    </p>
                    <div className="absolute bottom-4 flex flex-col items-center">
-                      <i className="fas fa-hand-pointer text-white/40 text-xl animate-bounce mb-1"></i>
-                      <span className="text-[8px] font-black text-white/60 uppercase tracking-widest">Arrástrame</span>
+                      <i className={`fas ${isSelected ? 'fa-check-circle text-indigo-300' : 'fa-hand-pointer text-white/40 animate-bounce'} text-xl mb-1`}></i>
+                      <span className="text-[8px] font-black text-white/60 uppercase tracking-widest">{isSelected ? 'Seleccionado' : 'Arrastra o Toca'}</span>
                    </div>
                 </div>
               ) : (
@@ -111,13 +138,14 @@ const PropositionIdentifier: React.FC<Props> = ({ onCorrect, onFinish, onBack })
                         onDragOver={(e) => { e.preventDefault(); setDragOver(bucket.id); }}
                         onDragLeave={() => setDragOver(null)}
                         onDrop={(e) => handleDrop(e, bucket.id)}
-                        className={`p-8 rounded-[3rem] border-4 border-dashed flex flex-col items-center justify-center text-center transition-all min-h-[250px] ${dragOver === bucket.id ? `bg-${bucket.color}-50 border-${bucket.color}-400 scale-105 shadow-xl` : 'bg-gray-50 border-gray-200 opacity-60'}`}
+                        onClick={() => handleBucketClick(bucket.id)}
+                        className={`p-8 rounded-[3rem] border-4 border-dashed flex flex-col items-center justify-center text-center transition-all min-h-[250px] cursor-pointer ${dragOver === bucket.id || (isSelected && dragOver === null) ? `bg-${bucket.color}-50 border-${bucket.color}-400 scale-105 shadow-xl opacity-100` : 'bg-gray-50 border-gray-200 opacity-60'}`}
                      >
                         <div className={`w-16 h-16 rounded-full bg-white shadow-inner flex items-center justify-center text-2xl text-${bucket.color}-400 mb-4`}>
                            <i className={`fas ${bucket.icon}`}></i>
                         </div>
                         <h4 className={`text-sm font-black text-${bucket.color}-600 uppercase mb-2`}>{bucket.title}</h4>
-                        <p className="text-[10px] text-gray-400 font-bold leading-tight">Suelta aquí si crees que es {bucket.title.toLowerCase()}</p>
+                        <p className="text-[10px] text-gray-400 font-bold leading-tight">{isSelected ? `Toca para clasificar como ${bucket.title.toLowerCase()}` : `Suelta aquí si crees que es ${bucket.title.toLowerCase()}`}</p>
                      </div>
                    ))}
                 </div>

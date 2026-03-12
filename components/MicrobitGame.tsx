@@ -115,9 +115,25 @@ const MicrobitGame: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
     checkLogic();
   }, [checkLogic]);
 
+  const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
+
   const handleDragStart = (e: React.DragEvent, id: string) => {
     e.dataTransfer.setData('blockId', id);
     playSound('pop');
+  };
+
+  const handleBlockClick = (id: string) => {
+    if (blockSelection === id) return; // Already placed
+    playSound('pop');
+    setSelectedBlock(prev => prev === id ? null : id);
+  };
+
+  const handleDropZoneClick = () => {
+    if (selectedBlock) {
+      setBlockSelection(selectedBlock);
+      setSelectedBlock(null);
+      playSound('pop');
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -126,6 +142,7 @@ const MicrobitGame: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
     const id = e.dataTransfer.getData('blockId');
     if (id) {
       setBlockSelection(id);
+      setSelectedBlock(null);
       playSound('pop');
     }
   };
@@ -228,17 +245,18 @@ const MicrobitGame: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
             </div>
 
             <div className="bg-gray-50 p-6 rounded-[2.5rem] border-4 border-dashed border-gray-200">
-                <span className="text-[10px] font-black text-gray-400 uppercase mb-4 block text-center tracking-[0.2em]">Bloques Lógicos (Arrástrame)</span>
+                <span className="text-[10px] font-black text-gray-400 uppercase mb-4 block text-center tracking-[0.2em]">Bloques Lógicos (Arrastra o Toca)</span>
                 <div className="grid grid-cols-1 gap-3">
                     {blocks.map(b => (
                         <div
                             key={b.id}
                             draggable="true"
                             onDragStart={(e) => handleDragStart(e, b.id)}
-                            className={`p-5 rounded-2xl font-black text-xs cursor-grab active:cursor-grabbing transition-all flex items-center justify-between border-2 ${blockSelection === b.id ? 'bg-indigo-100 text-indigo-400 border-indigo-200 grayscale' : 'bg-white text-gray-600 border-gray-100 hover:border-indigo-200 shadow-sm hover:shadow-md'}`}
+                            onClick={() => handleBlockClick(b.id)}
+                            className={`p-5 rounded-2xl font-black text-xs cursor-grab active:cursor-grabbing transition-all flex items-center justify-between border-2 ${blockSelection === b.id ? 'bg-indigo-100 text-indigo-400 border-indigo-200 grayscale' : selectedBlock === b.id ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg scale-105' : 'bg-white text-gray-600 border-gray-100 hover:border-indigo-200 shadow-sm hover:shadow-md'}`}
                         >
                             <span>{b.text}</span>
-                            <i className="fas fa-grip-vertical text-gray-300"></i>
+                            <i className={`fas ${selectedBlock === b.id ? 'fa-check-circle' : 'fa-grip-vertical'} ${selectedBlock === b.id ? 'text-white' : 'text-gray-300'}`}></i>
                         </div>
                     ))}
                 </div>
@@ -251,7 +269,8 @@ const MicrobitGame: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
                         onDragOver={(e) => { e.preventDefault(); setIsOverDropZone(true); }}
                         onDragLeave={() => setIsOverDropZone(false)}
                         onDrop={handleDrop}
-                        className={`flex-grow h-16 rounded-2xl border-2 border-dashed flex items-center justify-center px-4 transition-all ${isOverDropZone ? 'bg-emerald-900/40 border-emerald-500 scale-105' : blockSelection ? 'bg-indigo-900/40 border-indigo-500' : 'border-gray-700'}`}
+                        onClick={handleDropZoneClick}
+                        className={`flex-grow h-16 rounded-2xl border-2 border-dashed flex items-center justify-center px-4 transition-all cursor-pointer ${isOverDropZone ? 'bg-emerald-900/40 border-emerald-500 scale-105' : blockSelection ? 'bg-indigo-900/40 border-indigo-500' : selectedBlock ? 'bg-indigo-900/20 border-indigo-400 animate-pulse' : 'border-gray-700'}`}
                     >
                         {blockSelection ? (
                           <div className="flex items-center gap-2 text-emerald-400 animate-pop">
@@ -261,7 +280,7 @@ const MicrobitGame: React.FC<Props> = ({ onCorrect, onFinish, onBack }) => {
                         ) : (
                           <div className="text-gray-600 flex flex-col items-center">
                             <i className="fas fa-download text-xs mb-1 opacity-40"></i>
-                            <span className="italic text-[9px] tracking-[0.2em]">SUELTA UN BLOQUE AQUÍ</span>
+                            <span className="italic text-[9px] tracking-[0.2em]">{selectedBlock ? 'TOCA AQUÍ PARA SOLTAR' : 'SUELTA UN BLOQUE AQUÍ'}</span>
                           </div>
                         )}
                     </div>
