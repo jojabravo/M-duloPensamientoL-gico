@@ -140,12 +140,12 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
         {/* MODAL PARA EL BUZÓN CUANDO NO ESTÁ EN EL MENÚ */}
         {showModal && (
           <div 
-            className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-4 bg-gray-900/60 backdrop-blur-sm animate-fadeIn"
+            className="fixed inset-0 z-[100] flex items-start justify-center p-2 md:p-4 bg-gray-900/60 backdrop-blur-sm animate-fadeIn overflow-y-auto"
             onClick={(e) => {
               if (e.target === e.currentTarget) setShowModal(false);
             }}
           >
-            <div className="w-full max-w-2xl bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col h-[90vh] md:h-[80vh] animate-scaleIn">
+            <div className="w-full max-w-2xl bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col my-8 md:my-12 h-[80vh] max-h-[90%] animate-scaleIn">
               <div className="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between bg-indigo-50/30 shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
