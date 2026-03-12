@@ -37,7 +37,9 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   const [isMassMode, setIsMassMode] = useState(false);
   const [commLoading, setCommLoading] = useState(false);
   const [lastNotification, setLastNotification] = useState<{show: boolean, message: string}>({ show: false, message: '' });
-  const [activeTab, setActiveTab] = useState<'students' | 'messaging'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'messaging' | 'config'>('students');
+  const [chapterConfig, setChapterConfig] = useState<{id: number, capitulo_numero: number, nombre: string, activo: boolean}[]>([]);
+  const [configLoading, setConfigLoading] = useState(false);
 
   // Legacy/Other communication states (keeping for announcements)
   const [newAnnouncement, setNewAnnouncement] = useState('');
@@ -66,6 +68,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
       playSound('pop');
       fetchStudents();
       fetchCommunicationData();
+      fetchChapterConfig();
     } else {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
@@ -103,6 +106,34 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     
     if (msgData) setAllBuzonMessages(msgData);
     setCommLoading(false);
+  };
+
+  const fetchChapterConfig = async () => {
+    setConfigLoading(true);
+    const { data, error } = await supabase
+      .from('configuracion_capitulos')
+      .select('*')
+      .order('capitulo_numero', { ascending: true });
+    
+    if (!error && data) {
+      setChapterConfig(data);
+    }
+    setConfigLoading(false);
+  };
+
+  const toggleChapter = async (id: number, currentStatus: boolean) => {
+    const { error } = await supabase
+      .from('configuracion_capitulos')
+      .update({ activo: !currentStatus })
+      .eq('id', id);
+    
+    if (!error) {
+      setChapterConfig(prev => prev.map(c => c.id === id ? { ...c, activo: !currentStatus } : c));
+      playSound('success');
+    } else {
+      playSound('error');
+      alert('Error al actualizar la configuración');
+    }
   };
 
   // Real-time subscription for new messages
@@ -475,17 +506,17 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
         </header>
         
         {/* TAB SWITCHER */}
-        <div className="flex gap-4 mb-10 bg-gray-50 p-2 rounded-[2rem] w-fit mx-auto lg:mx-0">
+        <div className="flex flex-wrap lg:flex-nowrap gap-2 md:gap-4 mb-10 bg-gray-50 p-2 rounded-[2rem] lg:rounded-full w-full lg:w-fit mx-auto lg:mx-0 shadow-inner">
           <button 
             onClick={() => setActiveTab('students')}
-            className={`px-8 py-4 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all flex items-center gap-3 ${activeTab === 'students' ? 'bg-white text-purple-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 lg:flex-none px-4 md:px-8 py-3 md:py-4 rounded-[1.5rem] lg:rounded-full font-black text-[10px] md:text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${activeTab === 'students' ? 'bg-white text-purple-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
           >
             <i className="fas fa-users"></i>
             <span>Estudiantes y Notas</span>
           </button>
           <button 
             onClick={() => setActiveTab('messaging')}
-            className={`px-8 py-4 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all flex items-center gap-3 relative ${activeTab === 'messaging' ? 'bg-white text-indigo-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 lg:flex-none px-4 md:px-8 py-3 md:py-4 rounded-[1.5rem] lg:rounded-full font-black text-[10px] md:text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 relative ${activeTab === 'messaging' ? 'bg-white text-indigo-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
           >
             <i className="fas fa-comments"></i>
             <span>Mensajería y Avisos</span>
@@ -493,7 +524,73 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
             )}
           </button>
+          <button 
+            onClick={() => setActiveTab('config')}
+            className={`flex-1 lg:flex-none px-4 md:px-8 py-3 md:py-4 rounded-[1.5rem] lg:rounded-full font-black text-[10px] md:text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 relative ${activeTab === 'config' ? 'bg-white text-emerald-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <i className="fas fa-cog"></i>
+            <span>Configuración</span>
+          </button>
         </div>
+
+        {activeTab === 'config' && (
+          <div className="animate-fadeIn max-w-2xl mx-auto">
+            <div className="bg-white rounded-[3rem] shadow-xl border-4 border-emerald-50 p-10">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 text-2xl shadow-sm">
+                  <i className="fas fa-toggle-on"></i>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-gray-800 tracking-tighter">Interruptores de Capítulos</h3>
+                  <p className="text-gray-500 font-medium">Habilita o deshabilita el acceso de los estudiantes</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {configLoading ? (
+                  <div className="py-10 text-center">
+                    <div className="animate-spin text-3xl text-emerald-500 mb-2">
+                      <i className="fas fa-circle-notch"></i>
+                    </div>
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Cargando configuración...</p>
+                  </div>
+                ) : (
+                  chapterConfig.map((cap) => (
+                    <div key={cap.id} className="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border-2 border-transparent hover:border-emerald-100 transition-all group">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl shadow-md ${cap.activo ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                          <i className={`fas ${cap.capitulo_numero === 1 ? 'fa-font' : cap.capitulo_numero === 2 ? 'fa-arrow-up-9-1' : cap.capitulo_numero === 3 ? 'fa-cube' : 'fa-shapes'}`}></i>
+                        </div>
+                        <div>
+                          <h4 className="font-black text-gray-800 uppercase tracking-tight">{cap.nombre}</h4>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                            {cap.activo ? 'Visible para estudiantes' : 'Oculto para estudiantes'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <button 
+                        onClick={() => toggleChapter(cap.id, cap.activo)}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none ${cap.activo ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-md ${cap.activo ? 'translate-x-7' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="mt-10 p-6 bg-amber-50 rounded-[2rem] border-2 border-amber-100">
+                <div className="flex gap-4">
+                  <i className="fas fa-info-circle text-amber-500 text-xl mt-1"></i>
+                  <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                    <strong>Nota:</strong> Los cambios realizados aquí se reflejarán inmediatamente en el menú principal de todos los estudiantes. Los capítulos desactivados aparecerán con un mensaje de "Muy pronto".
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {activeTab === 'students' && (
           <div className="animate-fadeIn">

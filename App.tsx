@@ -51,13 +51,20 @@ const App: React.FC = () => {
   // Persistence: Check for session on mount
   useEffect(() => {
     const checkSession = async () => {
-      // Fetch config first
-      const { data: configData } = await supabase
-        .from('configuracion')
+      // Fetch config first from the new table
+      const { data: configRows } = await supabase
+        .from('configuracion_capitulos')
         .select('*')
-        .maybeSingle();
-      if (configData) {
-        setConfig(configData);
+        .order('capitulo_numero', { ascending: true });
+      
+      if (configRows && configRows.length > 0) {
+        const newConfig: AppConfig = {
+          capitulo_1_activo: configRows.find(r => r.capitulo_numero === 1)?.activo ?? true,
+          capitulo_2_activo: configRows.find(r => r.capitulo_numero === 2)?.activo ?? false,
+          capitulo_3_activo: configRows.find(r => r.capitulo_numero === 3)?.activo ?? false,
+          capitulo_4_activo: configRows.find(r => r.capitulo_numero === 4)?.activo ?? false,
+        };
+        setConfig(newConfig);
       }
 
       // Check for admin route (pathname or hash for better compatibility in iframes)
