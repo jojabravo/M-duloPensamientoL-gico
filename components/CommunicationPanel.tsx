@@ -139,18 +139,24 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
 
         {/* MODAL PARA EL BUZÓN CUANDO NO ESTÁ EN EL MENÚ */}
         {showModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-fadeIn">
-            <div className="w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col h-[80vh] animate-scaleIn">
-              <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-indigo-50/30">
+          <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-4 bg-gray-900/60 backdrop-blur-sm animate-fadeIn"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowModal(false);
+            }}
+          >
+            <div className="w-full max-w-2xl bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col h-[90vh] md:h-[80vh] animate-scaleIn">
+              <div className="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between bg-indigo-50/30 shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
                     <i className="fas fa-envelope-open-text"></i>
                   </div>
-                  <h3 className="font-black text-gray-800 tracking-tight">Mi Buzón</h3>
+                  <h3 className="font-black text-gray-800 tracking-tight text-sm md:text-base">Mi Buzón</h3>
                 </div>
                 <button 
                   onClick={() => setShowModal(false)}
-                  className="w-10 h-10 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all flex items-center justify-center"
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all flex items-center justify-center"
+                  title="Cerrar"
                 >
                   <i className="fas fa-times"></i>
                 </button>
@@ -184,15 +190,22 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
                 )}
               </div>
 
-              <div className="p-6 bg-white border-t border-gray-100">
-                <div className="flex items-center gap-3 bg-gray-50 rounded-2xl p-2 border border-gray-100">
+              <div className="p-4 md:p-6 bg-white border-t border-gray-100 shrink-0">
+                <div className="flex items-center gap-2 md:gap-3 bg-gray-50 rounded-2xl p-2 border border-gray-100">
+                  <button 
+                    onClick={() => setShowModal(false)}
+                    className="md:hidden w-10 h-10 flex items-center justify-center bg-white text-gray-400 rounded-xl hover:text-red-500 shadow-sm transition-all"
+                    title="Cerrar"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
                   <input 
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                     placeholder="Escribe al profe..."
-                    className="flex-1 bg-transparent border-none outline-none px-4 py-2 text-sm font-medium"
+                    className="flex-1 bg-transparent border-none outline-none px-2 md:px-4 py-2 text-sm font-medium"
                   />
                   <button 
                     onClick={sendMessage}
