@@ -560,7 +560,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                     <div key={cap.id} className="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border-2 border-transparent hover:border-emerald-100 transition-all group">
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl shadow-md ${cap.activo ? 'bg-emerald-500' : 'bg-gray-300'}`}>
-                          <i className={`fas ${cap.capitulo_numero === 1 ? 'fa-font' : cap.capitulo_numero === 2 ? 'fa-arrow-up-9-1' : cap.capitulo_numero === 3 ? 'fa-cube' : 'fa-shapes'}`}></i>
+                          <i className={`fas ${cap.capitulo_numero === 1 ? 'fa-font' : cap.capitulo_numero === 2 ? 'fa-magnifying-glass' : cap.capitulo_numero === 3 ? 'fa-cube' : 'fa-shapes'}`}></i>
                         </div>
                         <div>
                           <h4 className="font-black text-gray-800 uppercase tracking-tight">{cap.nombre}</h4>

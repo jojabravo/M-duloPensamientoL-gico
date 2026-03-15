@@ -6,6 +6,7 @@ import { playSound } from './audio';
 import Welcome from './components/Welcome';
 import CourseMenu from './components/CourseMenu';
 import ChapterOneMenu from './components/ChapterOneMenu';
+import ChapterTwoMenu from './components/ChapterTwoMenu';
 import Theory from './components/Theory';
 import HorizontalOrdering, { INITIAL_PEOPLE } from './components/HorizontalOrdering';
 import VerticalOrdering, { INITIAL_VERTICAL } from './components/VerticalOrdering';
@@ -23,6 +24,8 @@ import Challenge from './components/Challenge';
 import ResultsDashboard from './components/ResultsDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import CommunicationPanel from './components/CommunicationPanel';
+import CryptoLab from './components/CryptoLab';
+import GraphicEquations from './components/GraphicEquations';
 import Footer from './components/Footer';
 
 const App: React.FC = () => {
@@ -35,6 +38,7 @@ const App: React.FC = () => {
     capitulo_3_activo: false,
     capitulo_4_activo: false
   });
+  const [hasUnread, setHasUnread] = useState(false);
 
   // Simulation states
   const [hSlots, setHSlots] = useState<(Person | null)[]>(Array(5).fill(null));
@@ -51,8 +55,7 @@ const App: React.FC = () => {
 
   // Persistence: Check for session on mount
   useEffect(() => {
-    const checkSession = async () => {
-      // Fetch config first from the new table
+    const fetchConfig = async () => {
       const { data: configRows } = await supabase
         .from('configuracion_capitulos')
         .select('*')
@@ -67,6 +70,10 @@ const App: React.FC = () => {
         };
         setConfig(newConfig);
       }
+    };
+
+    const checkSession = async () => {
+      await fetchConfig();
 
       // Check for admin route (pathname or hash for better compatibility in iframes)
       if (window.location.pathname === '/profesor-jorge' || window.location.hash === '#profesor-jorge') {
@@ -89,6 +96,7 @@ const App: React.FC = () => {
             setStudent(data);
             localStorage.setItem('student_session', JSON.stringify(data));
             setCurrentView(View.MENU);
+            checkUnread(data.id);
           } else {
             // If error or not found, clear session
             localStorage.removeItem('student_session');
@@ -99,8 +107,43 @@ const App: React.FC = () => {
       }
       setLoading(false);
     };
+
+    const checkUnread = async (studentId: string) => {
+      const { data } = await supabase
+        .from('buzon')
+        .select('id')
+        .eq('estudiante_id', studentId)
+        .eq('leido', false)
+        .eq('es_respuesta', true)
+        .limit(1);
+      setHasUnread(data && data.length > 0 ? true : false);
+    };
+
     checkSession();
-  }, []);
+
+    // Subscribe to config changes
+    const configChannel = supabase
+      .channel('config-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'configuracion_capitulos' }, fetchConfig)
+      .subscribe();
+
+    // Subscribe to mailbox changes for unread badge
+    const buzonChannel = supabase
+      .channel('buzon-realtime')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'buzon' 
+      }, () => {
+        if (student) checkUnread(student.id);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(configChannel);
+      supabase.removeChannel(buzonChannel);
+    };
+  }, [student?.id]);
 
   const getPerformanceLevel = (score: number): string => {
     if (score >= 90) return 'SUPERIOR';
@@ -273,7 +316,10 @@ const App: React.FC = () => {
       case View.WELCOME:
         return <Welcome onLogin={handleLogin} onAdmin={handleAdminAccess} />;
       case View.MENU:
-        return <CourseMenu student={student!} config={config} onSelect={() => setCurrentView(View.CHAPTER_1_MENU)} onShowResults={() => setCurrentView(View.RESULTS)} />;
+        return <CourseMenu student={student!} config={config} onSelect={(id) => {
+          if (id === 'verbal') setCurrentView(View.CHAPTER_1_MENU);
+          else if (id === 'num') setCurrentView(View.CHAPTER_2_MENU);
+        }} onShowResults={() => setCurrentView(View.RESULTS)} onShowCommunication={() => setCurrentView(View.COMMUNICATION)} />;
       case View.CHAPTER_1_MENU:
         return (
           <ChapterOneMenu 
@@ -301,6 +347,33 @@ const App: React.FC = () => {
               if (id === 'microbit') setCurrentView(View.MICROBIT_GAME);
             }}
             onBack={() => setCurrentView(View.MENU)}
+          />
+        );
+      case View.CHAPTER_2_MENU:
+        return (
+          <ChapterTwoMenu 
+            student={student!}
+            onSelectModule={(id) => {
+              if (id === 'criptogramas') setCurrentView(View.CRYPTO_LAB);
+              if (id === 'ecuaciones') setCurrentView(View.GRAPHIC_EQUATIONS);
+            }}
+            onBack={() => setCurrentView(View.MENU)}
+          />
+        );
+      case View.CRYPTO_LAB:
+        return (
+          <CryptoLab 
+            student={student!} 
+            onBack={() => setCurrentView(View.CHAPTER_2_MENU)}
+            onComplete={(newProg) => setStudent(prev => prev ? { ...prev, progreso_criptogramas: newProg } : null)}
+          />
+        );
+      case View.GRAPHIC_EQUATIONS:
+        return (
+          <GraphicEquations 
+            student={student!} 
+            onBack={() => setCurrentView(View.CHAPTER_2_MENU)}
+            onComplete={(newProg) => setStudent(prev => prev ? { ...prev, progreso_ecuaciones_graficas: newProg } : null)}
           />
         );
       case View.THEORY:
@@ -335,6 +408,24 @@ const App: React.FC = () => {
         return <ResultsDashboard student={student!} onBack={() => setCurrentView(View.MENU)} />;
       case View.ADMIN:
         return <AdminDashboard onBack={() => { console.log('Returning to WELCOME'); setCurrentView(View.WELCOME); }} />;
+      case View.COMMUNICATION:
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center gap-4 mb-8">
+              <button 
+                onClick={() => { playSound('pop'); setCurrentView(View.MENU); }}
+                className="w-12 h-12 rounded-2xl bg-white shadow-md flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-all"
+              >
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <h2 className="text-3xl font-black text-gray-800 tracking-tighter">Centro de Comunicación</h2>
+                <p className="text-gray-500 font-medium">Avisos y Buzón de Mensajes</p>
+              </div>
+            </div>
+            <CommunicationPanel student={student!} mode="all" />
+          </div>
+        );
       default:
         return <Welcome onLogin={handleLogin} onAdmin={handleAdminAccess} />;
     }
@@ -364,7 +455,16 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center justify-center gap-2 md:gap-3 w-full md:w-auto">
-              <CommunicationPanel student={student!} mode="mailbox" compact={true} />
+              <button 
+                onClick={() => { playSound('pop'); setCurrentView(View.COMMUNICATION); }} 
+                className="flex-1 md:flex-none px-4 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2 relative"
+              >
+                <i className="fas fa-envelope"></i>
+                <span>Buzón</span>
+                {hasUnread && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
+                )}
+              </button>
               <button 
                 onClick={() => { playSound('pop'); setCurrentView(View.RESULTS); }} 
                 className="flex-1 md:flex-none px-4 py-2.5 bg-purple-50 text-purple-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"

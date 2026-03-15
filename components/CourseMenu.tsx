@@ -7,11 +7,12 @@ import CommunicationPanel from './CommunicationPanel';
 interface Props {
   student: StudentProfile;
   config: AppConfig;
-  onSelect: () => void;
+  onSelect: (chapterId: string) => void;
   onShowResults: () => void;
+  onShowCommunication: () => void;
 }
 
-const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults }) => {
+const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults, onShowCommunication }) => {
   const sections = [
     { 
       id: 'verbal', 
@@ -23,10 +24,10 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults 
     },
     { 
       id: 'num', 
-      title: 'CAPÍTULO 2: PENSAMIENTO NUMÉRICO', 
-      icon: 'fa-arrow-up-9-1', 
-      color: 'bg-blue-500', 
-      active: config.capitulo_2_activo,
+      title: 'CAPÍTULO 2: PENSAMIENTO LÓGICO MATEMÁTICO', 
+      icon: 'fa-magnifying-glass', 
+      color: 'bg-orange-500', 
+      active: true, // Habilitado temporalmente por solicitud del docente
       desc: 'Criptogramas, Ecuaciones Gráficas, Crucinúmeros y Mensaje Oculto.'
     },
     { 
@@ -49,29 +50,32 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults 
 
   return (
     <div className="max-w-5xl mx-auto animate-fadeIn px-4">
-      {/* ANUNCIOS AL PRINCIPIO */}
-      <div className="mb-12">
-        <CommunicationPanel student={student} mode="announcements" />
-      </div>
-
       <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
         <div className="text-center md:text-left">
-          <h2 className="text-2xl md:text-3xl font-black text-gray-800">Unidades de Aprendizaje</h2>
-          <p className="text-gray-500 font-medium text-sm">Selecciona la unidad para continuar tu formación</p>
+          <h2 className="text-2xl md:text-3xl font-black text-gray-800">Capítulos de Aprendizaje</h2>
+          <p className="text-gray-500 font-medium text-sm">Selecciona el capítulo para continuar tu formación</p>
         </div>
-        <button 
-          onClick={() => { playSound('pop'); onShowResults(); }}
-          className="px-6 py-3 bg-white border-2 border-purple-100 rounded-2xl font-black text-purple-600 shadow-sm hover:shadow-xl hover:bg-purple-50 transition-all flex items-center gap-2"
-        >
-          <i className="fas fa-file-invoice"></i> VER MI REPORTE
-        </button>
+        <div className="flex flex-wrap justify-center md:justify-end items-center gap-3">
+          <button 
+            onClick={() => { playSound('pop'); onShowResults(); }}
+            className="px-6 py-3 bg-white border-2 border-purple-100 rounded-2xl font-black text-purple-600 shadow-sm hover:shadow-xl hover:bg-purple-50 transition-all flex items-center gap-2"
+          >
+            <i className="fas fa-file-invoice"></i> VER MI REPORTE
+          </button>
+          <button 
+            onClick={() => { playSound('pop'); onShowCommunication(); }}
+            className="px-6 py-3 bg-white border-2 border-indigo-100 rounded-2xl font-black text-indigo-600 shadow-sm hover:shadow-xl hover:bg-indigo-50 transition-all flex items-center gap-2"
+          >
+            <i className="fas fa-envelope"></i> BUZÓN Y AVISOS
+          </button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {sections.map(s => (
           <div 
             key={s.id}
-            onClick={() => s.active && (playSound('pop'), onSelect())}
+            onClick={() => s.active && (playSound('pop'), onSelect(s.id))}
             className={`group p-6 rounded-[2.5rem] border-4 transition-all relative ${s.active ? 'bg-white border-purple-50 hover:border-purple-400 hover:shadow-2xl cursor-pointer shadow-xl' : 'bg-gray-50 border-gray-100 grayscale opacity-60 cursor-not-allowed'}`}
           >
             <div className="flex gap-6 items-center">
@@ -109,11 +113,6 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults 
             Importante: El ingreso al Cuadro de Honor requiere un umbral mínimo del 30% (En Progreso). El Desempeño Básico se alcanza al 60%.
           </span>
         </p>
-      </div>
-
-      {/* BUZÓN INTEGRADO AL FINAL */}
-      <div className="mt-16">
-        <CommunicationPanel student={student} mode="mailbox" />
       </div>
     </div>
   );
