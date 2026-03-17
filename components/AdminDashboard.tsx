@@ -101,7 +101,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     const { data: msgData } = await supabase
       .from('buzon')
       .select('*')
-      .or(`Emisor.eq.Jorge,Receptor.eq.Jorge`)
+      .or(`Emisor.eq."Jorge",Receptor.eq."Jorge"`)
       .order('fecha', { ascending: true });
     
     if (msgData) setAllBuzonMessages(msgData);
@@ -219,7 +219,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
         Receptor: studentId,
         Contenido: chatInput.trim(),
         Grado: student?.Grado || 'N/A',
-        Leido: false
+        Leido: false,
+        fecha: new Date().toISOString()
       };
     });
 
@@ -780,23 +781,23 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         <div className="mb-4">
                           <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2 px-2">Mensajes No Leídos</p>
                           {unreadConversations.map(msg => {
-                            const student = students.find(s => s.Usuario === msg.emisor);
-                            const isSelected = selectedChatStudent === msg.emisor;
+                            const student = students.find(s => s.Usuario === msg.Emisor);
+                            const isSelected = selectedChatStudent === msg.Emisor;
                             return (
                               <div 
                                 key={msg.id}
                                 onClick={() => {
-                                  setSelectedChatStudent(msg.emisor);
-                                  markAsRead(msg.emisor);
+                                  setSelectedChatStudent(msg.Emisor);
+                                  markAsRead(msg.Emisor);
                                 }}
                                 className={`p-4 rounded-2xl cursor-pointer transition-all border-2 mb-2 flex items-center justify-between ${isSelected ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' : 'bg-white border-transparent hover:border-indigo-100 text-gray-700 shadow-sm'}`}
                               >
                                 <div className="flex items-center gap-3 overflow-hidden">
                                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${isSelected ? 'bg-white/20' : 'bg-indigo-50 text-indigo-600'}`}>
-                                    {student?.Nombre ? student.Nombre.charAt(0).toUpperCase() : msg.emisor.charAt(0).toUpperCase()}
+                                    {student?.Nombre ? student.Nombre.charAt(0).toUpperCase() : msg.Emisor.charAt(0).toUpperCase()}
                                   </div>
                                   <div className="flex flex-col overflow-hidden">
-                                    <span className="font-black text-sm truncate">{student?.Nombre || msg.emisor} - {student?.Grado || 'N/A'}</span>
+                                    <span className="font-black text-sm truncate">{student?.Nombre || msg.Emisor} - {student?.Grado || 'N/A'}</span>
                                     <p className={`text-[10px] truncate font-medium ${isSelected ? 'text-indigo-100' : 'text-gray-500'}`}>{msg.Contenido}</p>
                                   </div>
                                 </div>

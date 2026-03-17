@@ -21,8 +21,21 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
   const quantModuleAvg = student.progreso_cuantificadores;
   const microModuleAvg = student.progreso_microbit;
 
+  // CAPÍTULO 2
+  const cryptoModuleAvg = student.progreso_criptogramas || 0;
+  const eqModuleAvg = student.progreso_ecuaciones_graficas || 0;
+  const sudokuModuleAvg = student.progreso_sudoku || 0;
+  const magicModuleAvg = student.progreso_magic_squares || 0;
+  const crucModuleAvg = student.progreso_crucinumeros || 0;
+  const pyrModuleAvg = student.progreso_piramides || 0;
+  const targetModuleAvg = student.progreso_blanco_perfecto || 0;
+  const msgModuleAvg = student.progreso_mensaje_oculto || 0;
+
   // PROMEDIO TOTAL CAPÍTULO 1
   const totalCap1 = (ordModuleAvg + logModuleAvg + quantModuleAvg + microModuleAvg) / 4;
+
+  // PROMEDIO TOTAL CAPÍTULO 2
+  const totalCap2 = (cryptoModuleAvg + eqModuleAvg + sudokuModuleAvg + magicModuleAvg + crucModuleAvg + pyrModuleAvg + targetModuleAvg + msgModuleAvg) / 8;
 
   useEffect(() => {
     const fetchRanking = async () => {
@@ -39,7 +52,8 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
     fetchRanking();
 
     // Trigger confetti based on progress
-    if (totalCap1 >= 100 && !hasCelebrated) {
+    const maxTotal = Math.max(totalCap1, totalCap2);
+    if (maxTotal >= 100 && !hasCelebrated) {
       setHasCelebrated(true);
       const duration = 5 * 1000;
       const animationEnd = Date.now() + duration;
@@ -61,17 +75,17 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
       
       setShowDiamondModal(true);
       playSound('victory');
-    } else if (totalCap1 >= 90) {
+    } else if (maxTotal >= 90) {
       confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#FFD700', '#FFA500'] });
       playSound('pop');
-    } else if (totalCap1 >= 60) {
+    } else if (maxTotal >= 60) {
       confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 }, colors: ['#C0C0C0', '#E5E4E2'] });
       playSound('pop');
-    } else if (totalCap1 >= 30) {
+    } else if (maxTotal >= 30) {
       confetti({ particleCount: 80, spread: 50, origin: { y: 0.6 }, colors: ['#CD7F32', '#B87333'] });
       playSound('pop');
     }
-  }, [totalCap1, student.Grado]);
+  }, [totalCap1, totalCap2, student.Grado]);
 
   const getBadge = (score: number) => {
     if (score >= 90) return { icon: 'fa-gem', color: 'diamond-gradient diamond-shadow', label: 'DESEMPEÑO SUPERIOR' };
@@ -110,15 +124,22 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
               </p>
             </div>
           </div>
-          <div className="bg-gray-900 p-10 rounded-[3.5rem] text-white text-center shadow-2xl border-b-8 border-purple-500 relative group overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span className="text-[11px] font-black uppercase opacity-40 block mb-2 tracking-[0.4em] relative z-10">Nota Capítulo 1</span>
-            <span className="text-7xl font-black relative z-10 tabular-nums">{Math.round(totalCap1)}<span className="text-3xl text-purple-400">%</span></span>
+          <div className="flex flex-col sm:flex-row gap-6">
+            <div className="bg-gray-900 p-8 rounded-[3rem] text-white text-center shadow-2xl border-b-8 border-purple-500 relative group overflow-hidden min-w-[180px]">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span className="text-[10px] font-black uppercase opacity-40 block mb-2 tracking-[0.3em] relative z-10">Nota Capítulo 1</span>
+              <span className="text-5xl font-black relative z-10 tabular-nums">{Math.round(totalCap1)}<span className="text-2xl text-purple-400">%</span></span>
+            </div>
+            <div className="bg-gray-900 p-8 rounded-[3rem] text-white text-center shadow-2xl border-b-8 border-indigo-500 relative group overflow-hidden min-w-[180px]">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span className="text-[10px] font-black uppercase opacity-40 block mb-2 tracking-[0.3em] relative z-10">Nota Capítulo 2</span>
+              <span className="text-5xl font-black relative z-10 tabular-nums">{Math.round(totalCap2)}<span className="text-2xl text-indigo-400">%</span></span>
+            </div>
           </div>
         </header>
 
-        {/* BARRA DE PROGRESO GAMIFICADA */}
-        <div className="mb-20 px-4">
+        {/* BARRA DE PROGRESO GAMIFICADA CAPÍTULO 1 */}
+        <div className="mb-16 px-4">
           <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-10 gap-4">
             <div className="text-center md:text-left">
               <h3 className="text-3xl font-black text-gray-800 tracking-tight">Camino al Maestro Lógico</h3>
@@ -130,7 +151,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
           </div>
           
           <div className="relative pt-4 pb-8">
-            {/* Hitos - Grid layout for better spacing and responsiveness */}
+            {/* Hitos */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-8 relative z-10">
               {[
                 { pct: 30, icon: 'fa-trophy', color: 'text-orange-400', label: 'Bronce (30-59%)' },
@@ -152,7 +173,6 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
 
             {/* Barra de fondo */}
             <div className="h-6 bg-gray-100 rounded-full shadow-inner relative overflow-hidden border-4 border-white">
-              {/* Progreso */}
               <div 
                 className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-cyan-400 transition-all duration-1000 shadow-[0_0_20px_rgba(139,92,246,0.5)]"
                 style={{ width: `${totalCap1}%` }}
@@ -163,101 +183,355 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          {/* MÓDULO 1 */}
-          <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 shadow-inner group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                <i className="fas fa-layer-group"></i>
-              </div>
-              <h3 className="font-black text-gray-800 text-sm leading-tight">Ordenamiento Info.</h3>
+        {/* BARRA DE PROGRESO GAMIFICADA CAPÍTULO 2 */}
+        <div className="mb-20 px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-10 gap-4">
+            <div className="text-center md:text-left">
+              <h3 className="text-3xl font-black text-gray-800 tracking-tight">Desafío Criptográfico</h3>
+              <p className="text-gray-500 font-bold text-sm uppercase tracking-widest">Capítulo 2: Pensamiento Numérico</p>
             </div>
-            <div className="space-y-8 flex-grow">
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-gray-400">Progreso General</span>
-                  <span className="text-purple-600">{Math.round(ordModuleAvg)}%</span>
-                </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-purple-500 transition-all duration-1000" style={{ width: `${ordModuleAvg}%` }}></div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-               <span className="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(ordModuleAvg)}</span>
+            <div className="text-right">
+              <span className="text-6xl font-black text-indigo-600 tabular-nums">{Math.round(totalCap2)}%</span>
             </div>
           </div>
+          
+          <div className="relative pt-4 pb-8">
+            {/* Hitos */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-8 relative z-10">
+              {[
+                { pct: 30, icon: 'fa-trophy', color: 'text-orange-400', label: 'Bronce (30-59%)' },
+                { pct: 60, icon: 'fa-trophy', color: 'text-slate-400', label: 'Plata (60-79%)' },
+                { pct: 80, icon: 'fa-trophy', color: 'text-yellow-400', label: 'Oro (80-89%)' },
+                { pct: 90, icon: 'fa-gem', color: 'diamond-gradient diamond-shadow', label: 'Diamante (90-100%)' }
+              ].map((hito) => (
+                <div 
+                  key={hito.pct} 
+                  className={`flex flex-col items-center transition-all duration-500 ${totalCap2 >= hito.pct ? 'scale-105 md:scale-110 opacity-100' : 'opacity-30 grayscale'}`}
+                >
+                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white shadow-xl flex items-center justify-center text-2xl md:text-3xl mb-3 border-4 ${totalCap2 >= hito.pct ? 'border-indigo-400 animate-bounce' : 'border-gray-100'}`}>
+                    <i className={`fas ${hito.icon} ${hito.color}`}></i>
+                  </div>
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter text-gray-600 text-center leading-tight">{hito.label}</span>
+                </div>
+              ))}
+            </div>
 
-          {/* MÓDULO 2 */}
-          <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <i className="fas fa-project-diagram"></i>
+            {/* Barra de fondo */}
+            <div className="h-6 bg-gray-100 rounded-full shadow-inner relative overflow-hidden border-4 border-white">
+              <div 
+                className="h-full bg-gradient-to-r from-indigo-500 via-blue-500 to-emerald-400 transition-all duration-1000 shadow-[0_0_20px_rgba(79,70,229,0.5)]"
+                style={{ width: `${totalCap2}%` }}
+              >
+                <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
               </div>
-              <h3 className="font-black text-gray-800 text-sm leading-tight">Proposiciones Lógicas</h3>
-            </div>
-            <div className="space-y-8 flex-grow">
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-gray-400">Progreso General</span>
-                  <span className="text-blue-600">{Math.round(logModuleAvg)}%</span>
-                </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${logModuleAvg}%` }}></div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-               <span className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(logModuleAvg)}</span>
             </div>
           </div>
+        </div>
 
-          {/* MÓDULO 3 */}
-          <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600 shadow-inner group-hover:bg-pink-600 group-hover:text-white transition-colors">
-                <i className="fas fa-infinity"></i>
-              </div>
-              <h3 className="font-black text-gray-800 text-sm leading-tight">Cuantificadores Quest</h3>
-            </div>
-            <div className="space-y-8 flex-grow">
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-gray-400">Progreso General</span>
-                  <span className="text-pink-600">{Math.round(quantModuleAvg)}%</span>
+        <div className="mb-10">
+          <h3 className="text-2xl font-black text-gray-800 tracking-tight mb-6 flex items-center gap-3">
+            <span className="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><i className="fas fa-book"></i></span>
+            Módulos Capítulo 1
+          </h3>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* MÓDULO 1 */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 shadow-inner group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-layer-group"></i>
                 </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-pink-500 transition-all duration-1000" style={{ width: `${quantModuleAvg}%` }}></div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Ordenamiento Info.</h3>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-purple-600">{Math.round(ordModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-purple-500 transition-all duration-1000" style={{ width: `${ordModuleAvg}%` }}></div>
+                  </div>
                 </div>
               </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(ordModuleAvg)}</span>
+              </div>
             </div>
-            <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-               <span className="bg-pink-50 text-pink-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(quantModuleAvg)}</span>
+
+            {/* MÓDULO 2 */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-project-diagram"></i>
+                </div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Proposiciones Lógicas</h3>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-blue-600">{Math.round(logModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${logModuleAvg}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(logModuleAvg)}</span>
+              </div>
+            </div>
+
+            {/* MÓDULO 3 */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600 shadow-inner group-hover:bg-pink-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-infinity"></i>
+                </div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Cuantificadores Quest</h3>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-pink-600">{Math.round(quantModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-pink-500 transition-all duration-1000" style={{ width: `${quantModuleAvg}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-pink-50 text-pink-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(quantModuleAvg)}</span>
+              </div>
+            </div>
+
+            {/* MÓDULO 4 */}
+            <div className="bg-indigo-50 p-10 rounded-[4rem] border-4 border-white shadow-2xl flex flex-col group hover:scale-105 transition-all ring-8 ring-indigo-50/50">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-16 h-16 bg-indigo-600 rounded-[1.8rem] flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform">
+                  <i className="fas fa-microchip"></i>
+                </div>
+                <div>
+                  <h3 className="font-black text-indigo-900 text-sm">Microbit Lógica</h3>
+                  <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Integración Hardware</span>
+                </div>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-indigo-400">
+                    <span>Progreso General</span>
+                    <span className="bg-white px-3 py-1 rounded-full text-indigo-700 shadow-sm">{Math.round(microModuleAvg)}%</span>
+                  </div>
+                  <div className="h-5 bg-white rounded-full overflow-hidden shadow-inner border border-indigo-100 p-1">
+                    <div className="h-full bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(79,70,229,0.4)]" style={{ width: `${microModuleAvg}%` }}></div>
+                  </div>
+                  <div className="text-center mt-2">
+                    <span className="text-[9px] font-black text-indigo-600 bg-white px-3 py-1 rounded-full shadow-sm">Escala: {getStatusLabel(microModuleAvg)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* MÓDULO 4 */}
-          <div className="bg-indigo-50 p-10 rounded-[4rem] border-4 border-white shadow-2xl flex flex-col group hover:scale-105 transition-all ring-8 ring-indigo-50/50">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-16 h-16 bg-indigo-600 rounded-[1.8rem] flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform">
-                <i className="fas fa-microchip"></i>
+        <div className="mb-16">
+          <h3 className="text-2xl font-black text-gray-800 tracking-tight mb-6 flex items-center gap-3">
+            <span className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center"><i className="fas fa-brain"></i></span>
+            Módulos Capítulo 2
+          </h3>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* MÓDULO 1 CAP 2 */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-key"></i>
+                </div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Criptogramas</h3>
               </div>
-              <div>
-                <h3 className="font-black text-indigo-900 text-sm">Microbit Lógica</h3>
-                <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Integración Hardware</span>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-indigo-600">{Math.round(cryptoModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-indigo-500 transition-all duration-1000" style={{ width: `${cryptoModuleAvg}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(cryptoModuleAvg)}</span>
               </div>
             </div>
-            <div className="space-y-8 flex-grow">
-              <div className="flex flex-col gap-4">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-indigo-400">
-                  <span>Progreso General</span>
-                  <span className="bg-white px-3 py-1 rounded-full text-indigo-700 shadow-sm">{Math.round(microModuleAvg)}%</span>
+
+            {/* MÓDULO 2 CAP 2 */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-equals"></i>
                 </div>
-                <div className="h-5 bg-white rounded-full overflow-hidden shadow-inner border border-indigo-100 p-1">
-                  <div className="h-full bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(79,70,229,0.4)]" style={{ width: `${microModuleAvg}%` }}></div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Ecuaciones Gráficas</h3>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-emerald-600">{Math.round(eqModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${eqModuleAvg}%` }}></div>
+                  </div>
                 </div>
-                <div className="text-center mt-2">
-                  <span className="text-[9px] font-black text-indigo-600 bg-white px-3 py-1 rounded-full shadow-sm">Escala: {getStatusLabel(microModuleAvg)}</span>
+              </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(eqModuleAvg)}</span>
+              </div>
+            </div>
+
+            {/* MÓDULO 3 CAP 2 - SUDOKU */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shadow-inner group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-th"></i>
+                </div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Sudoku Lógico</h3>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-amber-600">{Math.round(sudokuModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-amber-500 transition-all duration-1000" style={{ width: `${sudokuModuleAvg}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-amber-50 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(sudokuModuleAvg)}</span>
+              </div>
+            </div>
+
+            {/* MÓDULO 4 CAP 2 - MAGIC SQUARES */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 shadow-inner group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-square"></i>
+                </div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Cuadrados Mágicos</h3>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-purple-600">{Math.round(magicModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-purple-500 transition-all duration-1000" style={{ width: `${magicModuleAvg}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(magicModuleAvg)}</span>
+              </div>
+            </div>
+
+            {/* MÓDULO 5 CAP 2 - CRUCINUMERO */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 shadow-inner group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-plus-minus"></i>
+                </div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Crucinúmero</h3>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-orange-600">{Math.round(crucModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-orange-500 transition-all duration-1000" style={{ width: `${crucModuleAvg}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-orange-50 text-orange-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(crucModuleAvg)}</span>
+              </div>
+            </div>
+
+            {/* MÓDULO 6 CAP 2 - PIRÁMIDES */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-mountain"></i>
+                </div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Pirámides Numéricas</h3>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-emerald-600">{Math.round(pyrModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${pyrModuleAvg}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(pyrModuleAvg)}</span>
+              </div>
+            </div>
+
+            {/* MÓDULO 7 CAP 2 - TARGET NUMBER */}
+            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-600 shadow-inner group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                  <i className="fas fa-bullseye"></i>
+                </div>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">El Blanco Perfecto</h3>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-400">Progreso General</span>
+                    <span className="text-rose-600">{Math.round(targetModuleAvg)}%</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-rose-500 transition-all duration-1000" style={{ width: `${targetModuleAvg}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                <span className="bg-rose-50 text-rose-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(targetModuleAvg)}</span>
+              </div>
+            </div>
+
+            {/* MÓDULO 4 CAP 2 */}
+            <div className="bg-rose-50 p-10 rounded-[4rem] border-4 border-white shadow-2xl flex flex-col group hover:scale-105 transition-all ring-8 ring-rose-50/50">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-16 h-16 bg-rose-600 rounded-[1.8rem] flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform">
+                  <i className="fas fa-user-secret"></i>
+                </div>
+                <div>
+                  <h3 className="font-black text-rose-900 text-sm">Mensaje Oculto</h3>
+                  <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest">Cripto-Análisis</span>
+                </div>
+              </div>
+              <div className="space-y-8 flex-grow">
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-rose-400">
+                    <span>Progreso General</span>
+                    <span className="bg-white px-3 py-1 rounded-full text-rose-700 shadow-sm">{Math.round(msgModuleAvg)}%</span>
+                  </div>
+                  <div className="h-5 bg-white rounded-full overflow-hidden shadow-inner border border-rose-100 p-1">
+                    <div className="h-full bg-gradient-to-r from-rose-400 to-rose-600 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(225,29,72,0.4)]" style={{ width: `${msgModuleAvg}%` }}></div>
+                  </div>
+                  <div className="text-center mt-2">
+                    <span className="text-[9px] font-black text-rose-600 bg-white px-3 py-1 rounded-full shadow-sm">Escala: {getStatusLabel(msgModuleAvg)}</span>
+                  </div>
                 </div>
               </div>
             </div>

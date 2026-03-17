@@ -51,7 +51,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
     const { data: annData } = await supabase
       .from('anuncios')
       .select('*')
-      .or(`Grado.eq.${student.Grado},Grado.eq.TODOS`)
+      .or(`Grado.eq."${student.Grado}",Grado.eq.TODOS`)
       .order('fecha', { ascending: false });
     
     if (annData) setAnnouncements(annData);
@@ -60,7 +60,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
     const { data: msgData } = await supabase
       .from('buzon')
       .select('*')
-      .or(`Emisor.eq.${student.Usuario},Receptor.eq.${student.Usuario}`)
+      .or(`Emisor.eq."${student.Usuario}",Receptor.eq."${student.Usuario}"`)
       .order('fecha', { ascending: false });
 
     if (msgData) {
@@ -98,8 +98,9 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
           Emisor: student.Usuario,
           Receptor: 'Jorge',
           Contenido: newMessage.trim(),
-          Grado: student.Grado,
-          Leido: false
+          Grado: student.Grado || 'N/A',
+          Leido: false,
+          fecha: new Date().toISOString()
         }
       ]);
 

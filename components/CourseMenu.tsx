@@ -27,7 +27,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       title: 'CAPÍTULO 2: PENSAMIENTO LÓGICO MATEMÁTICO', 
       icon: 'fa-magnifying-glass', 
       color: 'bg-orange-500', 
-      active: true, // Habilitado temporalmente por solicitud del docente
+      active: config.capitulo_2_activo,
       desc: 'Criptogramas, Ecuaciones Gráficas, Crucinúmeros y Mensaje Oculto.'
     },
     { 

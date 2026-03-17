@@ -29,7 +29,13 @@ export enum View {
   ADMIN = 'ADMIN',
   CRYPTO_LAB = 'CRYPTO_LAB',
   GRAPHIC_EQUATIONS = 'GRAPHIC_EQUATIONS',
-  COMMUNICATION = 'COMMUNICATION'
+  COMMUNICATION = 'COMMUNICATION',
+  SUDOKU = 'SUDOKU',
+  MAGIC_SQUARES = 'MAGIC_SQUARES',
+  CRUCINUMERO = 'CRUCINUMERO',
+  NUMERIC_PYRAMIDS = 'NUMERIC_PYRAMIDS',
+  TARGET_NUMBER = 'TARGET_NUMBER',
+  CH2_BLOCK3_MENU = 'CH2_BLOCK3_MENU'
 }
 
 export interface StudentProfile {
@@ -44,7 +50,11 @@ export interface StudentProfile {
   nota_capitulo_1?: number;
   progreso_criptogramas?: number;
   progreso_ecuaciones_graficas?: number;
+  progreso_sudoku?: number;
+  progreso_magic_squares?: number;
   progreso_crucinumeros?: number;
+  progreso_piramides?: number;
+  progreso_blanco_perfecto?: number;
   progreso_mensaje_oculto?: number;
   nota_periodo_2?: number;
   progreso_transformaciones?: number;

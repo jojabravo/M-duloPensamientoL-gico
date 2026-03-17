@@ -26,6 +26,12 @@ import AdminDashboard from './components/AdminDashboard';
 import CommunicationPanel from './components/CommunicationPanel';
 import CryptoLab from './components/CryptoLab';
 import GraphicEquations from './components/GraphicEquations';
+import ChapterTwoBlockThreeMenu from './components/ChapterTwoBlockThreeMenu';
+import NumericPyramids from './components/NumericPyramids';
+import TargetNumber from './components/TargetNumber';
+import Sudoku from './components/Sudoku';
+import MagicSquares from './components/MagicSquares';
+import Crucinumero from './components/Crucinumero';
 import Footer from './components/Footer';
 
 const App: React.FC = () => {
@@ -44,6 +50,23 @@ const App: React.FC = () => {
   const [hSlots, setHSlots] = useState<(Person | null)[]>(Array(5).fill(null));
   const [hAvailable, setHAvailable] = useState<Person[]>(INITIAL_PEOPLE);
 
+  const fetchConfig = React.useCallback(async () => {
+    const { data: configRows } = await supabase
+      .from('configuracion_capitulos')
+      .select('*')
+      .order('capitulo_numero', { ascending: true });
+    
+    if (configRows && configRows.length > 0) {
+      const newConfig: AppConfig = {
+        capitulo_1_activo: configRows.find(r => r.capitulo_numero === 1)?.activo ?? true,
+        capitulo_2_activo: configRows.find(r => r.capitulo_numero === 2)?.activo ?? false,
+        capitulo_3_activo: configRows.find(r => r.capitulo_numero === 3)?.activo ?? false,
+        capitulo_4_activo: configRows.find(r => r.capitulo_numero === 4)?.activo ?? false,
+      };
+      setConfig(newConfig);
+    }
+  }, []);
+
   const [vFloors, setVFloors] = useState<(Person | null)[]>(Array(4).fill(null));
   const [vAvailable, setVAvailable] = useState<Person[]>(INITIAL_VERTICAL);
 
@@ -55,23 +78,6 @@ const App: React.FC = () => {
 
   // Persistence: Check for session on mount
   useEffect(() => {
-    const fetchConfig = async () => {
-      const { data: configRows } = await supabase
-        .from('configuracion_capitulos')
-        .select('*')
-        .order('capitulo_numero', { ascending: true });
-      
-      if (configRows && configRows.length > 0) {
-        const newConfig: AppConfig = {
-          capitulo_1_activo: configRows.find(r => r.capitulo_numero === 1)?.activo ?? true,
-          capitulo_2_activo: configRows.find(r => r.capitulo_numero === 2)?.activo ?? false,
-          capitulo_3_activo: configRows.find(r => r.capitulo_numero === 3)?.activo ?? false,
-          capitulo_4_activo: configRows.find(r => r.capitulo_numero === 4)?.activo ?? false,
-        };
-        setConfig(newConfig);
-      }
-    };
-
     const checkSession = async () => {
       await fetchConfig();
 
@@ -96,7 +102,7 @@ const App: React.FC = () => {
             setStudent(data);
             localStorage.setItem('student_session', JSON.stringify(data));
             setCurrentView(View.MENU);
-            checkUnread(data.id);
+            checkUnread(data.Usuario);
           } else {
             // If error or not found, clear session
             localStorage.removeItem('student_session');
@@ -108,13 +114,12 @@ const App: React.FC = () => {
       setLoading(false);
     };
 
-    const checkUnread = async (studentId: string) => {
+    const checkUnread = async (usuario: string) => {
       const { data } = await supabase
         .from('buzon')
         .select('id')
-        .eq('estudiante_id', studentId)
-        .eq('leido', false)
-        .eq('es_respuesta', true)
+        .eq('Receptor', usuario)
+        .eq('Leido', false)
         .limit(1);
       setHasUnread(data && data.length > 0 ? true : false);
     };
@@ -124,7 +129,9 @@ const App: React.FC = () => {
     // Subscribe to config changes
     const configChannel = supabase
       .channel('config-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'configuracion_capitulos' }, fetchConfig)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'configuracion_capitulos' }, () => {
+        fetchConfig();
+      })
       .subscribe();
 
     // Subscribe to mailbox changes for unread badge
@@ -135,7 +142,7 @@ const App: React.FC = () => {
         schema: 'public', 
         table: 'buzon' 
       }, () => {
-        if (student) checkUnread(student.id);
+        if (student) checkUnread(student.Usuario);
       })
       .subscribe();
 
@@ -143,7 +150,7 @@ const App: React.FC = () => {
       supabase.removeChannel(configChannel);
       supabase.removeChannel(buzonChannel);
     };
-  }, [student?.id]);
+  }, [student?.Usuario, fetchConfig]);
 
   const getPerformanceLevel = (score: number): string => {
     if (score >= 90) return 'SUPERIOR';
@@ -355,9 +362,25 @@ const App: React.FC = () => {
             student={student!}
             onSelectModule={(id) => {
               if (id === 'criptogramas') setCurrentView(View.CRYPTO_LAB);
-              if (id === 'ecuaciones') setCurrentView(View.GRAPHIC_EQUATIONS);
+              else if (id === 'ecuaciones') setCurrentView(View.GRAPHIC_EQUATIONS);
+              else if (id === 'block3') setCurrentView(View.CH2_BLOCK3_MENU);
+              else if (id === 'mensaje_oculto') setCurrentView(View.CHALLENGE);
             }}
             onBack={() => setCurrentView(View.MENU)}
+          />
+        );
+      case View.CH2_BLOCK3_MENU:
+        return (
+          <ChapterTwoBlockThreeMenu
+            student={student!}
+            onSelectModule={(id) => {
+              if (id === 'crucinumeros') setCurrentView(View.CRUCINUMERO);
+              else if (id === 'pyramids') setCurrentView(View.NUMERIC_PYRAMIDS);
+              else if (id === 'target') setCurrentView(View.TARGET_NUMBER);
+              else if (id === 'magic') setCurrentView(View.MAGIC_SQUARES);
+              else if (id === 'sudoku') setCurrentView(View.SUDOKU);
+            }}
+            onBack={() => setCurrentView(View.CHAPTER_2_MENU)}
           />
         );
       case View.CRYPTO_LAB:
@@ -365,7 +388,10 @@ const App: React.FC = () => {
           <CryptoLab 
             student={student!} 
             onBack={() => setCurrentView(View.CHAPTER_2_MENU)}
-            onComplete={(newProg) => setStudent(prev => prev ? { ...prev, progreso_criptogramas: newProg } : null)}
+            onComplete={(newProg) => {
+              setStudent(prev => prev ? { ...prev, progreso_criptogramas: newProg } : null);
+              updateSupabaseProgress('progreso_criptogramas', newProg);
+            }}
           />
         );
       case View.GRAPHIC_EQUATIONS:
@@ -373,7 +399,65 @@ const App: React.FC = () => {
           <GraphicEquations 
             student={student!} 
             onBack={() => setCurrentView(View.CHAPTER_2_MENU)}
-            onComplete={(newProg) => setStudent(prev => prev ? { ...prev, progreso_ecuaciones_graficas: newProg } : null)}
+            onComplete={(newProg) => {
+              setStudent(prev => prev ? { ...prev, progreso_ecuaciones_graficas: newProg } : null);
+              updateSupabaseProgress('progreso_ecuaciones_graficas', newProg);
+            }}
+          />
+        );
+      case View.NUMERIC_PYRAMIDS:
+        return (
+          <NumericPyramids
+            student={student!}
+            onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
+            onComplete={(newProg) => {
+              setStudent(prev => prev ? { ...prev, progreso_piramides: newProg } : null);
+              updateSupabaseProgress('progreso_piramides', newProg);
+            }}
+          />
+        );
+      case View.TARGET_NUMBER:
+        return (
+          <TargetNumber
+            student={student!}
+            onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
+            onComplete={(newProg) => {
+              setStudent(prev => prev ? { ...prev, progreso_blanco_perfecto: newProg } : null);
+              updateSupabaseProgress('progreso_blanco_perfecto', newProg);
+            }}
+          />
+        );
+      case View.SUDOKU:
+        return (
+          <Sudoku 
+            student={student!} 
+            onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
+            onComplete={(newProg) => {
+              setStudent(prev => prev ? { ...prev, progreso_sudoku: newProg } : null);
+              updateSupabaseProgress('progreso_sudoku', newProg);
+            }}
+          />
+        );
+      case View.MAGIC_SQUARES:
+        return (
+          <MagicSquares 
+            student={student!} 
+            onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
+            onComplete={(newProg) => {
+              setStudent(prev => prev ? { ...prev, progreso_magic_squares: newProg } : null);
+              updateSupabaseProgress('progreso_magic_squares', newProg);
+            }}
+          />
+        );
+      case View.CRUCINUMERO:
+        return (
+          <Crucinumero 
+            student={student!} 
+            onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
+            onComplete={(newProg) => {
+              setStudent(prev => prev ? { ...prev, progreso_crucinumeros: newProg } : null);
+              updateSupabaseProgress('progreso_crucinumeros', newProg);
+            }}
           />
         );
       case View.THEORY:
@@ -445,7 +529,9 @@ const App: React.FC = () => {
                 <i className="fas fa-home"></i>
               </button>
               <div className="flex-1">
-                <h1 className="text-base md:text-lg font-black text-gray-800 leading-none">Lógica <span className="text-purple-600">6°/7°</span></h1>
+                <h1 className="text-base md:text-lg font-black text-gray-800 leading-none">
+                  Lógica <span className="text-purple-600">{student?.Grado || '6°/7°'}</span>
+                </h1>
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1 flex items-center gap-1">
                   {student?.Nombre || student?.Usuario}
                   {(student?.nota_capitulo_1 || 0) >= 90 && (

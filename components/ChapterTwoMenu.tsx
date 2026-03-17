@@ -13,7 +13,7 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
   const modules = [
     {
       id: 'criptogramas',
-      title: 'Criptogramas Numéricos',
+      title: 'Bloque 1: Criptogramas',
       icon: 'fa-magnifying-glass',
       color: 'bg-orange-500',
       active: true,
@@ -22,7 +22,7 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
     },
     {
       id: 'ecuaciones',
-      title: 'Ecuaciones Gráficas',
+      title: 'Bloque 2: Ecuaciones Gráficas',
       icon: 'fa-scale-balanced',
       color: 'bg-emerald-500',
       active: (student.progreso_criptogramas || 0) >= 60,
@@ -31,23 +31,23 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       progress: student.progreso_ecuaciones_graficas || 0
     },
     {
-      id: 'crucinumeros',
-      title: 'Crucinúmeros y Retos',
-      icon: 'fa-table-cells-large',
-      color: 'bg-orange-600',
+      id: 'block3',
+      title: 'Bloque 3: Crucinúmeros y Retos',
+      icon: 'fa-puzzle-piece',
+      color: 'bg-amber-500',
       active: (student.progreso_ecuaciones_graficas || 0) >= 60,
-      desc: 'Videojuego de operaciones cruzadas, acertijos y desafíos numéricos.',
+      desc: 'Crucinúmeros, Pirámides, El Blanco Perfecto, Cuadrados Mágicos y Sudoku Detective.',
       required: 'Supera Ecuaciones (60%)',
-      progress: student.progreso_crucinumeros || 0
+      progress: ((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0)) / 3
     },
     {
       id: 'mensaje_oculto',
-      title: 'Mensaje Oculto',
+      title: 'Bloque 4: Mensaje Oculto',
       icon: 'fa-envelope-open-text',
-      color: 'bg-emerald-600',
+      color: 'bg-rose-500',
       active: (student.progreso_crucinumeros || 0) >= 60,
       desc: 'Crea y descifra códigos secretos utilizando lógica matemática.',
-      required: 'Supera Crucinúmeros (60%)',
+      required: 'Supera Bloque 3 (60%)',
       progress: student.progreso_mensaje_oculto || 0
     }
   ];
