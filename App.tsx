@@ -28,7 +28,6 @@ import CryptoLab from './components/CryptoLab';
 import GraphicEquations from './components/GraphicEquations';
 import ChapterTwoBlockThreeMenu from './components/ChapterTwoBlockThreeMenu';
 import NumericPyramids from './components/NumericPyramids';
-import TargetNumber from './components/TargetNumber';
 import Sudoku from './components/Sudoku';
 import MagicSquares from './components/MagicSquares';
 import Crucinumero from './components/Crucinumero';
@@ -194,22 +193,39 @@ const App: React.FC = () => {
 
       const studentData: StudentProfile = userData;
       
-      // Update last connection and sync chapter 1 grade
-      const modules = [
+      // Update last connection and sync chapter averages
+      const ch1Modules = [
         studentData.progreso_ordenamiento || 0,
         studentData.progreso_proposiciones || 0,
         studentData.progreso_cuantificadores || 0,
         studentData.progreso_microbit || 0
       ];
-      const average = Math.round(modules.reduce((a, b) => a + b, 0) / modules.length);
-      const performanceLevel = getPerformanceLevel(average);
+      const avg1 = Math.round(ch1Modules.reduce((a, b) => a + b, 0) / ch1Modules.length);
 
-      console.log(`Logging in: Updating ultima_conexion (DB side) and nota_capitulo_1 for ${studentData.Usuario}`);
+      const block3Avg = (
+        (studentData.progreso_sudoku || 0) +
+        (studentData.progreso_magic_squares || 0) +
+        (studentData.progreso_crucinumeros || 0) +
+        (studentData.progreso_piramides || 0)
+      ) / 4;
+
+      const avg2 = Math.round((
+        (studentData.progreso_criptogramas || 0) +
+        (studentData.progreso_ecuaciones_graficas || 0) +
+        block3Avg +
+        (studentData.progreso_mensaje_oculto || 0)
+      ) / 4);
+
+      const performanceLevel = getPerformanceLevel(Math.max(avg1, avg2));
+
+      console.log(`Logging in: Updating metadata for ${studentData.Usuario}`);
       const { error: updateError } = await supabase
         .from('Estudiantes')
         .update({ 
           ultima_conexion: new Date().toISOString(),
-          nota_capitulo_1: average
+          nota_capitulo_1: avg1,
+          nota_periodo_2: avg2,
+          nivel_desempeno: performanceLevel
         })
         .eq('Usuario', studentData.Usuario);
 
@@ -235,66 +251,62 @@ const App: React.FC = () => {
   const updateSupabaseProgress = async (column: keyof StudentProfile, value: number = 5, mode: 'increment' | 'absolute' = 'increment') => {
     if (!student) return;
 
-    const currentValue = (student[column] as number) || 0;
-    const newValue = mode === 'absolute' ? Math.max(currentValue, Math.min(value, 100)) : Math.min(currentValue + value, 100);
-    
-    // Optimistic update
-    const nowLocal = new Date().toISOString();
-    let updatedStudent = { ...student, [column]: newValue, ultima_conexion: nowLocal };
-    
-    // Calculate averages for both chapters
-    const ch1Modules = [
-      updatedStudent.progreso_ordenamiento || 0,
-      updatedStudent.progreso_proposiciones || 0,
-      updatedStudent.progreso_cuantificadores || 0,
-      updatedStudent.progreso_microbit || 0
-    ];
-    const avg1 = Math.round(ch1Modules.reduce((a, b) => a + b, 0) / ch1Modules.length);
+    setStudent(prev => {
+      if (!prev) return null;
+      
+      const currentValue = (prev[column] as number) || 0;
+      const newValue = mode === 'absolute' ? Math.max(currentValue, Math.min(value, 100)) : Math.min(currentValue + value, 100);
+      
+      const nowLocal = new Date().toISOString();
+      let updated = { ...prev, [column]: newValue, ultima_conexion: nowLocal };
+      
+      // Calculate averages
+      const ch1Modules = [
+        updated.progreso_ordenamiento || 0,
+        updated.progreso_proposiciones || 0,
+        updated.progreso_cuantificadores || 0,
+        updated.progreso_microbit || 0
+      ];
+      const avg1 = Math.round(ch1Modules.reduce((a, b) => a + b, 0) / ch1Modules.length);
 
-    const block3Avg = (
-      (updatedStudent.progreso_sudoku || 0) +
-      (updatedStudent.progreso_magic_squares || 0) +
-      (updatedStudent.progreso_crucinumeros || 0) +
-      (updatedStudent.progreso_piramides || 0) +
-      (updatedStudent.progreso_blanco_perfecto || 0)
-    ) / 5;
+      const block3Avg = (
+        (updated.progreso_sudoku || 0) +
+        (updated.progreso_magic_squares || 0) +
+        (updated.progreso_crucinumeros || 0) +
+        (updated.progreso_piramides || 0)
+      ) / 4;
 
-    const avg2 = Math.round((
-      (updatedStudent.progreso_criptogramas || 0) +
-      (updatedStudent.progreso_ecuaciones_graficas || 0) +
-      block3Avg +
-      (updatedStudent.progreso_mensaje_oculto || 0)
-    ) / 4);
+      const avg2 = Math.round((
+        (updated.progreso_criptogramas || 0) +
+        (updated.progreso_ecuaciones_graficas || 0) +
+        block3Avg +
+        (updated.progreso_mensaje_oculto || 0)
+      ) / 4);
 
-    updatedStudent.nota_capitulo_1 = avg1;
-    updatedStudent.nota_periodo_2 = avg2;
-    updatedStudent.nivel_desempeno = getPerformanceLevel(Math.max(avg1, avg2));
+      updated.nota_capitulo_1 = avg1;
+      updated.nota_periodo_2 = avg2;
+      updated.nivel_desempeno = getPerformanceLevel(Math.max(avg1, avg2));
 
-    setStudent(updatedStudent);
-    localStorage.setItem('student_session', JSON.stringify(updatedStudent));
+      localStorage.setItem('student_session', JSON.stringify(updated));
 
-    console.log(`Updating Supabase: ${column}=${newValue}, avg1=${avg1}, avg2=${avg2} for user ${student.Usuario}`);
- 
-    try {
-      const { error } = await supabase
+      // Trigger async update to Supabase
+      supabase
         .from('Estudiantes')
         .update({ 
           [column]: newValue,
           nota_capitulo_1: avg1,
           nota_periodo_2: avg2,
-          nivel_desempeno: updatedStudent.nivel_desempeno,
+          nivel_desempeno: updated.nivel_desempeno,
           ultima_conexion: new Date().toISOString()
         })
-        .eq('Usuario', student.Usuario);
- 
-      if (error) {
-        console.error('Error updating progress in Supabase:', error);
-      } else {
-        console.log('Progress successfully saved to Supabase');
-      }
-    } catch (err) {
-      console.error('Exception during Supabase update:', err);
-    }
+        .eq('Usuario', updated.Usuario)
+        .then(({ error }) => {
+          if (error) console.error('Error updating progress in Supabase:', error);
+          else console.log('Progress successfully saved to Supabase');
+        });
+
+      return updated;
+    });
   };
 
   const handleCorrectAction = (module: 'ordering' | 'proposiciones' | 'cuantificadores' | 'microbit') => {
@@ -394,7 +406,6 @@ const App: React.FC = () => {
             onSelectModule={(id) => {
               if (id === 'crucinumeros') setCurrentView(View.CRUCINUMERO);
               else if (id === 'pyramids') setCurrentView(View.NUMERIC_PYRAMIDS);
-              else if (id === 'target') setCurrentView(View.TARGET_NUMBER);
               else if (id === 'magic') setCurrentView(View.MAGIC_SQUARES);
               else if (id === 'sudoku') setCurrentView(View.SUDOKU);
             }}
@@ -428,16 +439,6 @@ const App: React.FC = () => {
             onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
             onComplete={(newProg) => {
               updateSupabaseProgress('progreso_piramides', newProg, 'absolute');
-            }}
-          />
-        );
-      case View.TARGET_NUMBER:
-        return (
-          <TargetNumber
-            student={student!}
-            onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
-            onComplete={(newProg) => {
-              updateSupabaseProgress('progreso_blanco_perfecto', newProg, 'absolute');
             }}
           />
         );

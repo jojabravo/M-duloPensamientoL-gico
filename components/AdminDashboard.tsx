@@ -360,9 +360,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
         (s.progreso_sudoku || 0) +
         (s.progreso_magic_squares || 0) +
         (s.progreso_crucinumeros || 0) +
-        (s.progreso_piramides || 0) +
-        (s.progreso_blanco_perfecto || 0)
-      ) / 5;
+        (s.progreso_piramides || 0)
+      ) / 4;
       
       const avg2 = (
         (s.progreso_criptogramas || 0) +

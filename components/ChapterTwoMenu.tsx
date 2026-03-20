@@ -37,9 +37,9 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       icon: 'fa-puzzle-piece',
       color: 'bg-amber-500',
       active: isTestUser || (student.progreso_ecuaciones_graficas || 0) >= 60,
-      desc: 'Crucinúmeros, Pirámides, El Blanco Perfecto, Cuadrados Mágicos y Sudoku Detective.',
+      desc: 'Crucinúmeros, Pirámides, Cuadrados Mágicos y Sudoku Detective.',
       required: 'Supera Ecuaciones (60%)',
-      progress: ((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0)) / 3
+      progress: ((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4
     },
     {
       id: 'mensaje_oculto',

@@ -108,28 +108,41 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
     if (currentVal === null) {
       newGrid[r][c] = num;
     } else {
+      // Allow up to 3 digits
       const combined = parseInt(currentVal.toString() + num.toString());
       if (combined < 1000) {
         newGrid[r][c] = combined;
       }
     }
     setGrid(newGrid);
-    checkWin(newGrid);
+    // Removed immediate checkWin to allow multi-digit input
+  };
+
+  const handleVerify = () => {
+    if (grid.some(row => row.some(cell => cell === null))) {
+      playSound('error');
+      return;
+    }
+    checkWin(grid);
   };
 
   const checkWin = (currentGrid: (number | null)[][]) => {
-    if (currentGrid.some(row => row.some(cell => cell === null))) return;
-
     // Check rows
     for (let i = 0; i < size; i++) {
-      if (currentGrid[i].reduce((a, b) => (a || 0) + (b || 0), 0) !== targetSum) return;
+      if (currentGrid[i].reduce((a, b) => (a || 0) + (b || 0), 0) !== targetSum) {
+        playSound('error');
+        return;
+      }
     }
 
     // Check cols
     for (let i = 0; i < size; i++) {
       let colSum = 0;
       for (let j = 0; j < size; j++) colSum += currentGrid[j][i] || 0;
-      if (colSum !== targetSum) return;
+      if (colSum !== targetSum) {
+        playSound('error');
+        return;
+      }
     }
 
     // Check diagonals
@@ -138,9 +151,17 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
       d1 += currentGrid[i][i] || 0;
       d2 += currentGrid[i][size - 1 - i] || 0;
     }
+    if (d1 !== targetSum || d2 !== targetSum) {
+      playSound('error');
+      return;
+    }
+
     // Check uniqueness (Standard Magic Square rule)
     const allNumbers = currentGrid.flat();
-    if (new Set(allNumbers).size !== allNumbers.length) return;
+    if (new Set(allNumbers).size !== allNumbers.length) {
+      playSound('error');
+      return;
+    }
 
     setGameState('won');
     playSound('success');
@@ -259,9 +280,25 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
                 <p className="text-indigo-100 text-xs leading-relaxed font-medium">
                   El virus ha desordenado los registros. Completa el cuadrado con números <strong>únicos (sin repetir)</strong> para que todas las filas, columnas y diagonales sumen {targetSum}.
                 </p>
+                <div className="mt-4 p-3 bg-white/10 rounded-xl border border-white/20">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">
+                    <i className="fas fa-info-circle mr-1"></i> RECUERDA:
+                  </p>
+                  <p className="text-[11px] leading-tight">
+                    Puedes escribir números de varias cifras. Al terminar, pulsa el botón <strong>VERIFICAR</strong>.
+                  </p>
+                </div>
               </div>
               <i className="fas fa-microchip absolute -right-4 -bottom-4 text-8xl text-white/10 rotate-12"></i>
             </div>
+
+            <button 
+              onClick={handleVerify}
+              disabled={gameState === 'won'}
+              className="w-full py-4 bg-purple-600 text-white rounded-2xl font-black shadow-lg hover:bg-purple-700 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            >
+              <i className="fas fa-check-circle"></i> VERIFICAR SOLUCIÓN
+            </button>
 
             <button 
               onClick={() => setShowCalculator(!showCalculator)}

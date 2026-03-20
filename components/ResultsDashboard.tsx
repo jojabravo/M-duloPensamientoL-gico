@@ -36,14 +36,13 @@ const ResultsDashboard: React.FC<Props> = ({ student, config, onBack }) => {
   const magicModuleAvg = student.progreso_magic_squares || 0;
   const crucModuleAvg = student.progreso_crucinumeros || 0;
   const pyrModuleAvg = student.progreso_piramides || 0;
-  const targetModuleAvg = student.progreso_blanco_perfecto || 0;
   const msgModuleAvg = student.progreso_mensaje_oculto || 0;
 
   // PROMEDIO TOTAL CAPÍTULO 1
   const totalCap1 = (ordModuleAvg + logModuleAvg + quantModuleAvg + microModuleAvg) / 4;
 
   // PROMEDIO TOTAL CAPÍTULO 2
-  const block3Avg = (sudokuModuleAvg + magicModuleAvg + crucModuleAvg + pyrModuleAvg + targetModuleAvg) / 5;
+  const block3Avg = (sudokuModuleAvg + magicModuleAvg + crucModuleAvg + pyrModuleAvg) / 4;
   const totalCap2 = (cryptoModuleAvg + eqModuleAvg + block3Avg + msgModuleAvg) / 4;
 
   useEffect(() => {
@@ -60,7 +59,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, config, onBack }) => {
           const avg1 = s.nota_capitulo_1 || 0;
           
           // Chapter 2 Progress
-          const block3 = ((s.progreso_sudoku || 0) + (s.progreso_magic_squares || 0) + (s.progreso_crucinumeros || 0) + (s.progreso_piramides || 0) + (s.progreso_blanco_perfecto || 0)) / 5;
+          const block3 = ((s.progreso_sudoku || 0) + (s.progreso_magic_squares || 0) + (s.progreso_crucinumeros || 0) + (s.progreso_piramides || 0)) / 4;
           const avg2 = ((s.progreso_criptogramas || 0) + (s.progreso_ecuaciones_graficas || 0) + block3 + (s.progreso_mensaje_oculto || 0)) / 4;
           
           let currentProgress = avg1;

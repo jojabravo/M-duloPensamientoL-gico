@@ -34,7 +34,6 @@ export enum View {
   MAGIC_SQUARES = 'MAGIC_SQUARES',
   CRUCINUMERO = 'CRUCINUMERO',
   NUMERIC_PYRAMIDS = 'NUMERIC_PYRAMIDS',
-  TARGET_NUMBER = 'TARGET_NUMBER',
   CH2_BLOCK3_MENU = 'CH2_BLOCK3_MENU'
 }
 
@@ -54,7 +53,6 @@ export interface StudentProfile {
   progreso_magic_squares?: number;
   progreso_crucinumeros?: number;
   progreso_piramides?: number;
-  progreso_blanco_perfecto?: number;
   progreso_mensaje_oculto?: number;
   nota_periodo_2?: number;
   progreso_transformaciones?: number;

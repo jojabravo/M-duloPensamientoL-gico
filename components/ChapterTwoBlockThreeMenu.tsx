@@ -34,25 +34,14 @@ const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, onSelectModule, on
       progress: student.progreso_piramides || 0
     },
     {
-      id: 'target',
-      title: 'El Blanco Perfecto',
-      subtitle: '(Target Number)',
-      icon: 'fa-bullseye',
-      color: 'bg-rose-500',
-      active: isTestUser || (student.progreso_piramides || 0) >= 60,
-      desc: 'Llega al número objetivo usando las cifras disponibles.',
-      required: 'Supera Pirámides (60%)',
-      progress: student.progreso_blanco_perfecto || 0
-    },
-    {
       id: 'magic',
       title: 'Cuadrados Mágicos',
       subtitle: 'Modernos',
       icon: 'fa-square',
       color: 'bg-purple-500',
-      active: isTestUser || (student.progreso_blanco_perfecto || 0) >= 60,
+      active: isTestUser || (student.progreso_piramides || 0) >= 60,
       desc: 'Completa la cuadrícula para que todas las líneas sumen lo mismo.',
-      required: 'Supera Blanco Perfecto (60%)',
+      required: 'Supera Pirámides (60%)',
       progress: student.progreso_magic_squares || 0
     },
     {
