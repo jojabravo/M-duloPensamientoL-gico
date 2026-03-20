@@ -94,17 +94,10 @@ const CryptoLab: React.FC<Props> = ({ student, onBack, onComplete }) => {
     
     const newProgress = Math.min(100, calculatedProgress);
     setProgress(newProgress);
+    onComplete(newProgress);
     
-    const { error } = await supabase
-      .from('Estudiantes')
-      .update({ progreso_criptogramas: newProgress })
-      .eq('Usuario', student.Usuario);
-    
-    if (!error) {
-      onComplete(newProgress);
-      if (newProgress >= 100) {
-        setCurrentActivity('medal');
-      }
+    if (newProgress >= 100) {
+      setCurrentActivity('medal');
     }
   };
 

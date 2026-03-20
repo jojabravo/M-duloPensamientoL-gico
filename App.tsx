@@ -44,6 +44,11 @@ const App: React.FC = () => {
     capitulo_4_activo: false
   });
   const [hasUnread, setHasUnread] = useState(false);
+  const studentRef = React.useRef<StudentProfile | null>(null);
+
+  useEffect(() => {
+    studentRef.current = student;
+  }, [student]);
 
   // Simulation states
   const [hSlots, setHSlots] = useState<(Person | null)[]>(Array(5).fill(null));
@@ -219,12 +224,13 @@ const App: React.FC = () => {
       const performanceLevel = getPerformanceLevel(Math.max(avg1, avg2));
 
       console.log(`Logging in: Updating metadata for ${studentData.Usuario}`);
+      const now = new Date().toISOString();
       const { error: updateError } = await supabase
         .from('Estudiantes')
         .update({ 
-          ultima_conexion: new Date().toISOString(),
+          ultima_conexion: now,
           nota_capitulo_1: avg1,
-          nota_periodo_2: avg2,
+          nota_capitulo_2: avg2,
           nivel_desempeno: performanceLevel
         })
         .eq('Usuario', studentData.Usuario);
@@ -233,8 +239,16 @@ const App: React.FC = () => {
         console.error('Error updating login metadata:', updateError);
       }
 
-      setStudent(studentData);
-      localStorage.setItem('student_session', JSON.stringify(studentData));
+      const updatedStudent = {
+        ...studentData,
+        ultima_conexion: now,
+        nota_capitulo_1: avg1,
+        nota_capitulo_2: avg2,
+        nivel_desempeno: performanceLevel
+      };
+
+      setStudent(updatedStudent);
+      localStorage.setItem('student_session', JSON.stringify(updatedStudent));
       setCurrentView(View.MENU);
       return { success: true };
     } catch (err: any) {
@@ -249,64 +263,70 @@ const App: React.FC = () => {
   };
 
   const updateSupabaseProgress = async (column: keyof StudentProfile, value: number = 5, mode: 'increment' | 'absolute' = 'increment') => {
-    if (!student) return;
+    const currentStudent = studentRef.current;
+    if (!currentStudent) return;
 
-    setStudent(prev => {
-      if (!prev) return null;
-      
-      const currentValue = (prev[column] as number) || 0;
-      const newValue = mode === 'absolute' ? Math.max(currentValue, Math.min(value, 100)) : Math.min(currentValue + value, 100);
-      
-      const nowLocal = new Date().toISOString();
-      let updated = { ...prev, [column]: newValue, ultima_conexion: nowLocal };
-      
-      // Calculate averages
-      const ch1Modules = [
-        updated.progreso_ordenamiento || 0,
-        updated.progreso_proposiciones || 0,
-        updated.progreso_cuantificadores || 0,
-        updated.progreso_microbit || 0
-      ];
-      const avg1 = Math.round(ch1Modules.reduce((a, b) => a + b, 0) / ch1Modules.length);
+    const currentValue = (currentStudent[column] as number) || 0;
+    const newValue = mode === 'absolute' ? Math.max(currentValue, Math.min(value, 100)) : Math.min(currentValue + value, 100);
+    
+    const nowLocal = new Date().toISOString();
+    let updated = { ...currentStudent, [column]: newValue, ultima_conexion: nowLocal };
+    
+    // Calculate averages
+    const ch1Modules = [
+      updated.progreso_ordenamiento || 0,
+      updated.progreso_proposiciones || 0,
+      updated.progreso_cuantificadores || 0,
+      updated.progreso_microbit || 0
+    ];
+    const avg1 = Math.round(ch1Modules.reduce((a, b) => a + b, 0) / ch1Modules.length);
 
-      const block3Avg = (
-        (updated.progreso_sudoku || 0) +
-        (updated.progreso_magic_squares || 0) +
-        (updated.progreso_crucinumeros || 0) +
-        (updated.progreso_piramides || 0)
-      ) / 4;
+    const block3Avg = (
+      (updated.progreso_sudoku || 0) +
+      (updated.progreso_magic_squares || 0) +
+      (updated.progreso_crucinumeros || 0) +
+      (updated.progreso_piramides || 0)
+    ) / 4;
 
-      const avg2 = Math.round((
-        (updated.progreso_criptogramas || 0) +
-        (updated.progreso_ecuaciones_graficas || 0) +
-        block3Avg +
-        (updated.progreso_mensaje_oculto || 0)
-      ) / 4);
+    const avg2 = Math.round((
+      (updated.progreso_criptogramas || 0) +
+      (updated.progreso_ecuaciones_graficas || 0) +
+      block3Avg +
+      (updated.progreso_mensaje_oculto || 0)
+    ) / 4);
 
-      updated.nota_capitulo_1 = avg1;
-      updated.nota_periodo_2 = avg2;
-      updated.nivel_desempeno = getPerformanceLevel(Math.max(avg1, avg2));
+    updated.nota_capitulo_1 = avg1;
+    updated.nota_capitulo_2 = avg2;
+    updated.nivel_desempeno = getPerformanceLevel(Math.max(avg1, avg2));
 
-      localStorage.setItem('student_session', JSON.stringify(updated));
+    // Update state and local storage
+    setStudent(updated);
+    localStorage.setItem('student_session', JSON.stringify(updated));
 
-      // Trigger async update to Supabase
-      supabase
+    // Perform the DB update
+    console.log(`[SUPABASE] Attempting to update ${column} to ${newValue}% for user ${updated.Usuario}`);
+    try {
+      const { error } = await supabase
         .from('Estudiantes')
         .update({ 
           [column]: newValue,
-          nota_capitulo_1: avg1,
-          nota_periodo_2: avg2,
+          nota_capitulo_1: updated.nota_capitulo_1,
+          nota_capitulo_2: updated.nota_capitulo_2,
           nivel_desempeno: updated.nivel_desempeno,
-          ultima_conexion: new Date().toISOString()
+          ultima_conexion: updated.ultima_conexion
         })
-        .eq('Usuario', updated.Usuario)
-        .then(({ error }) => {
-          if (error) console.error('Error updating progress in Supabase:', error);
-          else console.log('Progress successfully saved to Supabase');
-        });
+        .eq('Usuario', updated.Usuario);
 
-      return updated;
-    });
+      if (error) {
+        console.error('Error updating progress in Supabase:', error);
+        alert('Error al guardar progreso. Por favor verifica tu conexión.');
+      } else {
+        console.log(`[SUPABASE] SUCCESS: Progress updated for ${column}: ${newValue}%`);
+      }
+    } catch (err) {
+      console.error('Exception during Supabase update:', err);
+      alert('Error crítico al guardar progreso.');
+    }
   };
 
   const handleCorrectAction = (module: 'ordering' | 'proposiciones' | 'cuantificadores' | 'microbit') => {
@@ -316,7 +336,8 @@ const App: React.FC = () => {
       cuantificadores: 'progreso_cuantificadores',
       microbit: 'progreso_microbit'
     };
-    updateSupabaseProgress(columnMap[module], 5); // Increased from 2
+    console.log(`Correct action in ${module}. Updating ${columnMap[module]} by 25%`);
+    updateSupabaseProgress(columnMap[module], 25); 
   };
 
   const updateExampleProgress = (module: 'ordering' | 'logic', key: string) => {

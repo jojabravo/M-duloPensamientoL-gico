@@ -54,12 +54,12 @@ export interface StudentProfile {
   progreso_crucinumeros?: number;
   progreso_piramides?: number;
   progreso_mensaje_oculto?: number;
-  nota_periodo_2?: number;
+  nota_capitulo_2?: number;
   progreso_transformaciones?: number;
   progreso_geogebra?: number;
   progreso_mosaicos?: number;
-  nota_periodo_3?: number;
-  nota_periodo_4?: number;
+  nota_capitulo_3?: number;
+  nota_capitulo_4?: number;
   progreso_secuencias_graficas?: number;
   progreso_secuencias_numericas?: number;
   progreso_lateral?: number;

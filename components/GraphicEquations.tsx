@@ -89,17 +89,10 @@ const GraphicEquations: React.FC<Props> = ({ student, onBack, onComplete }) => {
     
     const newProgress = Math.min(100, calculatedProgress);
     setProgress(newProgress);
+    onComplete(newProgress);
     
-    const { error } = await supabase
-      .from('Estudiantes')
-      .update({ progreso_ecuaciones_graficas: newProgress })
-      .eq('Usuario', student.Usuario);
-    
-    if (!error) {
-      onComplete(newProgress);
-      if (newProgress >= 100) {
-        setView('medal');
-      }
+    if (newProgress >= 100) {
+      setView('medal');
     }
   };
 

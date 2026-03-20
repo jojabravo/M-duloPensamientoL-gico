@@ -43,7 +43,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, config, onBack }) => {
 
   // PROMEDIO TOTAL CAPÍTULO 2
   const block3Avg = (sudokuModuleAvg + magicModuleAvg + crucModuleAvg + pyrModuleAvg) / 4;
-  const totalCap2 = (cryptoModuleAvg + eqModuleAvg + block3Avg + msgModuleAvg) / 4;
+  const totalCap2 = student.nota_capitulo_2 || (cryptoModuleAvg + eqModuleAvg + block3Avg + msgModuleAvg) / 4;
 
   useEffect(() => {
     const fetchRanking = async () => {
@@ -60,7 +60,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, config, onBack }) => {
           
           // Chapter 2 Progress
           const block3 = ((s.progreso_sudoku || 0) + (s.progreso_magic_squares || 0) + (s.progreso_crucinumeros || 0) + (s.progreso_piramides || 0)) / 4;
-          const avg2 = ((s.progreso_criptogramas || 0) + (s.progreso_ecuaciones_graficas || 0) + block3 + (s.progreso_mensaje_oculto || 0)) / 4;
+          const avg2 = s.nota_capitulo_2 || ((s.progreso_criptogramas || 0) + (s.progreso_ecuaciones_graficas || 0) + block3 + (s.progreso_mensaje_oculto || 0)) / 4;
           
           let currentProgress = avg1;
           if (selectedGalleryChapter === 2) currentProgress = avg2;

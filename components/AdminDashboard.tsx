@@ -1019,9 +1019,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                       (student.progreso_sudoku || 0) +
                       (student.progreso_magic_squares || 0) +
                       (student.progreso_crucinumeros || 0) +
-                      (student.progreso_piramides || 0) +
-                      (student.progreso_blanco_perfecto || 0)
-                    ) / 5;
+                      (student.progreso_piramides || 0)
+                    ) / 4;
 
                     const avg2 = (
                       (student.progreso_criptogramas || 0) +
@@ -1030,7 +1029,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                       (student.progreso_mensaje_oculto || 0)
                     ) / 4;
 
-                    const maxAvg = Math.max(student.nota_capitulo_1 || 0, avg2);
+                    const maxAvg = Math.max(student.nota_capitulo_1 || 0, student.nota_capitulo_2 || avg2);
 
                     return (
                     <tr key={student.Usuario} className="group">
