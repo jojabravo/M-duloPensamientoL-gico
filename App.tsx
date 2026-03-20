@@ -319,7 +319,7 @@ const App: React.FC = () => {
 
       if (error) {
         console.error('Error updating progress in Supabase:', error);
-        alert('Error al guardar progreso. Por favor verifica tu conexión.');
+        alert(`Error al guardar progreso: ${error.message || 'Error desconocido'}. Por favor verifica tu conexión.`);
       } else {
         console.log(`[SUPABASE] SUCCESS: Progress updated for ${column}: ${newValue}%`);
       }
