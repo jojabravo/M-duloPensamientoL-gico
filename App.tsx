@@ -230,8 +230,7 @@ const App: React.FC = () => {
         .update({ 
           ultima_conexion: now,
           nota_capitulo_1: avg1,
-          nota_capitulo_2: avg2,
-          nivel_desempeno: performanceLevel
+          nota_capitulo_2: avg2
         })
         .eq('Usuario', studentData.Usuario);
 
@@ -312,7 +311,6 @@ const App: React.FC = () => {
           [column]: newValue,
           nota_capitulo_1: updated.nota_capitulo_1,
           nota_capitulo_2: updated.nota_capitulo_2,
-          nivel_desempeno: updated.nivel_desempeno,
           ultima_conexion: updated.ultima_conexion
         })
         .eq('Usuario', updated.Usuario);
