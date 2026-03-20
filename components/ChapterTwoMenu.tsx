@@ -10,6 +10,7 @@ interface Props {
 }
 
 const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) => {
+  const isTestUser = student.Usuario === 'estudiante.prueba';
   const modules = [
     {
       id: 'criptogramas',
@@ -25,7 +26,7 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       title: 'Bloque 2: Ecuaciones Gráficas',
       icon: 'fa-scale-balanced',
       color: 'bg-emerald-500',
-      active: (student.progreso_criptogramas || 0) >= 60,
+      active: isTestUser || (student.progreso_criptogramas || 0) >= 60,
       desc: 'Determina el valor de figuras geométricas en sistemas visuales equilibrados.',
       required: 'Supera Criptogramas (60%)',
       progress: student.progreso_ecuaciones_graficas || 0
@@ -35,7 +36,7 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       title: 'Bloque 3: Crucinúmeros y Retos',
       icon: 'fa-puzzle-piece',
       color: 'bg-amber-500',
-      active: (student.progreso_ecuaciones_graficas || 0) >= 60,
+      active: isTestUser || (student.progreso_ecuaciones_graficas || 0) >= 60,
       desc: 'Crucinúmeros, Pirámides, El Blanco Perfecto, Cuadrados Mágicos y Sudoku Detective.',
       required: 'Supera Ecuaciones (60%)',
       progress: ((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0)) / 3
@@ -45,7 +46,7 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       title: 'Bloque 4: Mensaje Oculto',
       icon: 'fa-envelope-open-text',
       color: 'bg-rose-500',
-      active: (student.progreso_crucinumeros || 0) >= 60,
+      active: isTestUser || (student.progreso_crucinumeros || 0) >= 60,
       desc: 'Crea y descifra códigos secretos utilizando lógica matemática.',
       required: 'Supera Bloque 3 (60%)',
       progress: student.progreso_mensaje_oculto || 0

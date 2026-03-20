@@ -10,6 +10,7 @@ interface Props {
 }
 
 const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) => {
+  const isTestUser = student.Usuario === 'estudiante.prueba';
   const modules = [
     {
       id: 'crucinumeros',
@@ -27,7 +28,7 @@ const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, onSelectModule, on
       subtitle: '(Lógica de Base)',
       icon: 'fa-mountain',
       color: 'bg-emerald-500',
-      active: (student.progreso_crucinumeros || 0) >= 60,
+      active: isTestUser || (student.progreso_crucinumeros || 0) >= 60,
       desc: 'Completa las pirámides sumando y restando desde la base.',
       required: 'Supera Crucinúmero (60%)',
       progress: student.progreso_piramides || 0
@@ -38,7 +39,7 @@ const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, onSelectModule, on
       subtitle: '(Target Number)',
       icon: 'fa-bullseye',
       color: 'bg-rose-500',
-      active: (student.progreso_piramides || 0) >= 60,
+      active: isTestUser || (student.progreso_piramides || 0) >= 60,
       desc: 'Llega al número objetivo usando las cifras disponibles.',
       required: 'Supera Pirámides (60%)',
       progress: student.progreso_blanco_perfecto || 0
@@ -49,7 +50,7 @@ const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, onSelectModule, on
       subtitle: 'Modernos',
       icon: 'fa-square',
       color: 'bg-purple-500',
-      active: (student.progreso_blanco_perfecto || 0) >= 60,
+      active: isTestUser || (student.progreso_blanco_perfecto || 0) >= 60,
       desc: 'Completa la cuadrícula para que todas las líneas sumen lo mismo.',
       required: 'Supera Blanco Perfecto (60%)',
       progress: student.progreso_magic_squares || 0
@@ -60,7 +61,7 @@ const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, onSelectModule, on
       subtitle: '(El Gran Final)',
       icon: 'fa-user-secret',
       color: 'bg-indigo-600',
-      active: (student.progreso_magic_squares || 0) >= 60,
+      active: isTestUser || (student.progreso_magic_squares || 0) >= 60,
       desc: 'El desafío final: descifra el código del servidor con lógica pura.',
       required: 'Supera Cuadrados (60%)',
       progress: student.progreso_sudoku || 0

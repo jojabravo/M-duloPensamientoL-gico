@@ -12,7 +12,8 @@ interface Props {
 }
 
 const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
-  const [size, setSize] = useState<3 | 4>(3);
+  const initialSize = (student.progreso_magic_squares || 0) >= 50 ? 4 : 3;
+  const [size, setSize] = useState<3 | 4>(initialSize as any);
   const [grid, setGrid] = useState<(number | null)[][]>([]);
   const [initialGrid, setInitialGrid] = useState<boolean[][]>([]);
   const [targetSum, setTargetSum] = useState(0);
@@ -23,6 +24,24 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
   useEffect(() => {
     generateSquare(size);
   }, [size]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedCell || gameState === 'won') return;
+      
+      if (e.key >= '0' && e.key <= '9') {
+        handleNumberInput(parseInt(e.key));
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        const [r, c] = selectedCell;
+        const newGrid = [...grid.map(row => [...row])];
+        newGrid[r][c] = null;
+        setGrid(newGrid);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedCell, gameState, grid]);
 
   const generateSquare = (s: number) => {
     // Basic magic square generation
@@ -80,11 +99,20 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
   };
 
   const handleNumberInput = (num: number) => {
-    if (!selectedCell) return;
+    if (!selectedCell || gameState === 'won') return;
     playSound('pop');
     const [r, c] = selectedCell;
-    const newGrid = [...grid];
-    newGrid[r][c] = num;
+    const newGrid = [...grid.map(row => [...row])];
+    const currentVal = newGrid[r][c];
+    
+    if (currentVal === null) {
+      newGrid[r][c] = num;
+    } else {
+      const combined = parseInt(currentVal.toString() + num.toString());
+      if (combined < 1000) {
+        newGrid[r][c] = combined;
+      }
+    }
     setGrid(newGrid);
     checkWin(newGrid);
   };
@@ -110,11 +138,26 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
       d1 += currentGrid[i][i] || 0;
       d2 += currentGrid[i][size - 1 - i] || 0;
     }
-    if (d1 !== targetSum || d2 !== targetSum) return;
+    // Check uniqueness (Standard Magic Square rule)
+    const allNumbers = currentGrid.flat();
+    if (new Set(allNumbers).size !== allNumbers.length) return;
 
     setGameState('won');
     playSound('success');
-    onComplete(100);
+    
+    const newProgress = size === 3 ? 50 : 100;
+    onComplete(newProgress);
+  };
+
+  const isDuplicate = (val: number | null) => {
+    if (val === null) return false;
+    let count = 0;
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        if (grid[i][j] === val) count++;
+      }
+    }
+    return count > 1;
   };
 
   return (
@@ -150,8 +193,8 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="bg-white p-8 rounded-[3rem] shadow-2xl border-8 border-purple-200 relative">
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-purple-600 text-white px-6 py-2 rounded-full font-black text-sm shadow-lg">
-                SUMA MÁGICA: {targetSum}
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-purple-600 text-white px-6 py-2 rounded-full font-black text-sm shadow-lg whitespace-nowrap">
+                SUMA MÁGICA: {targetSum} | SIN REPETIR
               </div>
               
               <div 
@@ -167,6 +210,8 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
                         ? 'bg-purple-50 border-purple-100 text-purple-900' 
                         : selectedCell?.[0] === r && selectedCell?.[1] === c
                         ? 'bg-purple-100 border-purple-600 scale-95 shadow-inner text-purple-600'
+                        : isDuplicate(cell)
+                        ? 'bg-red-50 border-red-300 text-red-600'
                         : 'bg-white border-purple-50 hover:border-purple-200 text-gray-400'
                     }`}
                   >
@@ -212,7 +257,7 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
               <div className="relative z-10">
                 <h3 className="font-black text-lg mb-2">Misión: Cripto-Analista</h3>
                 <p className="text-indigo-100 text-xs leading-relaxed font-medium">
-                  El virus ha desordenado los registros. Completa el cuadrado para que todas las filas, columnas y diagonales sumen {targetSum}.
+                  El virus ha desordenado los registros. Completa el cuadrado con números <strong>únicos (sin repetir)</strong> para que todas las filas, columnas y diagonales sumen {targetSum}.
                 </p>
               </div>
               <i className="fas fa-microchip absolute -right-4 -bottom-4 text-8xl text-white/10 rotate-12"></i>

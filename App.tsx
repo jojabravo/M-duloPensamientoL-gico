@@ -232,39 +232,57 @@ const App: React.FC = () => {
     setCurrentView(View.WELCOME);
   };
 
-  const updateSupabaseProgress = async (column: keyof StudentProfile, increment: number = 5) => {
+  const updateSupabaseProgress = async (column: keyof StudentProfile, value: number = 5, mode: 'increment' | 'absolute' = 'increment') => {
     if (!student) return;
 
     const currentValue = (student[column] as number) || 0;
-    const newValue = Math.min(currentValue + increment, 100);
+    const newValue = mode === 'absolute' ? Math.max(currentValue, Math.min(value, 100)) : Math.min(currentValue + value, 100);
     
-    // Optimistic update (local UI still uses browser time for immediate feedback)
+    // Optimistic update
     const nowLocal = new Date().toISOString();
     let updatedStudent = { ...student, [column]: newValue, ultima_conexion: nowLocal };
     
-    // Calculate nota_capitulo_1 as the average of the 4 modules
-    const modules = [
+    // Calculate averages for both chapters
+    const ch1Modules = [
       updatedStudent.progreso_ordenamiento || 0,
       updatedStudent.progreso_proposiciones || 0,
       updatedStudent.progreso_cuantificadores || 0,
       updatedStudent.progreso_microbit || 0
     ];
-    const average = Math.round(modules.reduce((a, b) => a + b, 0) / modules.length);
-    const performanceLevel = getPerformanceLevel(average);
-    updatedStudent.nota_capitulo_1 = average;
-    updatedStudent.nivel_desempeno = performanceLevel;
+    const avg1 = Math.round(ch1Modules.reduce((a, b) => a + b, 0) / ch1Modules.length);
+
+    const block3Avg = (
+      (updatedStudent.progreso_sudoku || 0) +
+      (updatedStudent.progreso_magic_squares || 0) +
+      (updatedStudent.progreso_crucinumeros || 0) +
+      (updatedStudent.progreso_piramides || 0) +
+      (updatedStudent.progreso_blanco_perfecto || 0)
+    ) / 5;
+
+    const avg2 = Math.round((
+      (updatedStudent.progreso_criptogramas || 0) +
+      (updatedStudent.progreso_ecuaciones_graficas || 0) +
+      block3Avg +
+      (updatedStudent.progreso_mensaje_oculto || 0)
+    ) / 4);
+
+    updatedStudent.nota_capitulo_1 = avg1;
+    updatedStudent.nota_periodo_2 = avg2;
+    updatedStudent.nivel_desempeno = getPerformanceLevel(Math.max(avg1, avg2));
 
     setStudent(updatedStudent);
     localStorage.setItem('student_session', JSON.stringify(updatedStudent));
 
-    console.log(`Updating Supabase: ${column}=${newValue}, nota_capitulo_1=${average}, ultima_conexion=${nowLocal} for user ${student.Usuario}`);
+    console.log(`Updating Supabase: ${column}=${newValue}, avg1=${avg1}, avg2=${avg2} for user ${student.Usuario}`);
  
     try {
       const { error } = await supabase
         .from('Estudiantes')
         .update({ 
           [column]: newValue,
-          nota_capitulo_1: average,
+          nota_capitulo_1: avg1,
+          nota_periodo_2: avg2,
+          nivel_desempeno: updatedStudent.nivel_desempeno,
           ultima_conexion: new Date().toISOString()
         })
         .eq('Usuario', student.Usuario);
@@ -389,8 +407,7 @@ const App: React.FC = () => {
             student={student!} 
             onBack={() => setCurrentView(View.CHAPTER_2_MENU)}
             onComplete={(newProg) => {
-              setStudent(prev => prev ? { ...prev, progreso_criptogramas: newProg } : null);
-              updateSupabaseProgress('progreso_criptogramas', newProg);
+              updateSupabaseProgress('progreso_criptogramas', newProg, 'absolute');
             }}
           />
         );
@@ -400,8 +417,7 @@ const App: React.FC = () => {
             student={student!} 
             onBack={() => setCurrentView(View.CHAPTER_2_MENU)}
             onComplete={(newProg) => {
-              setStudent(prev => prev ? { ...prev, progreso_ecuaciones_graficas: newProg } : null);
-              updateSupabaseProgress('progreso_ecuaciones_graficas', newProg);
+              updateSupabaseProgress('progreso_ecuaciones_graficas', newProg, 'absolute');
             }}
           />
         );
@@ -411,8 +427,7 @@ const App: React.FC = () => {
             student={student!}
             onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
             onComplete={(newProg) => {
-              setStudent(prev => prev ? { ...prev, progreso_piramides: newProg } : null);
-              updateSupabaseProgress('progreso_piramides', newProg);
+              updateSupabaseProgress('progreso_piramides', newProg, 'absolute');
             }}
           />
         );
@@ -422,8 +437,7 @@ const App: React.FC = () => {
             student={student!}
             onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
             onComplete={(newProg) => {
-              setStudent(prev => prev ? { ...prev, progreso_blanco_perfecto: newProg } : null);
-              updateSupabaseProgress('progreso_blanco_perfecto', newProg);
+              updateSupabaseProgress('progreso_blanco_perfecto', newProg, 'absolute');
             }}
           />
         );
@@ -433,8 +447,7 @@ const App: React.FC = () => {
             student={student!} 
             onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
             onComplete={(newProg) => {
-              setStudent(prev => prev ? { ...prev, progreso_sudoku: newProg } : null);
-              updateSupabaseProgress('progreso_sudoku', newProg);
+              updateSupabaseProgress('progreso_sudoku', newProg, 'absolute');
             }}
           />
         );
@@ -444,8 +457,7 @@ const App: React.FC = () => {
             student={student!} 
             onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
             onComplete={(newProg) => {
-              setStudent(prev => prev ? { ...prev, progreso_magic_squares: newProg } : null);
-              updateSupabaseProgress('progreso_magic_squares', newProg);
+              updateSupabaseProgress('progreso_magic_squares', newProg, 'absolute');
             }}
           />
         );
@@ -455,8 +467,7 @@ const App: React.FC = () => {
             student={student!} 
             onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
             onComplete={(newProg) => {
-              setStudent(prev => prev ? { ...prev, progreso_crucinumeros: newProg } : null);
-              updateSupabaseProgress('progreso_crucinumeros', newProg);
+              updateSupabaseProgress('progreso_crucinumeros', newProg, 'absolute');
             }}
           />
         );
@@ -489,7 +500,7 @@ const App: React.FC = () => {
       case View.CHALLENGE:
         return <Challenge student={student!} onFinish={(score) => { saveChallengeScore('ordering', score); setCurrentView(View.RESULTS); }} onBack={() => setCurrentView(View.TABLE)} />;
       case View.RESULTS:
-        return <ResultsDashboard student={student!} onBack={() => setCurrentView(View.MENU)} />;
+        return <ResultsDashboard student={student!} config={config} onBack={() => setCurrentView(View.MENU)} />;
       case View.ADMIN:
         return <AdminDashboard onBack={() => { console.log('Returning to WELCOME'); setCurrentView(View.WELCOME); }} />;
       case View.COMMUNICATION:

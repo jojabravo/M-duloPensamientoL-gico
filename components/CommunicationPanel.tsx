@@ -208,7 +208,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
                 <div className="flex items-center gap-2 bg-gray-50 rounded-2xl md:rounded-[2rem] p-1 border-2 border-transparent focus-within:border-indigo-100 focus-within:bg-white transition-all shadow-inner w-full overflow-hidden">
                   <input 
                     type="text"
-                    value={newMessage}
+                    value={newMessage || ''}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                     placeholder="Escribe un mensaje..."
@@ -331,7 +331,7 @@ const CommunicationPanel: React.FC<Props> = ({ student, mode = 'all', compact = 
                 id="contenido"
                 name="contenido"
                 type="text"
-                value={newMessage}
+                value={newMessage || ''}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Escribe tu duda o comentario..."

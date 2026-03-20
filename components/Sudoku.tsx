@@ -24,7 +24,8 @@ const FIGURES = [
 ];
 
 const Sudoku: React.FC<Props> = ({ student, onBack, onComplete }) => {
-  const [size, setSize] = useState<7 | 8 | 9>(7);
+  const initialSize = student.progreso_sudoku === 100 ? 9 : (student.progreso_sudoku || 0) >= 66 ? 9 : (student.progreso_sudoku || 0) >= 33 ? 8 : 7;
+  const [size, setSize] = useState<7 | 8 | 9>(initialSize as any);
   const [grid, setGrid] = useState<(number | null)[][]>([]);
   const [initialGrid, setInitialGrid] = useState<boolean[][]>([]);
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
@@ -98,7 +99,9 @@ const Sudoku: React.FC<Props> = ({ student, onBack, onComplete }) => {
 
     setGameState('won');
     playSound('success');
-    onComplete(100);
+    
+    const progressMap: Record<number, number> = { 7: 33, 8: 66, 9: 100 };
+    onComplete(progressMap[size] || 100);
   };
 
   return (

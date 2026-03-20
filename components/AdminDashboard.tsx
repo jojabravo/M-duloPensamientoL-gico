@@ -345,15 +345,37 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
       'Cuantificadores %',
       'Microbit %',
       'Promedio Capitulo 1',
+      'Criptogramas %',
+      'Ecuaciones Gráficas %',
+      'Crucinúmeros y Retos %',
+      'Mensaje Oculto %',
+      'Promedio Capitulo 2',
       'Estado Academico'
     ];
 
     const rows = filteredStudents.map(s => {
-      const avg = s.nota_capitulo_1 || 0;
+      const avg1 = s.nota_capitulo_1 || 0;
+      
+      const block3Avg = (
+        (s.progreso_sudoku || 0) +
+        (s.progreso_magic_squares || 0) +
+        (s.progreso_crucinumeros || 0) +
+        (s.progreso_piramides || 0) +
+        (s.progreso_blanco_perfecto || 0)
+      ) / 5;
+      
+      const avg2 = (
+        (s.progreso_criptogramas || 0) +
+        (s.progreso_ecuaciones_graficas || 0) +
+        block3Avg +
+        (s.progreso_mensaje_oculto || 0)
+      ) / 4;
+
+      const maxAvg = Math.max(avg1, avg2);
       let estado = 'BAJO';
-      if (avg >= 90) estado = 'SUPERIOR';
-      else if (avg >= 80) estado = 'ALTO';
-      else if (avg >= 60) estado = 'BÁSICO';
+      if (maxAvg >= 90) estado = 'SUPERIOR';
+      else if (maxAvg >= 80) estado = 'ALTO';
+      else if (maxAvg >= 60) estado = 'BÁSICO';
 
       return [
         `"${s.Usuario}"`,
@@ -364,7 +386,12 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
         s.progreso_proposiciones || 0,
         s.progreso_cuantificadores || 0,
         s.progreso_microbit || 0,
-        avg,
+        avg1,
+        s.progreso_criptogramas || 0,
+        s.progreso_ecuaciones_graficas || 0,
+        Math.round(block3Avg),
+        s.progreso_mensaje_oculto || 0,
+        Math.round(avg2),
         `"${estado}"`
       ];
     });
@@ -424,7 +451,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
             <div>
               <input
                 type="password"
-                value={password}
+                value={password || ''}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Clave de Administrador"
                 disabled={isBlocked}
@@ -603,7 +630,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                 <input
                   type="text"
                   placeholder="Buscar usuario..."
-                  value={searchTerm}
+                  value={searchTerm || ''}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-14 pr-8 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-purple-500 outline-none w-full lg:w-64 font-bold"
                 />
@@ -685,7 +712,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                       id="mensaje"
                       name="mensaje"
                       type="text"
-                      value={newAnnouncement}
+                      value={newAnnouncement || ''}
                       onChange={(e) => setNewAnnouncement(e.target.value)}
                       placeholder="Escribe el aviso importante aquí..."
                       className="w-full px-6 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-amber-500 outline-none font-medium text-sm"
@@ -736,7 +763,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                     <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                     <input 
                       type="text"
-                      value={chatSidebarSearch}
+                      value={chatSidebarSearch || ''}
                       onChange={(e) => setChatSidebarSearch(e.target.value)}
                       placeholder="Buscar estudiante..."
                       className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-indigo-500 outline-none font-bold text-xs"
@@ -963,6 +990,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   <th className="px-6 py-4 text-center">Cap. 1: Lógica</th>
                   <th className="px-6 py-4 text-center">Cap. 1: Cuant.</th>
                   <th className="px-6 py-4 text-center">Cap. 1: Micro.</th>
+                  <th className="px-6 py-4 text-center">Cap. 2: Bloque 1</th>
+                  <th className="px-6 py-4 text-center">Cap. 2: Bloque 2</th>
+                  <th className="px-6 py-4 text-center">Cap. 2: Bloque 3</th>
+                  <th className="px-6 py-4 text-center">Cap. 2: Bloque 4</th>
                   <th className="px-6 py-4 text-center">Nota Final</th>
                   <th className="px-6 py-4 text-center">Desempeño</th>
                 </tr>
@@ -970,7 +1001,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="text-center py-20">
+                    <td colSpan={13} className="text-center py-20">
                       <div className="animate-spin text-4xl text-purple-600 mb-4">
                         <i className="fas fa-circle-notch"></i>
                       </div>
@@ -979,12 +1010,30 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   </tr>
                 ) : filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center py-20">
+                    <td colSpan={13} className="text-center py-20">
                       <p className="font-black text-gray-400 uppercase tracking-widest">No se encontraron estudiantes</p>
                     </td>
                   </tr>
                 ) : (
-                  filteredStudents.map((student) => (
+                  filteredStudents.map((student) => {
+                    const block3Avg = (
+                      (student.progreso_sudoku || 0) +
+                      (student.progreso_magic_squares || 0) +
+                      (student.progreso_crucinumeros || 0) +
+                      (student.progreso_piramides || 0) +
+                      (student.progreso_blanco_perfecto || 0)
+                    ) / 5;
+
+                    const avg2 = (
+                      (student.progreso_criptogramas || 0) +
+                      (student.progreso_ecuaciones_graficas || 0) +
+                      block3Avg +
+                      (student.progreso_mensaje_oculto || 0)
+                    ) / 4;
+
+                    const maxAvg = Math.max(student.nota_capitulo_1 || 0, avg2);
+
+                    return (
                     <tr key={student.Usuario} className="group">
                       <td className="bg-gray-50 px-6 py-5 rounded-l-[2rem] border-y-2 border-l-2 border-transparent group-hover:border-purple-200 transition-all">
                         <div className="flex items-center gap-4">
@@ -1008,16 +1057,36 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </span>
                       </td>
                       
-                      {/* Progress Columns */}
+                      {/* Progress Columns Chapter 1 */}
                       {[
                         student.progreso_ordenamiento,
                         student.progreso_proposiciones,
                         student.progreso_cuantificadores,
                         student.progreso_microbit
                       ].map((val, idx) => (
-                        <td key={idx} className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                        <td key={`cap1-${idx}`} className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
                           <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
                             <span className="text-[10px] font-black text-gray-400">{val || 0}%</span>
+                            <div className="w-full h-2 bg-white rounded-full overflow-hidden shadow-inner border border-gray-100">
+                              <div 
+                                className={`h-full transition-all duration-1000 ${getProgressColor(val || 0)}`}
+                                style={{ width: `${val || 0}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </td>
+                      ))}
+
+                      {/* Progress Columns Chapter 2 */}
+                      {[
+                        student.progreso_criptogramas,
+                        student.progreso_ecuaciones_graficas,
+                        block3Avg,
+                        student.progreso_mensaje_oculto
+                      ].map((val, idx) => (
+                        <td key={`cap2-${idx}`} className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                          <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
+                            <span className="text-[10px] font-black text-gray-400">{Math.round(val || 0)}%</span>
                             <div className="w-full h-2 bg-white rounded-full overflow-hidden shadow-inner border border-gray-100">
                               <div 
                                 className={`h-full transition-all duration-1000 ${getProgressColor(val || 0)}`}
@@ -1031,16 +1100,16 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                       <td className="bg-gray-50 px-6 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
                         <div className="inline-flex flex-col items-center">
                           <span className="text-xl font-black text-gray-800 leading-none">
-                            {student.nota_capitulo_1 || 0}
+                            {Math.round(maxAvg)}
                             <span className="text-[10px] text-purple-400 ml-0.5">%</span>
                           </span>
-                          <div className={`w-12 h-1 mt-1 rounded-full ${getProgressColor(student.nota_capitulo_1 || 0)}`}></div>
+                          <div className={`w-12 h-1 mt-1 rounded-full ${getProgressColor(maxAvg)}`}></div>
                         </div>
                       </td>
 
                       <td className="bg-gray-50 px-6 py-5 rounded-r-[2rem] text-center border-y-2 border-r-2 border-transparent group-hover:border-purple-200 transition-all">
                         {(() => {
-                          const perf = getPerformanceLevel(student.nota_capitulo_1 || 0);
+                          const perf = getPerformanceLevel(maxAvg);
                           return (
                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border border-black/5 ${perf.color}`}>
                               {perf.label}
@@ -1049,7 +1118,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         })()}
                       </td>
                     </tr>
-                  ))
+                  );
+                  })
                 )}
               </tbody>
             </table>

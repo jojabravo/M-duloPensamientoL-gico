@@ -10,6 +10,7 @@ interface Props {
 }
 
 const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) => {
+  const isTestUser = student.Usuario === 'estudiante.prueba';
   const modules = [
     {
       id: 'ordering',
@@ -25,7 +26,7 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       title: 'Proposiciones Lógicas',
       icon: 'fa-project-diagram',
       color: 'bg-blue-500',
-      active: (student.progreso_ordenamiento || 0) >= 60,
+      active: isTestUser || (student.progreso_ordenamiento || 0) >= 60,
       desc: 'Definición, tipos, conectores, simbologías y reglas de inferencia.',
       required: 'Supera Ordenamiento (60%)',
       progress: student.progreso_proposiciones || 0
@@ -35,7 +36,7 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       title: 'Cuantificadores Lógicos',
       icon: 'fa-infinity',
       color: 'bg-pink-500',
-      active: (student.progreso_proposiciones || 0) >= 60,
+      active: isTestUser || (student.progreso_proposiciones || 0) >= 60,
       desc: 'Videojuego: Reconocimiento, simbolización y negación de cuantificadores.',
       required: 'Supera Proposiciones (60%)',
       progress: student.progreso_cuantificadores || 0
@@ -45,7 +46,7 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       title: 'Microbit en Lógica',
       icon: 'fa-microchip',
       color: 'bg-emerald-500',
-      active: (student.progreso_cuantificadores || 0) >= 60,
+      active: isTestUser || (student.progreso_cuantificadores || 0) >= 60,
       desc: 'Programación lógica aplicada a dispositivos Microbit reales y virtuales.',
       required: 'Supera Cuantificadores (60%)',
       progress: student.progreso_microbit || 0

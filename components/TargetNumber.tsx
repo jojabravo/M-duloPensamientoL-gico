@@ -12,7 +12,8 @@ interface Props {
 }
 
 const TargetNumber: React.FC<Props> = ({ student, onBack, onComplete }) => {
-  const [level, setLevel] = useState(1);
+  const initialLevel = student.progreso_blanco_perfecto === 100 ? 3 : Math.max(1, Math.floor((student.progreso_blanco_perfecto || 0) / 33) + 1);
+  const [level, setLevel] = useState(initialLevel);
   const [target, setTarget] = useState(0);
   const [numbers, setNumbers] = useState<number[]>([]);
   const [expression, setExpression] = useState<string[]>([]);
@@ -46,8 +47,7 @@ const TargetNumber: React.FC<Props> = ({ student, onBack, onComplete }) => {
         else current = Math.abs(current - availableNumbers[i]);
       } else if (lvl === 2) {
         // Intermediate: +, -, *
-        // Force at least one multiplication if we haven't used one yet and it's the last chance
-        if ((op > 0.6 || (i === availableNumbers.length - 1 && !usedMultiplication)) && current * availableNumbers[i] < 200) {
+        if ((op > 0.6 || (i === availableNumbers.length - 1 && !usedMultiplication)) && current * availableNumbers[i] < 150) {
           current *= availableNumbers[i];
           usedMultiplication = true;
         } else if (op > 0.3) {
@@ -60,7 +60,7 @@ const TargetNumber: React.FC<Props> = ({ student, onBack, onComplete }) => {
         if (op > 0.7) {
           current += availableNumbers[i];
         } else if (op > 0.4) {
-          if (current * availableNumbers[i] < 500) {
+          if (current * availableNumbers[i] < 250) {
             current *= availableNumbers[i];
             usedMultiplication = true;
           } else {
@@ -115,13 +115,17 @@ const TargetNumber: React.FC<Props> = ({ student, onBack, onComplete }) => {
       const result = eval(evalStr);
       
       if (result === target) {
+        const newProgress = Math.round((level / 3) * 100);
+        onComplete(newProgress);
+        
         if (level < 3) {
           playSound('success');
           setLevel(level + 1);
+          setExpression([]);
+          setUsedIndices([]);
         } else {
           setGameState('won');
           playSound('success');
-          onComplete(100);
         }
       } else {
         playSound('error');
@@ -178,6 +182,19 @@ const TargetNumber: React.FC<Props> = ({ student, onBack, onComplete }) => {
                   <span key={i} className={`text-3xl font-black ${isNaN(Number(t)) ? 'text-rose-400' : 'text-gray-800'}`}>{t}</span>
                 ))
               )}
+            </div>
+
+            <div className="bg-rose-600 p-8 rounded-[2.5rem] shadow-xl border-4 border-rose-100 text-center text-white relative overflow-hidden w-full">
+              <div className="relative z-10">
+                <h3 className="font-black text-xl mb-2 flex items-center justify-center gap-2 uppercase tracking-tighter">
+                  <i className="fas fa-bullseye"></i> MISIÓN: EL BLANCO PERFECTO
+                </h3>
+                <p className="text-rose-50 text-sm font-medium leading-relaxed">
+                  Usa los números y signos para crear una operación que dé como resultado el <strong>Número Objetivo</strong>. 
+                  ¡Puedes usar paréntesis para cambiar el orden y alcanzar la meta!
+                </p>
+              </div>
+              <i className="fas fa-bullseye absolute -right-4 -bottom-4 text-8xl text-white/10 rotate-12"></i>
             </div>
           </div>
 

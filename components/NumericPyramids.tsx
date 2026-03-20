@@ -12,7 +12,8 @@ interface Props {
 }
 
 const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
-  const [level, setLevel] = useState(1);
+  const initialLevel = student.progreso_piramides === 100 ? 4 : Math.max(1, Math.floor((student.progreso_piramides || 0) / 25) + 1);
+  const [level, setLevel] = useState(initialLevel);
   const [pyramid, setPyramid] = useState<(number | null)[]>([]);
   const [solution, setSolution] = useState<number[]>([]);
   const [userInputs, setUserInputs] = useState<(string)[]>([]);
@@ -24,31 +25,73 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
   }, [level]);
 
   const generatePyramid = (lvl: number) => {
-    // Level 1: 3 rows (6 blocks)
-    // Level 2: 4 rows (10 blocks)
-    // Level 3: 5 rows (15 blocks)
-    const rows = lvl + 2;
-    const totalBlocks = (rows * (rows + 1)) / 2;
-    
-    // Generate base
-    const base = Array.from({ length: rows }, () => Math.floor(Math.random() * 10) + 1);
-    
-    // Build full pyramid solution
-    let fullPyramid: number[][] = [base];
-    for (let r = 1; r < rows; r++) {
-      const nextRow = [];
-      const prevRow = fullPyramid[r - 1];
-      for (let i = 0; i < prevRow.length - 1; i++) {
-        nextRow.push(prevRow[i] + prevRow[i + 1]);
-      }
-      fullPyramid.push(nextRow);
-    }
+    let flatSolution: number[] = [];
+    let puzzle: (number | null)[] = [];
+    let rows = lvl + 2;
 
-    // Flatten solution (from top to bottom)
-    const flatSolution = fullPyramid.reverse().flat();
+    if (lvl === 4) {
+      // Pascal's Triangle - 20 rows
+      rows = 20;
+      let pascal: number[][] = [];
+      for (let i = 0; i < rows; i++) {
+        pascal[i] = new Array(i + 1);
+        for (let j = 0; j < i + 1; j++) {
+          if (j === 0 || j === i) {
+            pascal[i][j] = 1;
+          } else {
+            pascal[i][j] = pascal[i - 1][j - 1] + pascal[i - 1][j];
+          }
+        }
+      }
+      // For Pascal, we'll render it top-down in the solution array
+      flatSolution = pascal.flat();
+    } else {
+      // Generate base
+      const base = Array.from({ length: rows }, () => Math.floor(Math.random() * 10) + 1);
+      
+      // Build full pyramid solution (bottom-up)
+      let fullPyramid: number[][] = [base];
+      for (let r = 1; r < rows; r++) {
+        const nextRow = [];
+        const prevRow = fullPyramid[r - 1];
+        for (let i = 0; i < prevRow.length - 1; i++) {
+          nextRow.push(prevRow[i] + prevRow[i + 1]);
+        }
+        fullPyramid.push(nextRow);
+      }
+      flatSolution = fullPyramid.reverse().flat();
+    }
     
     // Create puzzle by hiding some blocks
-    const puzzle = flatSolution.map(val => (Math.random() > 0.4 ? val : null));
+    // Ensure at least one per row is hidden
+    let hiddenCount = 0;
+    puzzle = flatSolution.map((val, idx) => {
+      // For levels 1-3, always show the top block
+      if (lvl < 4 && idx === 0) return val;
+      
+      // For Pascal (lvl 4), hide specific strategic blocks
+      if (lvl === 4) {
+        // Hide 1s on the edges sometimes, and middle values
+        const isEdge = val === 1;
+        const hideChance = isEdge ? 0.2 : 0.6;
+        const hidden = Math.random() < hideChance;
+        if (hidden) hiddenCount++;
+        return hidden ? null : val;
+      }
+
+      const hidden = Math.random() > 0.5;
+      if (hidden) hiddenCount++;
+      return hidden ? null : val;
+    });
+
+    // Safety check: if no blocks are hidden, force hide at least 5
+    if (hiddenCount < 3) {
+      const indices = Array.from({ length: puzzle.length }, (_, i) => i);
+      for (let i = 0; i < 5; i++) {
+        const randomIdx = indices.splice(Math.floor(Math.random() * indices.length), 1)[0];
+        puzzle[randomIdx] = null;
+      }
+    }
     
     setSolution(flatSolution);
     setPyramid(puzzle);
@@ -70,21 +113,27 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
   };
 
   const checkWin = (currentInputs: string[]) => {
-    const isComplete = currentInputs.every((val, idx) => Number(val) === solution[idx]);
+    const isComplete = currentInputs.every((val, idx) => {
+      if (solution[idx] === null) return true;
+      return Number(val) === solution[idx];
+    });
+
     if (isComplete) {
-      if (level < 3) {
+      const newProgress = Math.round((level / 4) * 100);
+      onComplete(newProgress);
+      
+      if (level < 4) {
         playSound('success');
         setTimeout(() => setLevel(level + 1), 1500);
       } else {
         setGameState('won');
         playSound('success');
-        onComplete(100);
       }
     }
   };
 
   const renderPyramid = () => {
-    const rows = level + 2;
+    const rows = level === 4 ? 20 : level + 2;
     let index = 0;
     const pyramidRows = [];
 
@@ -99,10 +148,14 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
           <div key={currentIdx} className="relative">
             <input
               type="text"
-              value={userInputs[currentIdx]}
+              value={userInputs[currentIdx] || ''}
               onChange={(e) => handleInputChange(currentIdx, e.target.value)}
               disabled={isInitial || gameState === 'won'}
-              className={`w-14 h-14 md:w-20 md:h-20 rounded-xl text-center font-black text-xl md:text-2xl shadow-lg transition-all border-4 ${
+              className={`rounded-lg text-center font-black transition-all border-2 shadow-sm ${
+                level === 4 
+                  ? 'w-8 h-8 md:w-12 md:h-12 text-[10px] md:text-sm' 
+                  : 'w-14 h-14 md:w-20 md:h-20 text-xl md:text-2xl border-4 shadow-lg'
+              } ${
                 isInitial 
                   ? 'bg-emerald-600 border-emerald-700 text-white' 
                   : isCorrect
@@ -114,19 +167,23 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
         );
       }
       pyramidRows.push(
-        <div key={r} className="flex justify-center gap-2 md:gap-4">
+        <div key={r} className="flex justify-center gap-0.5 md:gap-1">
           {blocks}
         </div>
       );
     }
 
-    return <div className="flex flex-col gap-2 md:gap-4">{pyramidRows}</div>;
+    return (
+      <div className={`flex flex-col gap-0.5 md:gap-1 ${level === 4 ? 'overflow-auto max-h-[60vh] p-4 bg-white/30 rounded-3xl' : ''}`}>
+        {pyramidRows}
+      </div>
+    );
   };
 
   return (
     <div className="min-h-screen bg-emerald-50 p-4 md:p-8 animate-fadeIn">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <div className="flex items-center gap-4">
             <button 
               onClick={onBack}
@@ -136,7 +193,9 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
             </button>
             <div>
               <h1 className="text-3xl font-black text-gray-800 tracking-tight">PIRÁMIDES NUMÉRICAS</h1>
-              <p className="text-emerald-600 font-bold text-sm uppercase tracking-widest">Nivel {level} de 3</p>
+              <p className="text-emerald-600 font-bold text-sm uppercase tracking-widest">
+                {level === 4 ? 'Reto Final: Triángulo de Pascal (20 Filas)' : `Nivel ${level} de 4`}
+              </p>
             </div>
           </div>
 
@@ -152,12 +211,17 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
           {renderPyramid()}
         </div>
 
-        <div className="max-w-md mx-auto bg-white p-8 rounded-[2.5rem] shadow-xl border-4 border-emerald-100 text-center">
-          <h3 className="font-black text-gray-800 mb-2">Regla de la Pirámide</h3>
-          <p className="text-gray-500 text-sm font-medium leading-relaxed">
-            Cada bloque es la <strong>suma</strong> de los dos bloques que tiene justo debajo. 
-            ¡Usa la lógica inversa para descubrir la base!
-          </p>
+        <div className="max-w-md mx-auto bg-emerald-600 p-8 rounded-[2.5rem] shadow-xl border-4 border-emerald-100 text-center text-white relative overflow-hidden">
+          <div className="relative z-10">
+            <h3 className="font-black text-xl mb-2 flex items-center justify-center gap-2">
+              <i className="fas fa-mountain"></i> REGLA DE LA PIRÁMIDE
+            </h3>
+            <p className="text-emerald-50 text-sm font-medium leading-relaxed">
+              Cada bloque es la <strong>suma</strong> de los dos bloques que tiene justo debajo. 
+              ¡Usa la lógica inversa para descubrir la base y llegar a la cima!
+            </p>
+          </div>
+          <i className="fas fa-mountain absolute -right-4 -bottom-4 text-8xl text-white/10 rotate-12"></i>
         </div>
       </div>
 

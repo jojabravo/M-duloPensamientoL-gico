@@ -1,19 +1,27 @@
 
 import React, { useEffect, useState } from 'react';
-import { StudentProfile } from '../types';
+import { StudentProfile, AppConfig } from '../types';
 import { playSound } from '../audio';
 import confetti from 'canvas-confetti';
 import { supabase } from '../src/supabaseClient';
 
 interface Props {
   student: StudentProfile;
+  config: AppConfig;
   onBack: () => void;
 }
 
-const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
+const ResultsDashboard: React.FC<Props> = ({ student, config, onBack }) => {
   const [ranking, setRanking] = useState<StudentProfile[]>([]);
   const [showDiamondModal, setShowDiamondModal] = useState(false);
   const [hasCelebrated, setHasCelebrated] = useState(false);
+  
+  // Determine the default chapter for the gallery (highest active one)
+  const defaultChapter = config.capitulo_4_activo ? 4 : 
+                         config.capitulo_3_activo ? 3 : 
+                         config.capitulo_2_activo ? 2 : 1;
+  
+  const [selectedGalleryChapter, setSelectedGalleryChapter] = useState(defaultChapter);
 
   // Use progress directly from Supabase columns
   const ordModuleAvg = student.progreso_ordenamiento;
@@ -35,22 +43,46 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
   const totalCap1 = (ordModuleAvg + logModuleAvg + quantModuleAvg + microModuleAvg) / 4;
 
   // PROMEDIO TOTAL CAPÍTULO 2
-  const totalCap2 = (cryptoModuleAvg + eqModuleAvg + sudokuModuleAvg + magicModuleAvg + crucModuleAvg + pyrModuleAvg + targetModuleAvg + msgModuleAvg) / 8;
+  const block3Avg = (sudokuModuleAvg + magicModuleAvg + crucModuleAvg + pyrModuleAvg + targetModuleAvg) / 5;
+  const totalCap2 = (cryptoModuleAvg + eqModuleAvg + block3Avg + msgModuleAvg) / 4;
 
   useEffect(() => {
     const fetchRanking = async () => {
       if (!student.Grado) return;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('Estudiantes')
         .select('*')
-        .eq('Grado', student.Grado)
-        .order('nota_capitulo_1', { ascending: false });
+        .eq('Grado', student.Grado);
       
-      if (data) setRanking(data);
+      if (data) {
+        const processedData = data.map(s => {
+          // Chapter 1 Progress
+          const avg1 = s.nota_capitulo_1 || 0;
+          
+          // Chapter 2 Progress
+          const block3 = ((s.progreso_sudoku || 0) + (s.progreso_magic_squares || 0) + (s.progreso_crucinumeros || 0) + (s.progreso_piramides || 0) + (s.progreso_blanco_perfecto || 0)) / 5;
+          const avg2 = ((s.progreso_criptogramas || 0) + (s.progreso_ecuaciones_graficas || 0) + block3 + (s.progreso_mensaje_oculto || 0)) / 4;
+          
+          let currentProgress = avg1;
+          if (selectedGalleryChapter === 2) currentProgress = avg2;
+          // Add 3 and 4 when ready
+
+          return { 
+            ...s, 
+            maxProgress: Math.max(avg1, avg2),
+            galleryProgress: currentProgress 
+          };
+        });
+        
+        const sortedData = processedData.sort((a, b) => (b as any).galleryProgress - (a as any).galleryProgress);
+        setRanking(sortedData);
+      }
     };
 
     fetchRanking();
+  }, [selectedGalleryChapter, student.Grado]);
 
+  useEffect(() => {
     // Trigger confetti based on progress
     const maxTotal = Math.max(totalCap1, totalCap2);
     if (maxTotal >= 100 && !hasCelebrated) {
@@ -100,6 +132,12 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
     if (score >= 60) return 'DESEMPEÑO BÁSICO';
     return ''; // Hide 'DESEMPEÑO BAJO' for students
   };
+
+  // MEDALLA Y RECONOCIMIENTO (Based on selected gallery chapter)
+  const galleryScore = selectedGalleryChapter === 1 ? totalCap1 : 
+                       selectedGalleryChapter === 2 ? totalCap2 : 0;
+  const badge = getBadge(galleryScore);
+  const maxTotal = Math.max(totalCap1, totalCap2); // Still used for overall victory modal
 
   return (
     <div className="max-w-7xl mx-auto animate-fadeIn px-4 pb-20">
@@ -341,13 +379,13 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
             Módulos Capítulo 2
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* MÓDULO 1 CAP 2 */}
+            {/* BLOQUE 1 CAP 2 */}
             <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                   <i className="fas fa-key"></i>
                 </div>
-                <h3 className="font-black text-gray-800 text-sm leading-tight">Criptogramas</h3>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Bloque 1: Criptogramas</h3>
               </div>
               <div className="space-y-8 flex-grow">
                 <div className="flex flex-col gap-3">
@@ -365,13 +403,13 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
               </div>
             </div>
 
-            {/* MÓDULO 2 CAP 2 */}
+            {/* BLOQUE 2 CAP 2 */}
             <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                   <i className="fas fa-equals"></i>
                 </div>
-                <h3 className="font-black text-gray-800 text-sm leading-tight">Ecuaciones Gráficas</h3>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Bloque 2: Ecuaciones Gráficas</h3>
               </div>
               <div className="space-y-8 flex-grow">
                 <div className="flex flex-col gap-3">
@@ -389,134 +427,38 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
               </div>
             </div>
 
-            {/* MÓDULO 3 CAP 2 - SUDOKU */}
+            {/* BLOQUE 3 CAP 2 - CRUCINÚMEROS Y RETOS */}
             <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shadow-inner group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                  <i className="fas fa-th"></i>
+                  <i className="fas fa-puzzle-piece"></i>
                 </div>
-                <h3 className="font-black text-gray-800 text-sm leading-tight">Sudoku Lógico</h3>
+                <h3 className="font-black text-gray-800 text-sm leading-tight">Bloque 3: Crucinúmeros y Retos</h3>
               </div>
               <div className="space-y-8 flex-grow">
                 <div className="flex flex-col gap-3">
                   <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                     <span className="text-gray-400">Progreso General</span>
-                    <span className="text-amber-600">{Math.round(sudokuModuleAvg)}%</span>
+                    <span className="text-amber-600">{Math.round(block3Avg)}%</span>
                   </div>
                   <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                    <div className="h-full bg-amber-500 transition-all duration-1000" style={{ width: `${sudokuModuleAvg}%` }}></div>
+                    <div className="h-full bg-amber-500 transition-all duration-1000" style={{ width: `${block3Avg}%` }}></div>
                   </div>
                 </div>
               </div>
               <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-                <span className="bg-amber-50 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(sudokuModuleAvg)}</span>
+                <span className="bg-amber-50 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(block3Avg)}</span>
               </div>
             </div>
 
-            {/* MÓDULO 4 CAP 2 - MAGIC SQUARES */}
-            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 shadow-inner group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                  <i className="fas fa-square"></i>
-                </div>
-                <h3 className="font-black text-gray-800 text-sm leading-tight">Cuadrados Mágicos</h3>
-              </div>
-              <div className="space-y-8 flex-grow">
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-gray-400">Progreso General</span>
-                    <span className="text-purple-600">{Math.round(magicModuleAvg)}%</span>
-                  </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                    <div className="h-full bg-purple-500 transition-all duration-1000" style={{ width: `${magicModuleAvg}%` }}></div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-                <span className="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(magicModuleAvg)}</span>
-              </div>
-            </div>
-
-            {/* MÓDULO 5 CAP 2 - CRUCINUMERO */}
-            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 shadow-inner group-hover:bg-orange-600 group-hover:text-white transition-colors">
-                  <i className="fas fa-plus-minus"></i>
-                </div>
-                <h3 className="font-black text-gray-800 text-sm leading-tight">Crucinúmero</h3>
-              </div>
-              <div className="space-y-8 flex-grow">
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-gray-400">Progreso General</span>
-                    <span className="text-orange-600">{Math.round(crucModuleAvg)}%</span>
-                  </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                    <div className="h-full bg-orange-500 transition-all duration-1000" style={{ width: `${crucModuleAvg}%` }}></div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-                <span className="bg-orange-50 text-orange-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(crucModuleAvg)}</span>
-              </div>
-            </div>
-
-            {/* MÓDULO 6 CAP 2 - PIRÁMIDES */}
-            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                  <i className="fas fa-mountain"></i>
-                </div>
-                <h3 className="font-black text-gray-800 text-sm leading-tight">Pirámides Numéricas</h3>
-              </div>
-              <div className="space-y-8 flex-grow">
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-gray-400">Progreso General</span>
-                    <span className="text-emerald-600">{Math.round(pyrModuleAvg)}%</span>
-                  </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                    <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${pyrModuleAvg}%` }}></div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-                <span className="bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(pyrModuleAvg)}</span>
-              </div>
-            </div>
-
-            {/* MÓDULO 7 CAP 2 - TARGET NUMBER */}
-            <div className="bg-white p-10 rounded-[3.5rem] border-2 border-gray-100 shadow-xl flex flex-col group hover:-translate-y-2 transition-all">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-600 shadow-inner group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                  <i className="fas fa-bullseye"></i>
-                </div>
-                <h3 className="font-black text-gray-800 text-sm leading-tight">El Blanco Perfecto</h3>
-              </div>
-              <div className="space-y-8 flex-grow">
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-gray-400">Progreso General</span>
-                    <span className="text-rose-600">{Math.round(targetModuleAvg)}%</span>
-                  </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                    <div className="h-full bg-rose-500 transition-all duration-1000" style={{ width: `${targetModuleAvg}%` }}></div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-                <span className="bg-rose-50 text-rose-700 px-4 py-1.5 rounded-full text-[10px] font-black">Escala: {getStatusLabel(targetModuleAvg)}</span>
-              </div>
-            </div>
-
-            {/* MÓDULO 4 CAP 2 */}
+            {/* BLOQUE 4 CAP 2 - MENSAJE OCULTO */}
             <div className="bg-rose-50 p-10 rounded-[4rem] border-4 border-white shadow-2xl flex flex-col group hover:scale-105 transition-all ring-8 ring-rose-50/50">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-16 h-16 bg-rose-600 rounded-[1.8rem] flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform">
                   <i className="fas fa-user-secret"></i>
                 </div>
                 <div>
-                  <h3 className="font-black text-rose-900 text-sm">Mensaje Oculto</h3>
+                  <h3 className="font-black text-rose-900 text-sm leading-tight">Bloque 4: Mensaje Oculto</h3>
                   <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest">Cripto-Análisis</span>
                 </div>
               </div>
@@ -542,29 +484,55 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
         <div className="mt-16">
           <div className="text-center mb-12">
             <h3 className="text-4xl font-black text-gray-800 tracking-tighter mb-4">Galería de Logros y Excelencia <span className="text-purple-600">{student.Grado}</span></h3>
+            
+            {/* Chapter Selector for Gallery */}
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              {[1, 2, 3, 4].map((cap) => {
+                const isActive = (config as any)[`capitulo_${cap}_activo`];
+                const isSelected = selectedGalleryChapter === cap;
+                
+                return (
+                  <button
+                    key={cap}
+                    onClick={() => {
+                      if (isActive || cap < defaultChapter) {
+                        playSound('pop');
+                        setSelectedGalleryChapter(cap);
+                      }
+                    }}
+                    disabled={!isActive && cap > defaultChapter}
+                    className={`px-6 py-2 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border-2 ${
+                      isSelected 
+                        ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-200 scale-105' 
+                        : isActive || cap < defaultChapter
+                          ? 'bg-white border-purple-100 text-purple-400 hover:border-purple-300'
+                          : 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed opacity-50'
+                    }`}
+                  >
+                    {cap < defaultChapter ? `Histórico Cap. ${cap}` : `Capítulo ${cap}`}
+                    {!isActive && cap > defaultChapter && <i className="fas fa-lock ml-2 text-[8px]"></i>}
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="inline-block bg-purple-50 px-8 py-3 rounded-full border border-purple-100 shadow-sm">
               <p className="text-purple-600 font-black text-xs uppercase tracking-[0.2em]">
                 <i className="fas fa-star mr-2 animate-pulse"></i>
-                Cada paso cuenta. ¡Sigue avanzando para alcanzar tus propias insignias!
+                Mostrando resultados del <span className="font-black underline">Capítulo {selectedGalleryChapter}</span>
               </p>
             </div>
           </div>
 
-          {totalCap1 < 30 ? (
+          {ranking.filter(r => ((r as any).galleryProgress || 0) >= 30).length === 0 ? (
             <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-12 rounded-[3rem] text-center shadow-2xl animate-fade-up border-8 border-white">
               <div className="w-24 h-24 bg-white/20 rounded-[2rem] flex items-center justify-center text-white text-5xl mx-auto mb-8 animate-bounce">
                 <i className="fas fa-rocket"></i>
               </div>
-              <h4 className="text-3xl font-black text-white mb-4 tracking-tighter">¡TU LUGAR EN EL CUADRO DE HONOR TE ESPERA!</h4>
+              <h4 className="text-3xl font-black text-white mb-4 tracking-tighter">¡EL CUADRO DE HONOR ESTÁ ESPERANDO!</h4>
               <p className="text-purple-100 text-xl font-medium max-w-2xl mx-auto leading-relaxed">
-                Alcanza el <span className="text-yellow-300 font-black">30%</span> de progreso total para obtener tu <span className="font-black">Copa de Bronce</span> y aparecer en la Galería de Logros de tu grado. ¡Tú puedes lograrlo!
+                Aún no hay estudiantes con el <span className="text-yellow-300 font-black">30%</span> de progreso en el <span className="font-black">Capítulo {selectedGalleryChapter}</span>. ¡Sé el primero en aparecer aquí!
               </p>
-              <div className="mt-8 inline-flex items-center gap-3 bg-white/10 px-6 py-3 rounded-2xl border border-white/20">
-                <div className="w-full h-3 bg-white/20 rounded-full w-48 overflow-hidden">
-                  <div className="h-full bg-yellow-400" style={{ width: `${(totalCap1 / 30) * 100}%` }}></div>
-                </div>
-                <span className="text-white font-black text-sm">{Math.round(totalCap1)}% / 30%</span>
-              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -576,7 +544,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <p className="text-[8px] font-black text-orange-600 uppercase">En Progreso</p>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 30 && (r.nota_capitulo_1 || 0) < 60).map((r, i) => {
+                {ranking.filter(r => ((r as any).galleryProgress || 0) >= 30 && ((r as any).galleryProgress || 0) < 60).map((r, i) => {
                   const isMe = r.Usuario === student.Usuario;
                   return (
                     <div 
@@ -591,11 +559,11 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                       )}
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 font-black text-sm border border-orange-100 group-hover:scale-110 transition-transform">
-                          {Math.round(r.nota_capitulo_1 || 0)}%
+                          {Math.round((r as any).galleryProgress || 0)}%
                         </div>
                         <div className="flex flex-col">
                           <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-orange-900' : 'text-gray-700'}`}>{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest mt-1">En Progreso</span>
+                          <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest mt-1">Cap. {selectedGalleryChapter}</span>
                         </div>
                       </div>
                     </div>
@@ -612,7 +580,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <p className="text-[8px] font-black text-slate-600 uppercase">Desempeño Básico</p>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 60 && (r.nota_capitulo_1 || 0) < 80).map((r, i) => {
+                {ranking.filter(r => ((r as any).galleryProgress || 0) >= 60 && ((r as any).galleryProgress || 0) < 80).map((r, i) => {
                   const isMe = r.Usuario === student.Usuario;
                   return (
                     <div 
@@ -627,11 +595,11 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                       )}
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 font-black text-sm border border-slate-200 group-hover:scale-110 transition-transform">
-                          {Math.round(r.nota_capitulo_1 || 0)}%
+                          {Math.round((r as any).galleryProgress || 0)}%
                         </div>
                         <div className="flex flex-col">
                           <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-slate-900' : 'text-gray-700'}`}>{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">Desempeño Básico</span>
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">Cap. {selectedGalleryChapter}</span>
                         </div>
                       </div>
                     </div>
@@ -648,7 +616,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <p className="text-[8px] font-black text-yellow-600 uppercase">Desempeño Alto</p>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 80 && (r.nota_capitulo_1 || 0) < 90).map((r, i) => {
+                {ranking.filter(r => ((r as any).galleryProgress || 0) >= 80 && ((r as any).galleryProgress || 0) < 90).map((r, i) => {
                   const isMe = r.Usuario === student.Usuario;
                   return (
                     <div 
@@ -663,11 +631,11 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                       )}
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600 font-black text-sm border border-yellow-200 group-hover:scale-110 transition-transform">
-                          {Math.round(r.nota_capitulo_1 || 0)}%
+                          {Math.round((r as any).galleryProgress || 0)}%
                         </div>
                         <div className="flex flex-col">
                           <span className={`font-black text-sm tracking-tight leading-tight ${isMe ? 'text-yellow-900' : 'text-gray-800'}`}>{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest mt-1">Desempeño Alto</span>
+                          <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest mt-1">Cap. {selectedGalleryChapter}</span>
                         </div>
                       </div>
                     </div>
@@ -686,7 +654,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                 <p className="text-[8px] font-black text-white/80 uppercase relative z-10">Desempeño Superior</p>
               </div>
               <div className="space-y-4">
-                {ranking.filter(r => (r.nota_capitulo_1 || 0) >= 90).map((r, i) => {
+                {ranking.filter(r => ((r as any).galleryProgress || 0) >= 90).map((r, i) => {
                   const isMe = r.Usuario === student.Usuario;
                   return (
                     <div 
@@ -701,14 +669,14 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
                       )}
                       <div className="bg-white p-6 rounded-[1.3rem] flex flex-col items-center gap-3 relative z-10">
                         <div className="w-10 h-10 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-600 font-black text-sm border border-cyan-100 group-hover:rotate-12 transition-transform">
-                          100
+                          {Math.round((r as any).galleryProgress || 0)}
                         </div>
                         <div className="flex flex-col">
                           <span className={`font-black text-sm tracking-tight leading-tight flex items-center justify-center gap-1 ${isMe ? 'text-cyan-900' : 'text-gray-900'}`}>
                             {r.Nombre || r.Usuario}
                             <i className="fas fa-gem diamond-gradient text-[10px] animate-pulse"></i>
                           </span>
-                          <span className="text-[9px] font-black text-cyan-500 uppercase tracking-widest mt-1">Desempeño Superior</span>
+                          <span className="text-[9px] font-black text-cyan-500 uppercase tracking-widest mt-1">Cap. {selectedGalleryChapter}</span>
                         </div>
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                            <i className="fas fa-sparkles text-cyan-400 text-xs animate-ping"></i>
@@ -730,28 +698,23 @@ const ResultsDashboard: React.FC<Props> = ({ student, onBack }) => {
         {/* MEDALLA Y RECONOCIMIENTO */}
         <div className="mt-12 p-12 bg-gradient-to-br from-gray-900 to-indigo-950 border-8 border-white rounded-[4rem] flex flex-col md:flex-row items-center gap-12 shadow-[0_30px_80px_rgba(0,0,0,0.3)] relative overflow-hidden group">
            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-           {(() => {
-             const badge = getBadge(totalCap1);
-             return (
-               <>
-                 <div className={`text-8xl ${badge.color} animate-float drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] relative z-10`}>
-                   <i className={`fas ${badge.icon}`}></i>
-                 </div>
-                 <div className="text-center md:text-left flex-grow relative z-10">
-                   <h4 className="text-3xl font-black text-white mb-2 uppercase tracking-tighter">{badge.label}</h4>
-                   <p className="text-indigo-200 font-medium text-lg leading-relaxed italic max-w-2xl">
-                     {totalCap1 >= 96 ? "¡Extraordinario! Has alcanzado el Nivel Superior. Tu razonamiento lógico es impecable." : 
-                      totalCap1 >= 60 ? "¡Excelente trabajo! Estás en Nivel Alto. Sigue practicando para llegar a la excelencia total." :
-                      totalCap1 >= 30 ? "Buen desempeño. Estás en Nivel Básico. Tienes las bases, pero puedes mejorar mucho más." :
-                      "Nivel Bajo. Es importante que repases los conceptos y vuelvas a intentar los retos para fortalecer tu lógica."}
-                   </p>
-                 </div>
-                 <div className="shrink-0 relative z-10">
-                    <div className="bg-white text-indigo-950 px-8 py-3 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-50 transition-colors cursor-default">Nivel 1 Superado</div>
-                 </div>
-               </>
-             )
-           })()}
+           <div className={`text-8xl ${badge.color} animate-float drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] relative z-10`}>
+             <i className={`fas ${badge.icon}`}></i>
+           </div>
+           <div className="text-center md:text-left flex-grow relative z-10">
+             <h4 className="text-3xl font-black text-white mb-2 uppercase tracking-tighter">{badge.label}</h4>
+             <p className="text-indigo-200 font-medium text-lg leading-relaxed italic max-w-2xl">
+               {galleryScore >= 96 ? "¡Extraordinario! Has alcanzado el Nivel Superior. Tu razonamiento lógico es impecable." : 
+                galleryScore >= 60 ? "¡Excelente trabajo! Estás en Nivel Alto. Sigue practicando para llegar a la excelencia total." :
+                galleryScore >= 30 ? "Buen desempeño. Estás en Nivel Básico. Tienes las bases, pero puedes mejorar mucho más." :
+                "Nivel Bajo. Es importante que repases los conceptos y vuelvas a intentar los retos para fortalecer tu lógica."}
+             </p>
+           </div>
+           <div className="shrink-0 relative z-10">
+              <div className="bg-white text-indigo-950 px-8 py-3 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-50 transition-colors cursor-default">
+                {galleryScore >= 100 ? `Capítulo ${selectedGalleryChapter} Completado` : `Progreso Capítulo ${selectedGalleryChapter}`}
+              </div>
+           </div>
         </div>
 
         <div className="mt-16 flex flex-col md:flex-row justify-center gap-6">

@@ -13,13 +13,15 @@ interface Props {
 }
 
 const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults, onShowCommunication }) => {
+  const isTestUser = student.Usuario === 'estudiante.prueba';
+
   const sections = [
     { 
       id: 'verbal', 
       title: 'CAPÍTULO 1: PENSAMIENTO VERBAL', 
       icon: 'fa-font', 
       color: 'bg-purple-600', 
-      active: config.capitulo_1_activo,
+      active: isTestUser || config.capitulo_1_activo,
       desc: 'Ordenamiento de la información, lógica verbal y deducción.'
     },
     { 
@@ -27,7 +29,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       title: 'CAPÍTULO 2: PENSAMIENTO LÓGICO MATEMÁTICO', 
       icon: 'fa-magnifying-glass', 
       color: 'bg-orange-500', 
-      active: config.capitulo_2_activo,
+      active: isTestUser || config.capitulo_2_activo,
       desc: 'Criptogramas, Ecuaciones Gráficas, Crucinúmeros y Mensaje Oculto.'
     },
     { 
@@ -35,7 +37,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       title: 'CAPÍTULO 3: PENSAMIENTO ESPACIAL', 
       icon: 'fa-cube', 
       color: 'bg-pink-500', 
-      active: config.capitulo_3_activo,
+      active: isTestUser || config.capitulo_3_activo,
       desc: 'Transformaciones Isométricas (traslación, rotación, simetría), uso de GeoGebra y diseño de mosaicos.'
     },
     { 
@@ -43,7 +45,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       title: 'CAPÍTULO 4: PENSAMIENTO ABSTRACTO', 
       icon: 'fa-shapes', 
       color: 'bg-emerald-500', 
-      active: config.capitulo_4_activo,
+      active: isTestUser || config.capitulo_4_activo,
       desc: 'Patrones visuales, analogías gráficas y matrices.'
     }
   ];
