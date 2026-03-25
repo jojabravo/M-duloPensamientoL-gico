@@ -314,7 +314,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
 
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
-      const matchesSearch = s.Usuario.toLowerCase().includes(searchTerm.toLowerCase());
+      const searchStr = (s.Nombre || s.Usuario).toLowerCase();
+      const matchesSearch = searchStr.includes(searchTerm.toLowerCase());
       const matchesGrade = selectedGrade === 'Todos' || s.Grado === selectedGrade;
       const avg = s.nota_capitulo_1 || 0;
       let matchesPerformance = true;

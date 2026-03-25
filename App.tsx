@@ -190,6 +190,8 @@ const App: React.FC = () => {
         throw new Error('Credenciales incorrectas');
       }
 
+      console.log(`[LOGIN] User found: ${userData.Usuario} (Name: ${userData.Nombre || 'N/A'})`);
+      
       // 2. Check password (case-sensitive)
       if (userData.Clave !== contrasena) {
         console.warn('Incorrect password for user:', usuario);
@@ -263,7 +265,10 @@ const App: React.FC = () => {
 
   const updateSupabaseProgress = async (column: keyof StudentProfile, value: number = 5, mode: 'increment' | 'absolute' = 'increment') => {
     const currentStudent = studentRef.current;
-    if (!currentStudent) return;
+    if (!currentStudent) {
+      console.warn('[SUPABASE] No current student found in ref. Cannot update progress.');
+      return;
+    }
 
     const currentValue = (currentStudent[column] as number) || 0;
     const newValue = mode === 'absolute' ? Math.max(currentValue, Math.min(value, 100)) : Math.min(currentValue + value, 100);
@@ -303,9 +308,9 @@ const App: React.FC = () => {
     localStorage.setItem('student_session', JSON.stringify(updated));
 
     // Perform the DB update
-    console.log(`[SUPABASE] Attempting to update ${column} to ${newValue}% for user ${updated.Usuario}`);
+    console.log(`[SUPABASE] Attempting to update ${column} to ${newValue}% for user "${updated.Usuario}"`);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('Estudiantes')
         .update({ 
           [column]: newValue,
@@ -313,17 +318,21 @@ const App: React.FC = () => {
           nota_capitulo_2: updated.nota_capitulo_2,
           ultima_conexion: updated.ultima_conexion
         })
-        .eq('Usuario', updated.Usuario);
+        .eq('Usuario', updated.Usuario)
+        .select();
 
       if (error) {
         console.error('Error updating progress in Supabase:', error);
         alert(`Error al guardar progreso: ${error.message || 'Error desconocido'}. Por favor verifica tu conexión.`);
+      } else if (!data || data.length === 0) {
+        console.warn(`[SUPABASE] No row found to update for user "${updated.Usuario}". This might be a case-sensitivity or whitespace issue.`);
+        alert(`Error: No se encontró el registro del usuario "${updated.Usuario}" en la base de datos para actualizar el progreso. Por favor, contacta al profesor.`);
       } else {
         console.log(`[SUPABASE] SUCCESS: Progress updated for ${column}: ${newValue}%`);
       }
     } catch (err) {
       console.error('Exception during Supabase update:', err);
-      alert('Error crítico al guardar progreso.');
+      alert(`Error inesperado al guardar progreso: ${err instanceof Error ? err.message : 'Error desconocido'}`);
     }
   };
 
