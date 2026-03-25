@@ -314,9 +314,9 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
 
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
-      const searchStr = (s.Nombre || s.Usuario).toLowerCase();
-      const matchesSearch = searchStr.includes(searchTerm.toLowerCase());
-      const matchesGrade = selectedGrade === 'Todos' || s.Grado === selectedGrade;
+      const searchStr = (s.Nombre || s.Usuario || '').toLowerCase();
+      const matchesSearch = searchStr.includes(searchTerm.toLowerCase().trim());
+      const matchesGrade = selectedGrade === 'Todos' || (s.Grado || '').trim() === selectedGrade;
       const avg = s.nota_capitulo_1 || 0;
       let matchesPerformance = true;
       if (performanceFilter === 'BAJO') matchesPerformance = avg < 60;
@@ -525,6 +525,20 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
           </div>
 
           <div className="flex flex-wrap justify-center gap-4 w-full lg:w-auto">
+            <button 
+              onClick={() => { console.log('DEBUG: All Students', students); alert('Datos de estudiantes impresos en la consola (F12)'); }}
+              className="w-full md:w-auto px-4 py-4 bg-gray-200 text-gray-700 rounded-2xl font-black hover:bg-gray-300 transition-all shadow-md flex items-center justify-center gap-2"
+            >
+              <i className="fas fa-bug"></i>
+              DEBUG
+            </button>
+            <button 
+              onClick={() => { fetchStudents(); fetchCommunicationData(); fetchChapterConfig(); playSound('pop'); }}
+              className="w-full md:w-auto px-8 py-4 bg-purple-600 text-white rounded-2xl font-black hover:bg-purple-700 transition-all shadow-lg flex items-center justify-center gap-3"
+            >
+              <i className={`fas fa-sync-alt ${loading ? 'animate-spin' : ''}`}></i>
+              ACTUALIZAR DATOS
+            </button>
             <button 
               onClick={onBack}
               className="w-full md:w-auto px-8 py-4 bg-gray-800 text-white rounded-2xl font-black hover:bg-black transition-all shadow-lg"

@@ -190,7 +190,7 @@ const App: React.FC = () => {
         throw new Error('Credenciales incorrectas');
       }
 
-      console.log(`[LOGIN] User found: ${userData.Usuario} (Name: ${userData.Nombre || 'N/A'})`);
+      console.log(`[LOGIN] User found: "${userData.Usuario}" (Length: ${userData.Usuario.length}) (Name: ${userData.Nombre || 'N/A'})`);
       
       // 2. Check password (case-sensitive)
       if (userData.Clave !== contrasena) {
@@ -308,8 +308,11 @@ const App: React.FC = () => {
     localStorage.setItem('student_session', JSON.stringify(updated));
 
     // Perform the DB update
-    console.log(`[SUPABASE] Attempting to update ${column} to ${newValue}% for user "${updated.Usuario}"`);
+    const userToUpdate = updated.Usuario.trim();
+    console.log(`[SUPABASE] Attempting to update ${column} to ${newValue}% for user "${userToUpdate}" (Original length: ${updated.Usuario.length})`);
+    
     try {
+      // Use .filter with 'ilike' for the update to be extra safe about case/whitespace
       const { data, error } = await supabase
         .from('Estudiantes')
         .update({ 
@@ -318,17 +321,35 @@ const App: React.FC = () => {
           nota_capitulo_2: updated.nota_capitulo_2,
           ultima_conexion: updated.ultima_conexion
         })
-        .eq('Usuario', updated.Usuario)
+        .filter('Usuario', 'ilike', userToUpdate)
         .select();
 
       if (error) {
-        console.error('Error updating progress in Supabase:', error);
+        console.error(`[SUPABASE] Error updating ${column}:`, error);
         alert(`Error al guardar progreso: ${error.message || 'Error desconocido'}. Por favor verifica tu conexión.`);
       } else if (!data || data.length === 0) {
-        console.warn(`[SUPABASE] No row found to update for user "${updated.Usuario}". This might be a case-sensitivity or whitespace issue.`);
-        alert(`Error: No se encontró el registro del usuario "${updated.Usuario}" en la base de datos para actualizar el progreso. Por favor, contacta al profesor.`);
+        console.warn(`[SUPABASE] No row found to update for user "${userToUpdate}". Attempting fallback with exact match...`);
+        
+        // Fallback to exact match if ilike failed (unlikely but just in case)
+        const { data: retryData, error: retryError } = await supabase
+          .from('Estudiantes')
+          .update({ 
+            [column]: newValue,
+            nota_capitulo_1: updated.nota_capitulo_1,
+            nota_capitulo_2: updated.nota_capitulo_2,
+            ultima_conexion: updated.ultima_conexion
+          })
+          .eq('Usuario', updated.Usuario)
+          .select();
+
+        if (retryError || !retryData || retryData.length === 0) {
+          console.error(`[SUPABASE] Final failure to update user "${updated.Usuario}"`);
+          alert(`Error Crítico: No se pudo encontrar al estudiante "${updated.Usuario}" en la base de datos para guardar su progreso. Por favor, verifica que el usuario sea correcto.`);
+        } else {
+          console.log(`[SUPABASE] Fallback update successful for ${updated.Usuario}`);
+        }
       } else {
-        console.log(`[SUPABASE] SUCCESS: Progress updated for ${column}: ${newValue}%`);
+        console.log(`[SUPABASE] SUCCESS: Progress updated for ${column}: ${newValue}% (Rows affected: ${data.length})`);
       }
     } catch (err) {
       console.error('Exception during Supabase update:', err);
