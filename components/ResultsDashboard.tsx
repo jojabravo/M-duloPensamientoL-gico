@@ -39,7 +39,7 @@ const ResultsDashboard: React.FC<Props> = ({ student, config, onBack }) => {
   const msgModuleAvg = student.progreso_mensaje_oculto || 0;
 
   // PROMEDIO TOTAL CAPÍTULO 1
-  const totalCap1 = (ordModuleAvg + logModuleAvg + quantModuleAvg + microModuleAvg) / 4;
+  const totalCap1 = Math.round((ordModuleAvg + logModuleAvg + quantModuleAvg + microModuleAvg) / 4);
 
   // PROMEDIO TOTAL CAPÍTULO 2
   const block3Avg = (sudokuModuleAvg + magicModuleAvg + crucModuleAvg + pyrModuleAvg) / 4;

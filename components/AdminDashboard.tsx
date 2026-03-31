@@ -355,7 +355,12 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     ];
 
     const rows = filteredStudents.map(s => {
-      const avg1 = s.nota_capitulo_1 || 0;
+      const avg1 = Math.round((
+        (s.progreso_ordenamiento || 0) +
+        (s.progreso_proposiciones || 0) +
+        (s.progreso_cuantificadores || 0) +
+        (s.progreso_microbit || 0)
+      ) / 4);
       
       const block3Avg = (
         (s.progreso_sudoku || 0) +
@@ -1030,6 +1035,13 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   </tr>
                 ) : (
                   filteredStudents.map((student) => {
+                    const avg1 = Math.round((
+                      (student.progreso_ordenamiento || 0) +
+                      (student.progreso_proposiciones || 0) +
+                      (student.progreso_cuantificadores || 0) +
+                      (student.progreso_microbit || 0)
+                    ) / 4);
+
                     const block3Avg = (
                       (student.progreso_sudoku || 0) +
                       (student.progreso_magic_squares || 0) +
@@ -1037,14 +1049,14 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                       (student.progreso_piramides || 0)
                     ) / 4;
 
-                    const avg2 = (
+                    const avg2 = Math.round((
                       (student.progreso_criptogramas || 0) +
                       (student.progreso_ecuaciones_graficas || 0) +
                       block3Avg +
                       (student.progreso_mensaje_oculto || 0)
-                    ) / 4;
+                    ) / 4);
 
-                    const maxAvg = Math.max(student.nota_capitulo_1 || 0, student.nota_capitulo_2 || avg2);
+                    const maxAvg = Math.max(avg1, avg2);
 
                     return (
                     <tr key={student.Usuario} className="group">
@@ -1153,7 +1165,22 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   <p className="text-[8px] font-black text-orange-600 uppercase">Desempeño Básico</p>
                 </div>
                 <div className="space-y-4">
-                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 30 && (r.nota_capitulo_1 || 0) < 60).map((r, i) => (
+                  {filteredStudents.filter(r => {
+                    const avg1 = Math.round((
+                      (r.progreso_ordenamiento || 0) +
+                      (r.progreso_proposiciones || 0) +
+                      (r.progreso_cuantificadores || 0) +
+                      (r.progreso_microbit || 0)
+                    ) / 4);
+                    return avg1 >= 30 && avg1 < 60;
+                  }).map((r, i) => {
+                    const avg1 = Math.round((
+                      (r.progreso_ordenamiento || 0) +
+                      (r.progreso_proposiciones || 0) +
+                      (r.progreso_cuantificadores || 0) +
+                      (r.progreso_microbit || 0)
+                    ) / 4);
+                    return (
                     <div 
                       key={r.Usuario} 
                       className="bg-white p-6 rounded-[1.5rem] border-2 border-orange-100 shadow-[0_10px_30px_rgba(251,146,60,0.1)] animate-fade-up hover:scale-105 hover:brightness-110 transition-all duration-300 group" 
@@ -1161,7 +1188,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                     >
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 font-black text-sm border border-orange-100">
-                          {Math.round(r.nota_capitulo_1 || 0)}%
+                          {avg1}%
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
@@ -1169,7 +1196,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               </div>
 
@@ -1181,7 +1209,22 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   <p className="text-[8px] font-black text-slate-600 uppercase">Desempeño Alto</p>
                 </div>
                 <div className="space-y-4">
-                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 60 && (r.nota_capitulo_1 || 0) < 96).map((r, i) => (
+                  {filteredStudents.filter(r => {
+                    const avg1 = Math.round((
+                      (r.progreso_ordenamiento || 0) +
+                      (r.progreso_proposiciones || 0) +
+                      (r.progreso_cuantificadores || 0) +
+                      (r.progreso_microbit || 0)
+                    ) / 4);
+                    return avg1 >= 60 && avg1 < 96;
+                  }).map((r, i) => {
+                    const avg1 = Math.round((
+                      (r.progreso_ordenamiento || 0) +
+                      (r.progreso_proposiciones || 0) +
+                      (r.progreso_cuantificadores || 0) +
+                      (r.progreso_microbit || 0)
+                    ) / 4);
+                    return (
                     <div 
                       key={r.Usuario} 
                       className="bg-white p-6 rounded-[1.5rem] border-2 border-slate-200 shadow-[0_10px_30px_rgba(148,163,184,0.15)] animate-fade-up hover:scale-105 hover:brightness-110 transition-all duration-300 group" 
@@ -1189,7 +1232,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                     >
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 font-black text-sm border border-slate-200">
-                          {Math.round(r.nota_capitulo_1 || 0)}%
+                          {avg1}%
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
@@ -1197,7 +1240,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               </div>
 
@@ -1209,7 +1253,22 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   <p className="text-[8px] font-black text-yellow-600 uppercase">Desempeño Superior</p>
                 </div>
                 <div className="space-y-4">
-                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 96 && (r.nota_capitulo_1 || 0) < 100).map((r, i) => (
+                  {filteredStudents.filter(r => {
+                    const avg1 = Math.round((
+                      (r.progreso_ordenamiento || 0) +
+                      (r.progreso_proposiciones || 0) +
+                      (r.progreso_cuantificadores || 0) +
+                      (r.progreso_microbit || 0)
+                    ) / 4);
+                    return avg1 >= 96 && avg1 < 100;
+                  }).map((r, i) => {
+                    const avg1 = Math.round((
+                      (r.progreso_ordenamiento || 0) +
+                      (r.progreso_proposiciones || 0) +
+                      (r.progreso_cuantificadores || 0) +
+                      (r.progreso_microbit || 0)
+                    ) / 4);
+                    return (
                     <div 
                       key={r.Usuario} 
                       className="bg-white p-6 rounded-[1.5rem] border-2 border-yellow-400 shadow-[0_15px_40px_rgba(250,204,21,0.2)] animate-fade-up hover:scale-105 hover:brightness-110 transition-all duration-300 group ring-4 ring-yellow-50" 
@@ -1217,7 +1276,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                     >
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600 font-black text-sm border border-yellow-200">
-                          {Math.round(r.nota_capitulo_1 || 0)}%
+                          {avg1}%
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-800 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
@@ -1225,7 +1284,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               </div>
 
@@ -1239,7 +1299,15 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                   <p className="text-[8px] font-black text-white/80 uppercase relative z-10">Desempeño Superior</p>
                 </div>
                 <div className="space-y-4">
-                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) >= 100).map((r, i) => (
+                  {filteredStudents.filter(r => {
+                    const avg1 = Math.round((
+                      (r.progreso_ordenamiento || 0) +
+                      (r.progreso_proposiciones || 0) +
+                      (r.progreso_cuantificadores || 0) +
+                      (r.progreso_microbit || 0)
+                    ) / 4);
+                    return avg1 >= 100;
+                  }).map((r, i) => (
                     <div 
                       key={r.Usuario} 
                       className="diamond-bg-animated p-1 rounded-[1.6rem] shadow-[0_20px_50px_rgba(34,211,238,0.3)] animate-fade-up relative overflow-hidden group hover:scale-105 hover:brightness-110 transition-all duration-500" 
@@ -1286,23 +1354,47 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
 
               {showInProcess && (
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fadeIn">
-                  {filteredStudents.filter(r => (r.nota_capitulo_1 || 0) < 30).length === 0 ? (
+                  {filteredStudents.filter(r => {
+                    const avg1 = Math.round((
+                      (r.progreso_ordenamiento || 0) +
+                      (r.progreso_proposiciones || 0) +
+                      (r.progreso_cuantificadores || 0) +
+                      (r.progreso_microbit || 0)
+                    ) / 4);
+                    return avg1 < 30;
+                  }).length === 0 ? (
                     <div className="col-span-full py-10 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                       <p className="font-black text-gray-400 uppercase tracking-widest text-xs">Todos los estudiantes de este grado han superado el 30%</p>
                     </div>
                   ) : (
-                    filteredStudents.filter(r => (r.nota_capitulo_1 || 0) < 30).map((r) => (
+                    filteredStudents.filter(r => {
+                      const avg1 = Math.round((
+                        (r.progreso_ordenamiento || 0) +
+                        (r.progreso_proposiciones || 0) +
+                        (r.progreso_cuantificadores || 0) +
+                        (r.progreso_microbit || 0)
+                      ) / 4);
+                      return avg1 < 30;
+                    }).map((r) => {
+                      const avg1 = Math.round((
+                        (r.progreso_ordenamiento || 0) +
+                        (r.progreso_proposiciones || 0) +
+                        (r.progreso_cuantificadores || 0) +
+                        (r.progreso_microbit || 0)
+                      ) / 4);
+                      return (
                       <div key={r.Usuario} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
                         <div className="flex flex-col">
                           <span className="font-bold text-gray-700 text-sm truncate max-w-[120px]">{r.Nombre || r.Usuario}</span>
                           <span className="text-[10px] text-gray-400 font-black">@{r.Usuario}</span>
                         </div>
                         <div className="bg-rose-50 text-rose-600 px-3 py-1 rounded-lg font-black text-[10px] flex flex-col items-center">
-                          <span>{Math.round(r.nota_capitulo_1 || 0)}%</span>
+                          <span>{avg1}%</span>
                           <span className="text-[7px] uppercase tracking-tighter">Bajo</span>
                         </div>
                       </div>
-                    ))
+                    );
+                    })
                   )}
                 </div>
               )}
