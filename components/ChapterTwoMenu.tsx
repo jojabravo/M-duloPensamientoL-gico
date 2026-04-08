@@ -46,7 +46,7 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       title: 'Bloque 4: Mensaje Oculto',
       icon: 'fa-envelope-open-text',
       color: 'bg-rose-500',
-      active: isTestUser || (student.progreso_crucinumeros || 0) >= 60,
+      active: isTestUser || (((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4) >= 60,
       desc: 'Crea y descifra códigos secretos utilizando lógica matemática.',
       required: 'Supera Bloque 3 (60%)',
       progress: student.progreso_mensaje_oculto || 0

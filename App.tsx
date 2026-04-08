@@ -31,6 +31,7 @@ import NumericPyramids from './components/NumericPyramids';
 import Sudoku from './components/Sudoku';
 import MagicSquares from './components/MagicSquares';
 import Crucinumero from './components/Crucinumero';
+import HiddenMessage from './components/HiddenMessage';
 import Footer from './components/Footer';
 
 const App: React.FC = () => {
@@ -443,7 +444,7 @@ const App: React.FC = () => {
               if (id === 'criptogramas') setCurrentView(View.CRYPTO_LAB);
               else if (id === 'ecuaciones') setCurrentView(View.GRAPHIC_EQUATIONS);
               else if (id === 'block3') setCurrentView(View.CH2_BLOCK3_MENU);
-              else if (id === 'mensaje_oculto') setCurrentView(View.CHALLENGE);
+              else if (id === 'mensaje_oculto') setCurrentView(View.HIDDEN_MESSAGE);
             }}
             onBack={() => setCurrentView(View.MENU)}
           />
@@ -518,6 +519,16 @@ const App: React.FC = () => {
             onBack={() => setCurrentView(View.CH2_BLOCK3_MENU)}
             onComplete={(newProg) => {
               updateSupabaseProgress('progreso_crucinumeros', newProg, 'absolute');
+            }}
+          />
+        );
+      case View.HIDDEN_MESSAGE:
+        return (
+          <HiddenMessage
+            student={student!}
+            onBack={() => setCurrentView(View.CHAPTER_2_MENU)}
+            onComplete={(newProg) => {
+              updateSupabaseProgress('progreso_mensaje_oculto', newProg, 'absolute');
             }}
           />
         );
