@@ -1,34 +1,53 @@
 
 import React from 'react';
 import { playSound } from '../audio';
-import { StudentProfile } from '../types';
+import { StudentProfile, AppConfig } from '../types';
 
 interface Props {
   student: StudentProfile;
+  config: AppConfig;
   onSelectModule: (moduleId: string) => void;
   onBack: () => void;
 }
 
-const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) => {
+const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBack }) => {
   const isTestUser = student.Usuario === 'estudiante.prueba';
+
+  const isAvailable = (active: boolean, start?: string, end?: string) => {
+    if (isTestUser) return true;
+    if (active === false) return false;
+    
+    const now = new Date();
+    if (start) {
+      const startDate = new Date(start);
+      if (now < startDate) return false;
+    }
+    if (end) {
+      const endDate = new Date(end);
+      if (now > endDate) return false;
+    }
+    return true;
+  };
+
   const modules = [
     {
       id: 'criptogramas',
       title: 'Bloque 1: Criptogramas',
       icon: 'fa-magnifying-glass',
       color: 'bg-orange-500',
-      active: true,
+      active: isAvailable(config.ch2_bloque1_activo !== false, config.ch2_bloque1_inicio, config.ch2_bloque1_fin),
       desc: 'Descifra números tras letras y símbolos en operaciones matemáticas.',
-      progress: student.progreso_criptogramas || 0
+      progress: student.progreso_criptogramas || 0,
+      required: 'Habilitación por fecha'
     },
     {
       id: 'ecuaciones',
       title: 'Bloque 2: Ecuaciones Gráficas',
       icon: 'fa-scale-balanced',
       color: 'bg-emerald-500',
-      active: isTestUser || (student.progreso_criptogramas || 0) >= 60,
+      active: isAvailable(config.ch2_bloque2_activo !== false, config.ch2_bloque2_inicio, config.ch2_bloque2_fin) && (isTestUser || (student.progreso_criptogramas || 0) >= 60),
       desc: 'Determina el valor de figuras geométricas en sistemas visuales equilibrados.',
-      required: 'Supera Criptogramas (60%)',
+      required: (student.progreso_criptogramas || 0) < 60 ? 'Supera Criptogramas (60%)' : 'Habilitación por fecha',
       progress: student.progreso_ecuaciones_graficas || 0
     },
     {
@@ -36,9 +55,9 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       title: 'Bloque 3: Crucinúmeros y Retos',
       icon: 'fa-puzzle-piece',
       color: 'bg-amber-500',
-      active: isTestUser || (student.progreso_ecuaciones_graficas || 0) >= 60,
+      active: isAvailable(config.ch2_bloque3_activo !== false, config.ch2_bloque3_inicio, config.ch2_bloque3_fin) && (isTestUser || (student.progreso_ecuaciones_graficas || 0) >= 60),
       desc: 'Crucinúmeros, Pirámides, Cuadrados Mágicos y Sudoku Detective.',
-      required: 'Supera Ecuaciones (60%)',
+      required: (student.progreso_ecuaciones_graficas || 0) < 60 ? 'Supera Ecuaciones (60%)' : 'Habilitación por fecha',
       progress: ((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4
     },
     {
@@ -46,25 +65,58 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       title: 'Bloque 4: Mensaje Oculto',
       icon: 'fa-envelope-open-text',
       color: 'bg-rose-500',
-      active: isTestUser || (((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4) >= 60,
+      active: isAvailable(config.ch2_bloque4_activo !== false, config.ch2_bloque4_inicio, config.ch2_bloque4_fin) && (isTestUser || (((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4) >= 60),
       desc: 'Crea y descifra códigos secretos utilizando lógica matemática.',
-      required: 'Supera Bloque 3 (60%)',
+      required: (((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4) < 60 ? 'Supera Bloque 3 (60%)' : 'Habilitación por fecha',
       progress: student.progreso_mensaje_oculto || 0
     }
   ];
 
   return (
-    <div className="max-w-5xl mx-auto animate-fadeIn px-4">
-      <div className="flex items-center gap-4 mb-8">
-        <button 
-          onClick={() => { playSound('pop'); onBack(); }}
-          className="w-10 h-10 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-400 hover:text-orange-600 transition-all"
-        >
-          <i className="fas fa-arrow-left"></i>
-        </button>
-        <div>
-          <h2 className="text-2xl font-black text-gray-800">Capítulo 2: Pensamiento Lógico Matemático</h2>
-          <p className="text-gray-500 text-sm font-medium">Resuelve los desafíos numéricos</p>
+    <div className="max-w-5xl mx-auto animate-fadeIn px-4 py-8">
+      <div className="bg-white rounded-[3rem] shadow-2xl border-4 border-orange-50 overflow-hidden mb-12">
+        {/* Header Banner */}
+        <div className="bg-orange-600 p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12">
+            <i className="fas fa-brain"></i>
+          </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => { playSound('pop'); onBack(); }}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+              >
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
+                  Fase de Entrenamiento
+                </span>
+                <h3 className="text-3xl font-black tracking-tight">Capítulo 2: Pensamiento Lógico Matemático</h3>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <p className="text-orange-100 font-black text-xs uppercase tracking-[0.2em]">Misión: Desafío Numérico</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Narrativa del Capítulo */}
+        <div className="p-8 bg-orange-50/30">
+          <div className="bg-orange-600/10 p-8 rounded-[2.5rem] border-2 border-orange-100 relative overflow-hidden">
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+              <div className="w-20 h-20 bg-orange-600 rounded-3xl flex items-center justify-center text-4xl text-white shadow-lg shrink-0">
+                <i className="fas fa-calculator"></i>
+              </div>
+              <div>
+                <p className="text-orange-900 font-medium leading-relaxed">
+                  ¡Bienvenido al segundo nivel de tu formación como Agente Lógico! Aquí pondrás a prueba tu capacidad 
+                  de razonamiento numérico y espacial. Desde descifrar mensajes ocultos hasta resolver complejos 
+                  sistemas de ecuaciones gráficas. ¡Cada bloque superado te acerca más a la maestría matemática!
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

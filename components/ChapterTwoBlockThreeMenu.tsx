@@ -59,35 +59,51 @@ const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, onSelectModule, on
 
   return (
     <div className="max-w-5xl mx-auto animate-fadeIn px-4 py-8">
-      <div className="flex items-center gap-4 mb-8">
-        <button 
-          onClick={() => { playSound('pop'); onBack(); }}
-          className="w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center text-amber-600 hover:bg-amber-600 hover:text-white transition-all"
-        >
-          <i className="fas fa-arrow-left"></i>
-        </button>
-        <div>
-          <h2 className="text-3xl font-black text-gray-800 tracking-tight">Bloque 3: Crucinúmeros y Retos</h2>
-          <p className="text-amber-600 font-bold text-sm uppercase tracking-widest">Misión: Recuperación de Datos</p>
+      <div className="bg-white rounded-[3rem] shadow-2xl border-4 border-amber-50 overflow-hidden mb-8">
+        {/* Header Banner */}
+        <div className="bg-amber-600 p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12">
+            <i className="fas fa-puzzle-piece"></i>
+          </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => { playSound('pop'); onBack(); }}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+              >
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
+                  Capítulo 2 • Bloque 3
+                </span>
+                <h3 className="text-3xl font-black tracking-tight">Crucinúmeros y Retos</h3>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <p className="text-amber-100 font-black text-xs uppercase tracking-[0.2em]">Misión: Recuperación de Datos</p>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Narrativa del Bloque - Moved to Top */}
-      <div className="mb-12 bg-amber-600 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-5xl shrink-0">
-            <i className="fas fa-user-secret"></i>
-          </div>
-          <div>
-            <p className="text-amber-100 font-medium leading-relaxed">
-              El servidor central ha sido infectado por un virus que ha fragmentado los archivos de seguridad. 
-              Como <strong>Cripto-Analista</strong>, tu misión es resolver estos retos numéricos para reconstruir 
-              los fragmentos de código. Cada reto superado te otorga una <strong>Llave de Acceso</strong>. 
-              ¡El Sudoku Detective es la prueba final para erradicar el virus!
-            </p>
+        {/* Narrativa del Bloque */}
+        <div className="p-8 bg-amber-50/30">
+          <div className="bg-amber-600/10 p-8 rounded-[2.5rem] border-2 border-amber-100 relative overflow-hidden">
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+              <div className="w-20 h-20 bg-amber-600 rounded-3xl flex items-center justify-center text-4xl text-white shadow-lg shrink-0">
+                <i className="fas fa-user-secret"></i>
+              </div>
+              <div>
+                <p className="text-amber-900 font-medium leading-relaxed">
+                  El servidor central ha sido infectado por un virus que ha fragmentado los archivos de seguridad. 
+                  Como <strong>Cripto-Analista</strong>, tu misión es resolver estos retos numéricos para reconstruir 
+                  los fragmentos de código. Cada reto superado te otorga una <strong>Llave de Acceso</strong>. 
+                  ¡El Sudoku Detective es la prueba final para erradicar el virus!
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-        <i className="fas fa-shield-virus absolute -right-8 -bottom-8 text-[12rem] text-white/10 rotate-12"></i>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

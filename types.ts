@@ -1,9 +1,37 @@
 
 export interface AppConfig {
   capitulo_1_activo: boolean;
+  capitulo_1_inicio?: string;
+  capitulo_1_fin?: string;
+
   capitulo_2_activo: boolean;
+  capitulo_2_inicio?: string;
+  capitulo_2_fin?: string;
+
   capitulo_3_activo: boolean;
+  capitulo_3_inicio?: string;
+  capitulo_3_fin?: string;
+
   capitulo_4_activo: boolean;
+  capitulo_4_inicio?: string;
+  capitulo_4_fin?: string;
+
+  // Bloques del Capítulo 2
+  ch2_bloque1_activo?: boolean;
+  ch2_bloque1_inicio?: string;
+  ch2_bloque1_fin?: string;
+
+  ch2_bloque2_activo?: boolean;
+  ch2_bloque2_inicio?: string;
+  ch2_bloque2_fin?: string;
+
+  ch2_bloque3_activo?: boolean;
+  ch2_bloque3_inicio?: string;
+  ch2_bloque3_fin?: string;
+
+  ch2_bloque4_activo?: boolean;
+  ch2_bloque4_inicio?: string;
+  ch2_bloque4_fin?: string;
 }
 
 export enum View {

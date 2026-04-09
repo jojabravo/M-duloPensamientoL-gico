@@ -45,6 +45,7 @@ const App: React.FC = () => {
     capitulo_4_activo: false
   });
   const [hasUnread, setHasUnread] = useState(false);
+  const [isAdminImpersonating, setIsAdminImpersonating] = useState(false);
   const studentRef = React.useRef<StudentProfile | null>(null);
 
   useEffect(() => {
@@ -62,11 +63,40 @@ const App: React.FC = () => {
       .order('capitulo_numero', { ascending: true });
     
     if (configRows && configRows.length > 0) {
+      const getCap = (num: number) => configRows.find(r => r.capitulo_numero === num);
+      
       const newConfig: AppConfig = {
-        capitulo_1_activo: configRows.find(r => r.capitulo_numero === 1)?.activo ?? true,
-        capitulo_2_activo: configRows.find(r => r.capitulo_numero === 2)?.activo ?? false,
-        capitulo_3_activo: configRows.find(r => r.capitulo_numero === 3)?.activo ?? false,
-        capitulo_4_activo: configRows.find(r => r.capitulo_numero === 4)?.activo ?? false,
+        capitulo_1_activo: getCap(1)?.activo ?? true,
+        capitulo_1_inicio: getCap(1)?.fecha_inicio,
+        capitulo_1_fin: getCap(1)?.fecha_fin,
+
+        capitulo_2_activo: getCap(2)?.activo ?? false,
+        capitulo_2_inicio: getCap(2)?.fecha_inicio,
+        capitulo_2_fin: getCap(2)?.fecha_fin,
+
+        capitulo_3_activo: getCap(3)?.activo ?? false,
+        capitulo_3_inicio: getCap(3)?.fecha_inicio,
+        capitulo_3_fin: getCap(3)?.fecha_fin,
+
+        capitulo_4_activo: getCap(4)?.activo ?? false,
+        capitulo_4_inicio: getCap(4)?.fecha_inicio,
+        capitulo_4_fin: getCap(4)?.fecha_fin,
+
+        ch2_bloque1_activo: getCap(21)?.activo ?? true,
+        ch2_bloque1_inicio: getCap(21)?.fecha_inicio,
+        ch2_bloque1_fin: getCap(21)?.fecha_fin,
+
+        ch2_bloque2_activo: getCap(22)?.activo ?? true,
+        ch2_bloque2_inicio: getCap(22)?.fecha_inicio,
+        ch2_bloque2_fin: getCap(22)?.fecha_fin,
+
+        ch2_bloque3_activo: getCap(23)?.activo ?? true,
+        ch2_bloque3_inicio: getCap(23)?.fecha_inicio,
+        ch2_bloque3_fin: getCap(23)?.fecha_fin,
+
+        ch2_bloque4_activo: getCap(24)?.activo ?? true,
+        ch2_bloque4_inicio: getCap(24)?.fecha_inicio,
+        ch2_bloque4_fin: getCap(24)?.fecha_fin,
       };
       setConfig(newConfig);
     }
@@ -261,13 +291,36 @@ const App: React.FC = () => {
   const handleLogout = () => {
     setStudent(null);
     localStorage.removeItem('student_session');
+    setIsAdminImpersonating(false);
     setCurrentView(View.WELCOME);
+  };
+
+  const handleViewAsStudent = (studentData: StudentProfile) => {
+    setStudent(studentData);
+    setIsAdminImpersonating(true);
+    setCurrentView(View.MENU);
+    playSound('success');
+  };
+
+  const handleReturnToAdmin = () => {
+    setIsAdminImpersonating(false);
+    setCurrentView(View.ADMIN);
+    playSound('pop');
   };
 
   const updateSupabaseProgress = async (column: keyof StudentProfile, value: number = 5, mode: 'increment' | 'absolute' = 'increment') => {
     const currentStudent = studentRef.current;
     if (!currentStudent) {
       console.warn('[SUPABASE] No current student found in ref. Cannot update progress.');
+      return;
+    }
+
+    if (isAdminImpersonating) {
+      console.log('[PREVIEW MODE] Progress update skipped for impersonation.');
+      // Update local state only so the UI reflects progress during preview
+      const currentValue = (currentStudent[column] as number) || 0;
+      const newValue = mode === 'absolute' ? Math.max(currentValue, Math.min(value, 100)) : Math.min(currentValue + value, 100);
+      setStudent({ ...currentStudent, [column]: newValue });
       return;
     }
 
@@ -440,6 +493,7 @@ const App: React.FC = () => {
         return (
           <ChapterTwoMenu 
             student={student!}
+            config={config}
             onSelectModule={(id) => {
               if (id === 'criptogramas') setCurrentView(View.CRYPTO_LAB);
               else if (id === 'ecuaciones') setCurrentView(View.GRAPHIC_EQUATIONS);
@@ -563,7 +617,7 @@ const App: React.FC = () => {
       case View.RESULTS:
         return <ResultsDashboard student={student!} config={config} onBack={() => setCurrentView(View.MENU)} />;
       case View.ADMIN:
-        return <AdminDashboard onBack={() => { console.log('Returning to WELCOME'); setCurrentView(View.WELCOME); }} />;
+        return <AdminDashboard onBack={() => { console.log('Returning to WELCOME'); setCurrentView(View.WELCOME); }} onViewAsStudent={handleViewAsStudent} />;
       case View.COMMUNICATION:
         return (
           <div className="max-w-4xl mx-auto">
@@ -613,6 +667,15 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center justify-center gap-2 md:gap-3 w-full md:w-auto">
+              {isAdminImpersonating && (
+                <button 
+                  onClick={handleReturnToAdmin} 
+                  className="flex-1 md:flex-none px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg flex items-center justify-center gap-2 animate-pulse"
+                >
+                  <i className="fas fa-user-shield"></i>
+                  <span>Volver a Panel</span>
+                </button>
+              )}
               <button 
                 onClick={() => { playSound('pop'); setCurrentView(View.COMMUNICATION); }} 
                 className="flex-1 md:flex-none px-4 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2 relative"

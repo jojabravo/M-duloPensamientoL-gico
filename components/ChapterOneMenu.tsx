@@ -54,17 +54,50 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
   ];
 
   return (
-    <div className="max-w-5xl mx-auto animate-fadeIn px-4">
-      <div className="flex items-center gap-4 mb-8">
-        <button 
-          onClick={() => { playSound('pop'); onBack(); }}
-          className="w-10 h-10 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-400 hover:text-purple-600 transition-all"
-        >
-          <i className="fas fa-arrow-left"></i>
-        </button>
-        <div>
-          <h2 className="text-2xl font-black text-gray-800">Capítulo 1: Pensamiento Verbal</h2>
-          <p className="text-gray-500 text-sm font-medium">Selecciona un módulo de aprendizaje</p>
+    <div className="max-w-5xl mx-auto animate-fadeIn px-4 py-8">
+      <div className="bg-white rounded-[3rem] shadow-2xl border-4 border-purple-50 overflow-hidden mb-12">
+        {/* Header Banner */}
+        <div className="bg-purple-600 p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12">
+            <i className="fas fa-book"></i>
+          </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => { playSound('pop'); onBack(); }}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+              >
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
+                  Fase de Entrenamiento
+                </span>
+                <h3 className="text-3xl font-black tracking-tight">Capítulo 1: Pensamiento Verbal</h3>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <p className="text-purple-100 font-black text-xs uppercase tracking-[0.2em]">Misión: Análisis de Información</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Narrativa del Capítulo */}
+        <div className="p-8 bg-purple-50/30">
+          <div className="bg-purple-600/10 p-8 rounded-[2.5rem] border-2 border-purple-100 relative overflow-hidden">
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+              <div className="w-20 h-20 bg-purple-600 rounded-3xl flex items-center justify-center text-4xl text-white shadow-lg shrink-0">
+                <i className="fas fa-project-diagram"></i>
+              </div>
+              <div>
+                <p className="text-purple-900 font-medium leading-relaxed">
+                  ¡Inicia tu camino como Agente Lógico! En este primer capítulo, exploraremos el poder de las palabras 
+                  y la estructura del pensamiento. Aprenderás a ordenar información compleja, identificar proposiciones 
+                  y dominar los cuantificadores. ¡Sienta las bases de tu razonamiento crítico!
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

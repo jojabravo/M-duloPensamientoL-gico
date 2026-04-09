@@ -89,31 +89,39 @@ const Crucinumero: React.FC<Props> = ({ student, onBack, onComplete }) => {
   };
 
   return (
-    <div className="min-h-screen bg-orange-50 p-4 md:p-8 animate-fadeIn">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={onBack}
-              className="w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center text-orange-600 hover:bg-orange-600 hover:text-white transition-all"
-            >
-              <i className="fas fa-arrow-left"></i>
-            </button>
-            <div>
-              <h1 className="text-3xl font-black text-gray-800 tracking-tight">CRUCINÚMERO PRO</h1>
-              <p className="text-orange-600 font-bold text-sm uppercase tracking-widest">Potenciación y Radicación</p>
-            </div>
+    <div className="max-w-6xl mx-auto animate-fadeIn px-4 py-8">
+      <div className="bg-white rounded-[3rem] shadow-2xl border-4 border-orange-50 overflow-hidden mb-8">
+        {/* Header Banner */}
+        <div className="bg-orange-500 p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12">
+            <i className="fas fa-plus-minus"></i>
           </div>
-
-          <button 
-            onClick={() => setShowCalculator(!showCalculator)}
-            className="px-8 py-3 bg-emerald-500 text-white rounded-2xl font-black shadow-lg hover:bg-emerald-600 transition-all flex items-center gap-3"
-          >
-            <i className="fas fa-calculator"></i> CALCULADORA PRO
-          </button>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => { playSound('pop'); onBack(); }}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+              >
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
+                  Capítulo 2 • Bloque 3 • Crucinúmero
+                </span>
+                <h3 className="text-3xl font-black tracking-tight">CRUCINÚMERO PRO</h3>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowCalculator(!showCalculator)}
+              className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-black shadow-lg transition-all flex items-center gap-3"
+            >
+              <i className="fas fa-calculator"></i> CALCULADORA PRO
+            </button>
+          </div>
         </div>
+      </div>
 
-        <div className="grid lg:grid-cols-12 gap-8">
+      <div className="grid lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 bg-white p-6 rounded-[3rem] shadow-2xl border-8 border-orange-200 overflow-auto">
             <div 
               className="grid gap-px bg-gray-300 border-2 border-gray-300"
@@ -197,9 +205,8 @@ const Crucinumero: React.FC<Props> = ({ student, onBack, onComplete }) => {
             </div>
           </div>
         </div>
-      </div>
 
-      <AnimatePresence>
+        <AnimatePresence>
         {gameState === 'won' && (
           <motion.div 
             initial={{ opacity: 0 }}

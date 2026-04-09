@@ -181,35 +181,41 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
   };
 
   return (
-    <div className="min-h-screen bg-emerald-50 p-4 md:p-8 animate-fadeIn">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={onBack}
-              className="w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all"
-            >
-              <i className="fas fa-arrow-left"></i>
-            </button>
-            <div>
-              <h1 className="text-3xl font-black text-gray-800 tracking-tight">PIRÁMIDES NUMÉRICAS</h1>
-              <p className="text-emerald-600 font-bold text-sm uppercase tracking-widest">
-                {level === 4 ? 'Reto Final: Triángulo de Pascal (20 Filas)' : `Nivel ${level} de 4`}
-              </p>
-            </div>
+    <div className="max-w-6xl mx-auto animate-fadeIn px-4 py-8">
+      <div className="bg-white rounded-[3rem] shadow-2xl border-4 border-emerald-50 overflow-hidden mb-8">
+        {/* Header Banner */}
+        <div className="bg-emerald-500 p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12">
+            <i className="fas fa-mountain"></i>
           </div>
-
-          <button 
-            onClick={() => setShowCalculator(!showCalculator)}
-            className="px-8 py-3 bg-white border-2 border-emerald-100 text-emerald-600 rounded-2xl font-black shadow-sm hover:shadow-xl transition-all flex items-center gap-3"
-          >
-            <i className="fas fa-calculator"></i> CALCULADORA
-          </button>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => { playSound('pop'); onBack(); }}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+              >
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
+                  Capítulo 2 • Bloque 3 • Pirámides
+                </span>
+                <h3 className="text-3xl font-black tracking-tight">PIRÁMIDES NUMÉRICAS</h3>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowCalculator(!showCalculator)}
+              className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-black shadow-lg transition-all flex items-center gap-3"
+            >
+              <i className="fas fa-calculator"></i> CALCULADORA
+            </button>
+          </div>
         </div>
+      </div>
 
-        <div className="flex justify-center mb-12">
-          {renderPyramid()}
-        </div>
+      <div className="flex justify-center mb-12">
+        {renderPyramid()}
+      </div>
 
         <div className="max-w-md mx-auto bg-emerald-600 p-8 rounded-[2.5rem] shadow-xl border-4 border-emerald-100 text-center text-white relative overflow-hidden">
           <div className="relative z-10">
@@ -223,7 +229,6 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
           </div>
           <i className="fas fa-mountain absolute -right-4 -bottom-4 text-8xl text-white/10 rotate-12"></i>
         </div>
-      </div>
 
       <AnimatePresence>
         {gameState === 'won' && (

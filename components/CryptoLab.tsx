@@ -175,238 +175,248 @@ const CryptoLab: React.FC<Props> = ({ student, onBack, onComplete }) => {
   );
 
   return (
-    <div className="min-h-screen bg-orange-50/30 p-4 md:p-8 relative overflow-hidden">
-      <AnimatePresence>
-        {showMatrix && <MatrixOverlay />}
-      </AnimatePresence>
-
-      {/* Header */}
-      <div className="max-w-6xl mx-auto flex items-center justify-between mb-8 relative z-10">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => { playSound('pop'); onBack(); }}
-            className="w-12 h-12 rounded-2xl bg-white shadow-md flex items-center justify-center text-gray-400 hover:text-orange-600 transition-all"
-          >
-            <i className="fas fa-arrow-left"></i>
-          </button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-800 tracking-tighter">Laboratorio Cripto</h1>
-            <p className="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-widest">Capítulo 2: Bloque 1</p>
+    <div className="max-w-4xl mx-auto animate-fadeIn px-4 py-8">
+      <div className="bg-white rounded-[3rem] shadow-2xl border-4 border-orange-50 overflow-hidden">
+        {/* Header Banner */}
+        <div className="bg-orange-500 p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12">
+            <i className="fas fa-magnifying-glass"></i>
           </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => setShowCalculator(!showCalculator)}
-            className="w-12 h-12 rounded-2xl bg-white shadow-md flex items-center justify-center text-gray-400 hover:text-orange-600 transition-all active:scale-95"
-          >
-            <i className="fas fa-calculator text-xl"></i>
-          </button>
-          <div className="hidden md:flex flex-col items-end">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cronómetro Detective</span>
-            <span className="text-xl font-black text-orange-600 font-mono">{formatTime(timer)}</span>
-          </div>
-          <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex flex-col items-center justify-center border-4 border-orange-100">
-            <span className="text-[10px] font-black text-gray-400 uppercase">Progreso</span>
-            <span className="text-xl font-black text-orange-600">{Math.round(progress)}%</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="max-w-6xl mx-auto relative z-10">
-        <AnimatePresence mode="wait">
-          {currentActivity === 'intro' && (
-            <motion.div 
-              key="intro"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
-            >
-              <div className="space-y-6">
-                <div className="inline-block px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-xs font-black uppercase tracking-widest">
-                  Bienvenido, Agente {student.Nombre}
-                </div>
-                <h2 className="text-5xl font-black text-gray-800 leading-none tracking-tighter">
-                  ¡El mundo de los <span className="text-orange-600">Criptogramas</span> te espera!
-                </h2>
-                <div className="bg-orange-100/50 p-4 rounded-2xl border-l-4 border-orange-500 italic text-sm text-gray-700">
-                  "Un criptograma es un mensaje cifrado o encriptado, de modo que para descifrarlo y conocer su contenido hay que modificarlo averiguando un determinado patrón. En general, se descifra reemplazando cada letra por otra letra diferente, o por un número."
-                </div>
-                <p className="text-lg text-gray-600 font-medium leading-relaxed">
-                  Tu misión es descifrar los códigos ocultos utilizando la lógica y las matemáticas. 
-                  Supera los niveles para obtener tu medalla de Cripto-Analista.
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <button 
-                    onClick={() => startMatrixEffect('star')}
-                    className="px-10 py-5 bg-orange-600 text-white rounded-[2rem] font-black text-xl shadow-2xl hover:bg-orange-700 hover:-translate-y-1 transition-all flex items-center gap-4"
-                  >
-                    <span>COMENZAR MISIÓN</span>
-                    <i className="fas fa-play"></i>
-                  </button>
-                  {progress > 0 && (
-                    <button 
-                      onClick={() => {
-                        if (progress >= 100) setCurrentActivity('medal');
-                        else if (progress >= 80) setCurrentActivity('arithmetic_div');
-                        else if (progress >= 60) setCurrentActivity('arithmetic_mul');
-                        else if (progress >= 40) setCurrentActivity('arithmetic_sum');
-                        else if (progress >= 20) setCurrentActivity('caesar');
-                        else setCurrentActivity('star');
-                      }}
-                      className="px-10 py-5 bg-white text-orange-600 border-4 border-orange-100 rounded-[2rem] font-black text-xl shadow-xl hover:bg-orange-50 transition-all"
-                    >
-                      CONTINUAR
-                    </button>
-                  )}
-                </div>
-              </div>
-              <motion.div 
-                className="relative"
-                whileHover={{ scale: 1.05, rotate: 0 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ rotate: 3 }}
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => { playSound('pop'); onBack(); }}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
               >
-                <div className="absolute inset-0 bg-orange-200 rounded-[4rem] rotate-3 -z-10"></div>
-                <div className="relative overflow-hidden rounded-[4rem] shadow-2xl border-8 border-white aspect-video group">
-                  <img 
-                    src="https://picsum.photos/seed/human-brain-logic/800/600" 
-                    alt="Cerebro Lógico" 
-                    className="object-cover h-full w-full transition-transform duration-700 group-hover:scale-110"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-orange-600/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-8">
-                    <span className="text-white font-black text-2xl tracking-tighter drop-shadow-lg">¡ACTIVA TU MENTE!</span>
-                  </div>
-                  {/* Floating numbers effect on hover */}
-                  <div className="absolute inset-0 pointer-events-none hidden group-hover:block">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <motion.span
-                        key={n}
-                        initial={{ opacity: 0, y: 100 }}
-                        animate={{ opacity: 1, y: -100 }}
-                        transition={{ duration: 2, repeat: Infinity, delay: n * 0.4 }}
-                        className="absolute text-white font-black text-4xl opacity-50"
-                        style={{ left: `${n * 20}%` }}
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
+                  Capítulo 2 • Bloque 1
+                </span>
+                <h3 className="text-3xl font-black tracking-tight">Laboratorio Cripto</h3>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setShowCalculator(!showCalculator)}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all active:scale-95"
+              >
+                <i className="fas fa-calculator text-xl"></i>
+              </button>
+              <div className="hidden md:flex flex-col items-end">
+                <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Cronómetro</span>
+                <span className="text-xl font-black text-white font-mono">{formatTime(timer)}</span>
+              </div>
+              <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center border border-white/20">
+                <span className="text-[10px] font-black text-white/60 uppercase">Progreso</span>
+                <span className="text-xl font-black text-white">{Math.round(progress)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-8 md:p-12 bg-orange-50/30">
+          <AnimatePresence>
+            {showMatrix && <MatrixOverlay />}
+          </AnimatePresence>
+
+          {/* Main Content Area */}
+          <div className="relative z-10">
+            <AnimatePresence mode="wait">
+              {currentActivity === 'intro' && (
+                <motion.div 
+                  key="intro"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
+                >
+                  <div className="space-y-6">
+                    <div className="inline-block px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-xs font-black uppercase tracking-widest">
+                      Bienvenido, Agente {student.Nombre}
+                    </div>
+                    <h2 className="text-5xl font-black text-gray-800 leading-none tracking-tighter">
+                      ¡El mundo de los <span className="text-orange-600">Criptogramas</span> te espera!
+                    </h2>
+                    <div className="bg-orange-100/50 p-4 rounded-2xl border-l-4 border-orange-500 italic text-sm text-gray-700">
+                      "Un criptograma es un mensaje cifrado o encriptado, de modo que para descifrarlo y conocer su contenido hay que modificarlo averiguando un determinado patrón. En general, se descifra reemplazando cada letra por otra letra diferente, o por un número."
+                    </div>
+                    <p className="text-lg text-gray-600 font-medium leading-relaxed">
+                      Tu misión es descifrar los códigos ocultos utilizando la lógica y las matemáticas. 
+                      Supera los niveles para obtener tu medalla de Cripto-Analista.
+                    </p>
+                    <div className="flex flex-wrap gap-4">
+                      <button 
+                        onClick={() => startMatrixEffect('star')}
+                        className="px-10 py-5 bg-orange-600 text-white rounded-[2rem] font-black text-xl shadow-2xl hover:bg-orange-700 hover:-translate-y-1 transition-all flex items-center gap-4"
                       >
-                        {Math.floor(Math.random() * 9)}
-                      </motion.span>
-                    ))}
+                        <span>COMENZAR MISIÓN</span>
+                        <i className="fas fa-play"></i>
+                      </button>
+                      {progress > 0 && (
+                        <button 
+                          onClick={() => {
+                            if (progress >= 100) setCurrentActivity('medal');
+                            else if (progress >= 80) setCurrentActivity('arithmetic_div');
+                            else if (progress >= 60) setCurrentActivity('arithmetic_mul');
+                            else if (progress >= 40) setCurrentActivity('arithmetic_sum');
+                            else if (progress >= 20) setCurrentActivity('caesar');
+                            else setCurrentActivity('star');
+                          }}
+                          className="px-10 py-5 bg-white text-orange-600 border-4 border-orange-100 rounded-[2rem] font-black text-xl shadow-xl hover:bg-orange-50 transition-all"
+                        >
+                          CONTINUAR
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
+                  <motion.div 
+                    className="relative"
+                    whileHover={{ scale: 1.05, rotate: 0 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ rotate: 3 }}
+                  >
+                    <div className="absolute inset-0 bg-orange-200 rounded-[4rem] rotate-3 -z-10"></div>
+                    <div className="relative overflow-hidden rounded-[4rem] shadow-2xl border-8 border-white aspect-video group">
+                      <img 
+                        src="https://picsum.photos/seed/human-brain-logic/800/600" 
+                        alt="Cerebro Lógico" 
+                        className="object-cover h-full w-full transition-transform duration-700 group-hover:scale-110"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-orange-600/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-8">
+                        <span className="text-white font-black text-2xl tracking-tighter drop-shadow-lg">¡ACTIVA TU MENTE!</span>
+                      </div>
+                      {/* Floating numbers effect on hover */}
+                      <div className="absolute inset-0 pointer-events-none hidden group-hover:block">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <motion.span
+                            key={n}
+                            initial={{ opacity: 0, y: 100 }}
+                            animate={{ opacity: 1, y: -100 }}
+                            transition={{ duration: 2, repeat: Infinity, delay: n * 0.4 }}
+                            className="absolute text-white font-black text-4xl opacity-50"
+                            style={{ left: `${n * 20}%` }}
+                          >
+                            {Math.floor(Math.random() * 9)}
+                          </motion.span>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
 
-          {currentActivity !== 'intro' && currentActivity !== 'medal' && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center gap-6 relative"
-            >
-              {/* Navigation Arrows */}
-              <div className="absolute top-1/2 -translate-y-1/2 left-4 md:-left-12 z-20">
-                <button
-                  onClick={handlePrev}
-                  disabled={!canGoBack}
-                  className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-xl transition-all border-4 ${
-                    canGoBack 
-                      ? 'bg-white border-orange-100 text-orange-600 hover:scale-110 active:scale-95 cursor-pointer' 
-                      : 'bg-gray-50 border-gray-100 text-gray-200 cursor-not-allowed'
-                  }`}
+              {currentActivity !== 'intro' && currentActivity !== 'medal' && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center gap-6 relative"
                 >
-                  <i className="fas fa-chevron-left text-xl md:text-2xl"></i>
-                </button>
-              </div>
+                  {/* Navigation Arrows */}
+                  <div className="absolute top-1/2 -translate-y-1/2 left-4 md:-left-12 z-20">
+                    <button
+                      onClick={handlePrev}
+                      disabled={!canGoBack}
+                      className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-xl transition-all border-4 ${
+                        canGoBack 
+                          ? 'bg-white border-orange-100 text-orange-600 hover:scale-110 active:scale-95 cursor-pointer' 
+                          : 'bg-gray-50 border-gray-100 text-gray-200 cursor-not-allowed'
+                      }`}
+                    >
+                      <i className="fas fa-chevron-left text-xl md:text-2xl"></i>
+                    </button>
+                  </div>
 
-              <div className="absolute top-1/2 -translate-y-1/2 right-4 md:-right-12 z-20">
-                <button
-                  onClick={handleNext}
-                  disabled={!canGoForward}
-                  className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-xl transition-all border-4 ${
-                    canGoForward 
-                      ? 'bg-orange-600 border-orange-200 text-white hover:scale-110 active:scale-95 cursor-pointer' 
-                      : 'bg-gray-50 border-gray-100 text-gray-200 cursor-not-allowed'
-                  }`}
-                >
-                  <i className="fas fa-chevron-right text-xl md:text-2xl"></i>
-                </button>
-              </div>
+                  <div className="absolute top-1/2 -translate-y-1/2 right-4 md:-right-12 z-20">
+                    <button
+                      onClick={handleNext}
+                      disabled={!canGoForward}
+                      className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-xl transition-all border-4 ${
+                        canGoForward 
+                          ? 'bg-orange-600 border-orange-200 text-white hover:scale-110 active:scale-95 cursor-pointer' 
+                          : 'bg-gray-50 border-gray-100 text-gray-200 cursor-not-allowed'
+                      }`}
+                    >
+                      <i className="fas fa-chevron-right text-xl md:text-2xl"></i>
+                    </button>
+                  </div>
 
-              {currentActivity === 'star' && (
-                <LogicStarActivity 
-                  studentName={student.Nombre || ''}
-                  onNext={() => {
-                    updateProgress(0);
-                    startMatrixEffect('caesar');
-                  }}
-                />
+                  {currentActivity === 'star' && (
+                    <LogicStarActivity 
+                      studentName={student.Nombre || ''}
+                      onNext={() => {
+                        updateProgress(0);
+                        startMatrixEffect('caesar');
+                      }}
+                    />
+                  )}
+
+                  {currentActivity === 'caesar' && (
+                    <CaesarCipherActivity 
+                      studentName={student.Nombre || ''}
+                      onNext={() => {
+                        updateProgress(1);
+                        setCurrentActivity('arithmetic_intro');
+                      }}
+                    />
+                  )}
+
+                  {currentActivity === 'arithmetic_intro' && (
+                    <DefinitionScreen 
+                      title="Criptogramas Numéricos"
+                      text="Un criptograma numérico es una forma de escritura con la que se emplea símbolos (incluso letras) o recuadros vacíos para ocultar dígitos que forman un número o una operación. Cuando resolvemos un criptograma numérico buscamos determinar los valores ocultos, para ello debemos usar las propiedades que conocemos sobre las 4 operaciones básicas."
+                      onNext={() => startMatrixEffect('arithmetic_sum')}
+                    />
+                  )}
+
+                  {currentActivity === 'arithmetic_sum' && (
+                    <ArithmeticActivity 
+                      studentName={student.Nombre || ''}
+                      type="sum"
+                      onNext={() => {
+                        updateProgress(2);
+                        startMatrixEffect('arithmetic_mul');
+                      }}
+                    />
+                  )}
+
+                  {currentActivity === 'arithmetic_mul' && (
+                    <ArithmeticActivity 
+                      studentName={student.Nombre || ''}
+                      type="mul"
+                      onNext={() => {
+                        updateProgress(3);
+                        startMatrixEffect('arithmetic_div');
+                      }}
+                    />
+                  )}
+
+                  {currentActivity === 'arithmetic_div' && (
+                    <ArithmeticActivity 
+                      studentName={student.Nombre || ''}
+                      type="div"
+                      onNext={() => {
+                        updateProgress(4);
+                        setCurrentActivity('medal');
+                      }} 
+                    />
+                  )}
+                </motion.div>
               )}
 
-              {currentActivity === 'caesar' && (
-                <CaesarCipherActivity 
-                  studentName={student.Nombre || ''}
-                  onNext={() => {
-                    updateProgress(1);
-                    setCurrentActivity('arithmetic_intro');
-                  }}
+              {currentActivity === 'medal' && (
+                <MedalCelebration 
+                  studentName={student.Nombre || ''} 
+                  onBack={onBack} 
+                  onReview={() => setCurrentActivity('star')} 
                 />
               )}
-
-              {currentActivity === 'arithmetic_intro' && (
-                <DefinitionScreen 
-                  title="Criptogramas Numéricos"
-                  text="Un criptograma numérico es una forma de escritura con la que se emplea símbolos (incluso letras) o recuadros vacíos para ocultar dígitos que forman un número o una operación. Cuando resolvemos un criptograma numérico buscamos determinar los valores ocultos, para ello debemos usar las propiedades que conocemos sobre las 4 operaciones básicas."
-                  onNext={() => startMatrixEffect('arithmetic_sum')}
-                />
-              )}
-
-              {currentActivity === 'arithmetic_sum' && (
-                <ArithmeticActivity 
-                  studentName={student.Nombre || ''}
-                  type="sum"
-                  onNext={() => {
-                    updateProgress(2);
-                    startMatrixEffect('arithmetic_mul');
-                  }}
-                />
-              )}
-
-              {currentActivity === 'arithmetic_mul' && (
-                <ArithmeticActivity 
-                  studentName={student.Nombre || ''}
-                  type="mul"
-                  onNext={() => {
-                    updateProgress(3);
-                    startMatrixEffect('arithmetic_div');
-                  }}
-                />
-              )}
-
-              {currentActivity === 'arithmetic_div' && (
-                <ArithmeticActivity 
-                  studentName={student.Nombre || ''}
-                  type="div"
-                  onNext={() => {
-                    updateProgress(4);
-                    setCurrentActivity('medal');
-                  }} 
-                />
-              )}
-            </motion.div>
-          )}
-
-          {currentActivity === 'medal' && (
-            <MedalCelebration 
-              studentName={student.Nombre || ''} 
-              onBack={onBack} 
-              onReview={() => setCurrentActivity('star')} 
-            />
-          )}
-        </AnimatePresence>
-        {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
+            </AnimatePresence>
+            {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -97,62 +97,70 @@ const GraphicEquations: React.FC<Props> = ({ student, onBack, onComplete }) => {
   };
 
   return (
-    <div className="min-h-screen bg-emerald-50/30 p-4 md:p-8 relative overflow-hidden">
-      {/* Header */}
-      <div className="max-w-6xl mx-auto flex items-center justify-between mb-8 relative z-10">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => { playSound('pop'); onBack(); }}
-            className="w-12 h-12 rounded-2xl bg-white shadow-md flex items-center justify-center text-gray-400 hover:text-emerald-600 transition-all"
-          >
-            <i className="fas fa-arrow-left"></i>
-          </button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-800 tracking-tighter">Ecuaciones Gráficas</h1>
-            <p className="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-widest">Capítulo 2: Bloque 2</p>
+    <div className="max-w-4xl mx-auto animate-fadeIn px-4 py-8">
+      <div className="bg-white rounded-[3rem] shadow-2xl border-4 border-emerald-50 overflow-hidden">
+        {/* Header Banner */}
+        <div className="bg-emerald-500 p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12">
+            <i className="fas fa-scale-balanced"></i>
+          </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => { playSound('pop'); onBack(); }}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+              >
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
+                  Capítulo 2 • Bloque 2
+                </span>
+                <h3 className="text-3xl font-black tracking-tight">Ecuaciones Gráficas</h3>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex flex-col items-end">
+                <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Tiempo</span>
+                <span className="text-xl font-black text-white font-mono">{formatTime(timer)}</span>
+              </div>
+              <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center border border-white/20">
+                <span className="text-[10px] font-black text-white/60 uppercase">Progreso</span>
+                <span className="text-xl font-black text-white">{Math.round(progress)}%</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex flex-col items-end">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tiempo de Resolución</span>
-            <span className="text-xl font-black text-emerald-600 font-mono">{formatTime(timer)}</span>
-          </div>
-          <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex flex-col items-center justify-center border-4 border-emerald-100">
-            <span className="text-[10px] font-black text-gray-400 uppercase">Progreso</span>
-            <span className="text-xl font-black text-emerald-600">{Math.round(progress)}%</span>
-          </div>
+        <div className="p-8 md:p-12 bg-emerald-50/30 flex flex-col items-center">
+          <AnimatePresence mode="wait">
+            {view === 'intro' && (
+              <DefinitionScreen 
+                title="Reto: Ecuaciones Gráficas"
+                text="Si sumas todos los valores de los objetos en una fila o columna obtendrás el total indicado. Tu misión es descubrir el valor de cada objeto usando tu razonamiento lógico. ¡A medida que avances, el desafío será mayor!"
+                onNext={() => { setView('game'); setIsTimerActive(true); }}
+              />
+            )}
+
+            {view === 'game' && (
+              <GraphicEquationsActivity 
+                studentName={student.Nombre || ''}
+                progress={progress}
+                updateProgress={updateProgress}
+                onAllComplete={() => setView('medal')}
+                initialLevel={Math.min(4, Math.floor(progress / 20))}
+              />
+            )}
+
+            {view === 'medal' && (
+              <MedalCelebration 
+                studentName={student.Nombre || ''} 
+                onBack={onBack} 
+                onReview={() => setView('game')} 
+              />
+            )}
+          </AnimatePresence>
         </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto relative z-10 flex flex-col items-center">
-        <AnimatePresence mode="wait">
-          {view === 'intro' && (
-            <DefinitionScreen 
-              title="Reto: Ecuaciones Gráficas"
-              text="Si sumas todos los valores de los objetos en una fila o columna obtendrás el total indicado. Tu misión es descubrir el valor de cada objeto usando tu razonamiento lógico. ¡A medida que avances, el desafío será mayor!"
-              onNext={() => { setView('game'); setIsTimerActive(true); }}
-            />
-          )}
-
-          {view === 'game' && (
-            <GraphicEquationsActivity 
-              studentName={student.Nombre || ''}
-              progress={progress}
-              updateProgress={updateProgress}
-              onAllComplete={() => setView('medal')}
-              initialLevel={Math.min(4, Math.floor(progress / 20))}
-            />
-          )}
-
-          {view === 'medal' && (
-            <MedalCelebration 
-              studentName={student.Nombre || ''} 
-              onBack={onBack} 
-              onReview={() => setView('game')} 
-            />
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

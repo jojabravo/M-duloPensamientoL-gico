@@ -182,36 +182,44 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
   };
 
   return (
-    <div className="min-h-screen bg-purple-50 p-4 md:p-8 animate-fadeIn">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={onBack}
-              className="w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center text-purple-600 hover:bg-purple-600 hover:text-white transition-all"
-            >
-              <i className="fas fa-arrow-left"></i>
-            </button>
-            <div>
-              <h1 className="text-3xl font-black text-gray-800 tracking-tight text-center md:text-left">CUADRADOS MÁGICOS</h1>
-              <p className="text-purple-600 font-bold text-sm uppercase tracking-widest text-center md:text-left">El Código del Servidor</p>
+    <div className="max-w-6xl mx-auto animate-fadeIn px-4 py-8">
+      <div className="bg-white rounded-[3rem] shadow-2xl border-4 border-purple-50 overflow-hidden mb-8">
+        {/* Header Banner */}
+        <div className="bg-purple-600 p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12">
+            <i className="fas fa-square"></i>
+          </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => { playSound('pop'); onBack(); }}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+              >
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
+                  Capítulo 2 • Bloque 3 • Cuadrados
+                </span>
+                <h3 className="text-3xl font-black tracking-tight">CUADRADOS MÁGICOS</h3>
+              </div>
+            </div>
+            <div className="flex bg-white/10 p-1 rounded-2xl border border-white/20 backdrop-blur-md">
+              {[3, 4].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setSize(s as any)}
+                  className={`px-8 py-2 rounded-xl font-black text-sm transition-all ${size === s ? 'bg-white text-purple-600 shadow-lg' : 'text-white/60 hover:text-white'}`}
+                >
+                  {s}x{s}
+                </button>
+              ))}
             </div>
           </div>
-
-          <div className="flex bg-white p-1 rounded-2xl shadow-md border-2 border-purple-100">
-            {[3, 4].map(s => (
-              <button
-                key={s}
-                onClick={() => setSize(s as any)}
-                className={`px-8 py-2 rounded-xl font-black text-sm transition-all ${size === s ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-400 hover:text-purple-600'}`}
-              >
-                {s}x{s}
-              </button>
-            ))}
-          </div>
         </div>
+      </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="bg-white p-8 rounded-[3rem] shadow-2xl border-8 border-purple-200 relative">
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-purple-600 text-white px-6 py-2 rounded-full font-black text-sm shadow-lg whitespace-nowrap">
@@ -308,7 +316,6 @@ const MagicSquares: React.FC<Props> = ({ student, onBack, onComplete }) => {
             </button>
           </div>
         </div>
-      </div>
 
       <AnimatePresence>
         {gameState === 'won' && (

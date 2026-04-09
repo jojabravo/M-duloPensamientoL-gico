@@ -170,26 +170,28 @@ const HiddenMessage: React.FC<Props> = ({ student, onBack, onComplete }) => {
   );
 
   return (
-    <div className="max-w-4xl mx-auto animate-slideIn px-4">
+    <div className="max-w-4xl mx-auto animate-slideIn px-4 py-8">
       <div className="bg-white rounded-[3rem] shadow-2xl border-4 border-rose-50 overflow-hidden">
-        {/* Header */}
+        {/* Header Banner */}
         <div className="bg-rose-500 p-8 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12">
             <i className="fas fa-envelope-open-text"></i>
           </div>
           <div className="relative z-10 flex items-center justify-between">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
-                Capítulo 2 • Bloque 4
-              </span>
-              <h3 className="text-3xl font-black tracking-tight">Mensaje Oculto con micro:bit</h3>
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => { playSound('pop'); onBack(); }}
+                className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+              >
+                <i className="fas fa-arrow-left"></i>
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-white/20 px-4 py-1.5 rounded-full mb-2 inline-block">
+                  Capítulo 2 • Bloque 4
+                </span>
+                <h3 className="text-3xl font-black tracking-tight">Mensaje Oculto con micro:bit</h3>
+              </div>
             </div>
-            <button 
-              onClick={onBack}
-              className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
-            >
-              <i className="fas fa-times"></i>
-            </button>
           </div>
         </div>
 

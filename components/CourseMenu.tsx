@@ -15,13 +15,29 @@ interface Props {
 const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults, onShowCommunication }) => {
   const isTestUser = student.Usuario === 'estudiante.prueba';
 
+  const isAvailable = (active: boolean, start?: string, end?: string) => {
+    if (isTestUser) return true;
+    if (!active) return false;
+    
+    const now = new Date();
+    if (start) {
+      const startDate = new Date(start);
+      if (now < startDate) return false;
+    }
+    if (end) {
+      const endDate = new Date(end);
+      if (now > endDate) return false;
+    }
+    return true;
+  };
+
   const sections = [
     { 
       id: 'verbal', 
       title: 'CAPÍTULO 1: PENSAMIENTO VERBAL', 
       icon: 'fa-font', 
       color: 'bg-purple-600', 
-      active: isTestUser || config.capitulo_1_activo,
+      active: isAvailable(config.capitulo_1_activo, config.capitulo_1_inicio, config.capitulo_1_fin),
       desc: 'Ordenamiento de la información, lógica verbal y deducción.'
     },
     { 
@@ -29,7 +45,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       title: 'CAPÍTULO 2: PENSAMIENTO LÓGICO MATEMÁTICO', 
       icon: 'fa-magnifying-glass', 
       color: 'bg-orange-500', 
-      active: isTestUser || config.capitulo_2_activo,
+      active: isAvailable(config.capitulo_2_activo, config.capitulo_2_inicio, config.capitulo_2_fin),
       desc: 'Criptogramas, Ecuaciones Gráficas, Crucinúmeros y Mensaje Oculto.'
     },
     { 
@@ -37,7 +53,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       title: 'CAPÍTULO 3: PENSAMIENTO ESPACIAL', 
       icon: 'fa-cube', 
       color: 'bg-pink-500', 
-      active: isTestUser || config.capitulo_3_activo,
+      active: isAvailable(config.capitulo_3_activo, config.capitulo_3_inicio, config.capitulo_3_fin),
       desc: 'Transformaciones Isométricas (traslación, rotación, simetría), uso de GeoGebra y diseño de mosaicos.'
     },
     { 
@@ -45,7 +61,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       title: 'CAPÍTULO 4: PENSAMIENTO ABSTRACTO', 
       icon: 'fa-shapes', 
       color: 'bg-emerald-500', 
-      active: isTestUser || config.capitulo_4_activo,
+      active: isAvailable(config.capitulo_4_activo, config.capitulo_4_inicio, config.capitulo_4_fin),
       desc: 'Patrones visuales, analogías gráficas y matrices.'
     }
   ];

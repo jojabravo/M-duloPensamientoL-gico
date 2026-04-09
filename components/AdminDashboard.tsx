@@ -6,12 +6,15 @@ import { playSound } from '../audio';
 
 interface Props {
   onBack: () => void;
+  onViewAsStudent: (student: StudentProfile) => void;
 }
 
 const ADMIN_PASSWORD = process.env.VITE_ADMIN_PASSWORD || 'Perla2026*';
 
-const AdminDashboard: React.FC<Props> = ({ onBack }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem('admin_authenticated') === 'true';
+  });
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
@@ -38,12 +41,21 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
   const [commLoading, setCommLoading] = useState(false);
   const [lastNotification, setLastNotification] = useState<{show: boolean, message: string}>({ show: false, message: '' });
   const [activeTab, setActiveTab] = useState<'students' | 'messaging' | 'config'>('students');
-  const [chapterConfig, setChapterConfig] = useState<{id: number, capitulo_numero: number, nombre: string, activo: boolean}[]>([]);
+  const [chapterConfig, setChapterConfig] = useState<{id: number, capitulo_numero: number, nombre: string, activo: boolean, fecha_inicio?: string, fecha_fin?: string}[]>([]);
   const [configLoading, setConfigLoading] = useState(false);
 
   // Legacy/Other communication states (keeping for announcements)
   const [newAnnouncement, setNewAnnouncement] = useState('');
   const [announcementGrade, setAnnouncementGrade] = useState('TODOS');
+
+  // Unified data fetching when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchStudents();
+      fetchCommunicationData();
+      fetchChapterConfig();
+    }
+  }, [isAuthenticated]);
 
   // Handle blocking logic
   useEffect(() => {
@@ -65,6 +77,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
 
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
+      sessionStorage.setItem('admin_authenticated', 'true');
       playSound('pop');
       fetchStudents();
       fetchCommunicationData();
@@ -133,6 +146,21 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
     } else {
       playSound('error');
       alert('Error al actualizar la configuración');
+    }
+  };
+
+  const updateChapterDates = async (id: number, fecha_inicio: string | null, fecha_fin: string | null) => {
+    const { error } = await supabase
+      .from('configuracion_capitulos')
+      .update({ fecha_inicio, fecha_fin })
+      .eq('id', id);
+    
+    if (!error) {
+      setChapterConfig(prev => prev.map(c => c.id === id ? { ...c, fecha_inicio: fecha_inicio || undefined, fecha_fin: fecha_fin || undefined } : c));
+      playSound('success');
+    } else {
+      playSound('error');
+      alert('Error al actualizar las fechas');
     }
   };
 
@@ -545,7 +573,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
               ACTUALIZAR DATOS
             </button>
             <button 
-              onClick={onBack}
+              onClick={() => {
+                sessionStorage.removeItem('admin_authenticated');
+                onBack();
+              }}
               className="w-full md:w-auto px-8 py-4 bg-gray-800 text-white rounded-2xl font-black hover:bg-black transition-all shadow-lg"
             >
               SALIR
@@ -603,28 +634,115 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                     <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Cargando configuración...</p>
                   </div>
                 ) : (
-                  chapterConfig.map((cap) => (
-                    <div key={cap.id} className="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border-2 border-transparent hover:border-emerald-100 transition-all group">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl shadow-md ${cap.activo ? 'bg-emerald-500' : 'bg-gray-300'}`}>
-                          <i className={`fas ${cap.capitulo_numero === 1 ? 'fa-font' : cap.capitulo_numero === 2 ? 'fa-magnifying-glass' : cap.capitulo_numero === 3 ? 'fa-cube' : 'fa-shapes'}`}></i>
+                  <div className="space-y-8">
+                    {/* Capítulos Principales */}
+                    <div className="space-y-4">
+                      <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Capítulos Principales</h4>
+                      {chapterConfig.filter(c => c.capitulo_numero <= 10).map((cap) => (
+                        <div key={cap.id} className="flex flex-col gap-4 p-6 bg-gray-50 rounded-3xl border-2 border-transparent hover:border-emerald-100 transition-all group">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl shadow-md ${cap.activo ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                                <i className={`fas ${cap.capitulo_numero === 1 ? 'fa-font' : cap.capitulo_numero === 2 ? 'fa-magnifying-glass' : cap.capitulo_numero === 3 ? 'fa-cube' : 'fa-shapes'}`}></i>
+                              </div>
+                              <div>
+                                <h4 className="font-black text-gray-800 uppercase tracking-tight">{cap.nombre}</h4>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                  {cap.activo ? 'Visible para estudiantes' : 'Oculto para estudiantes'}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <button 
+                              onClick={() => toggleChapter(cap.id, cap.activo)}
+                              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none ${cap.activo ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                            >
+                              <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-md ${cap.activo ? 'translate-x-7' : 'translate-x-1'}`} />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Fecha Inicio</label>
+                              <input 
+                                type="datetime-local"
+                                value={cap.fecha_inicio ? cap.fecha_inicio.slice(0, 16) : ''}
+                                onChange={(e) => updateChapterDates(cap.id, e.target.value || null, cap.fecha_fin || null)}
+                                className="text-[10px] font-bold bg-white border border-gray-200 rounded-lg px-2 py-1 outline-none focus:border-emerald-500"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Fecha Fin</label>
+                              <input 
+                                type="datetime-local"
+                                value={cap.fecha_fin ? cap.fecha_fin.slice(0, 16) : ''}
+                                onChange={(e) => updateChapterDates(cap.id, cap.fecha_inicio || null, e.target.value || null)}
+                                className="text-[10px] font-bold bg-white border border-gray-200 rounded-lg px-2 py-1 outline-none focus:border-emerald-500"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-black text-gray-800 uppercase tracking-tight">{cap.nombre}</h4>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                            {cap.activo ? 'Visible para estudiantes' : 'Oculto para estudiantes'}
+                      ))}
+                    </div>
+
+                    {/* Bloques del Capítulo 2 */}
+                    <div className="space-y-4 pt-6 border-t-2 border-gray-100">
+                      <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Bloques del Capítulo 2</h4>
+                      {chapterConfig.filter(c => c.capitulo_numero > 20 && c.capitulo_numero < 30).length > 0 ? (
+                        chapterConfig.filter(c => c.capitulo_numero > 20 && c.capitulo_numero < 30).map((cap) => (
+                          <div key={cap.id} className="flex flex-col gap-3 p-5 bg-emerald-50/30 rounded-2xl border-2 border-transparent hover:border-emerald-200 transition-all group">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg shadow-sm ${cap.activo ? 'bg-emerald-400' : 'bg-gray-300'}`}>
+                                  <i className={`fas ${cap.capitulo_numero === 21 ? 'fa-magnifying-glass' : cap.capitulo_numero === 22 ? 'fa-scale-balanced' : cap.capitulo_numero === 23 ? 'fa-puzzle-piece' : 'fa-envelope-open-text'}`}></i>
+                                </div>
+                                <div>
+                                  <h4 className="font-black text-gray-700 text-xs uppercase tracking-tight">{cap.nombre}</h4>
+                                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                                    {cap.activo ? 'Activo' : 'Inactivo'}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <button 
+                                onClick={() => toggleChapter(cap.id, cap.activo)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${cap.activo ? 'bg-emerald-400' : 'bg-gray-300'}`}
+                              >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${cap.activo ? 'translate-x-6' : 'translate-x-1'}`} />
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-emerald-100">
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Inicio</label>
+                                <input 
+                                  type="datetime-local"
+                                  value={cap.fecha_inicio ? cap.fecha_inicio.slice(0, 16) : ''}
+                                  onChange={(e) => updateChapterDates(cap.id, e.target.value || null, cap.fecha_fin || null)}
+                                  className="text-[9px] font-bold bg-white border border-emerald-100 rounded-lg px-2 py-1 outline-none focus:border-emerald-400"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Fin</label>
+                                <input 
+                                  type="datetime-local"
+                                  value={cap.fecha_fin ? cap.fecha_fin.slice(0, 16) : ''}
+                                  onChange={(e) => updateChapterDates(cap.id, cap.fecha_inicio || null, e.target.value || null)}
+                                  className="text-[9px] font-bold bg-white border border-emerald-100 rounded-lg px-2 py-1 outline-none focus:border-emerald-400"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 text-center">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">
+                            No se encontraron bloques configurados (Usa capitulo_numero 21-24)
                           </p>
                         </div>
-                      </div>
-                      
-                      <button 
-                        onClick={() => toggleChapter(cap.id, cap.activo)}
-                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none ${cap.activo ? 'bg-emerald-500' : 'bg-gray-300'}`}
-                      >
-                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-md ${cap.activo ? 'translate-x-7' : 'translate-x-1'}`} />
-                      </button>
+                      )}
                     </div>
-                  ))
+                  </div>
                 )}
               </div>
 
@@ -1067,7 +1185,16 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                           </div>
                           <div className="flex flex-col">
                             <span className="font-black text-gray-800">{student.Nombre || student.Usuario}</span>
-                            {student.Nombre && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">@{student.Usuario}</span>}
+                            <div className="flex items-center gap-2">
+                              {student.Nombre && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">@{student.Usuario}</span>}
+                              <button 
+                                onClick={() => onViewAsStudent(student)}
+                                className="text-[9px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-tighter flex items-center gap-1 bg-indigo-50 px-2 py-0.5 rounded-md transition-colors"
+                              >
+                                <i className="fas fa-eye"></i>
+                                Ver como
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -1192,7 +1319,16 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest mt-1">Desempeño Básico</span>
+                          <div className="flex items-center justify-center gap-2 mt-1">
+                            <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest">Desempeño Básico</span>
+                            <button 
+                              onClick={() => onViewAsStudent(r)}
+                              className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                              title="Ver como estudiante"
+                            >
+                              <i className="fas fa-eye text-[10px]"></i>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1236,7 +1372,16 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">Desempeño Alto</span>
+                          <div className="flex items-center justify-center gap-2 mt-1">
+                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Desempeño Alto</span>
+                            <button 
+                              onClick={() => onViewAsStudent(r)}
+                              className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                              title="Ver como estudiante"
+                            >
+                              <i className="fas fa-eye text-[10px]"></i>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1280,7 +1425,16 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-800 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest mt-1">Desempeño Superior</span>
+                          <div className="flex items-center justify-center gap-2 mt-1">
+                            <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest">Desempeño Superior</span>
+                            <button 
+                              onClick={() => onViewAsStudent(r)}
+                              className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                              title="Ver como estudiante"
+                            >
+                              <i className="fas fa-eye text-[10px]"></i>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1319,7 +1473,16 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-900 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
-                          <span className="text-[9px] font-black text-cyan-500 uppercase tracking-widest mt-1">Desempeño Superior</span>
+                          <div className="flex items-center justify-center gap-2 mt-1">
+                            <span className="text-[9px] font-black text-cyan-500 uppercase tracking-widest">Desempeño Superior</span>
+                            <button 
+                              onClick={() => onViewAsStudent(r)}
+                              className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                              title="Ver como estudiante"
+                            >
+                              <i className="fas fa-eye text-[10px]"></i>
+                            </button>
+                          </div>
                         </div>
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                            <i className="fas fa-sparkles text-cyan-400 text-xs animate-ping"></i>
@@ -1386,7 +1549,15 @@ const AdminDashboard: React.FC<Props> = ({ onBack }) => {
                       <div key={r.Usuario} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
                         <div className="flex flex-col">
                           <span className="font-bold text-gray-700 text-sm truncate max-w-[120px]">{r.Nombre || r.Usuario}</span>
-                          <span className="text-[10px] text-gray-400 font-black">@{r.Usuario}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-400 font-black">@{r.Usuario}</span>
+                            <button 
+                              onClick={() => onViewAsStudent(r)}
+                              className="text-[8px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-tighter"
+                            >
+                              Ver como
+                            </button>
+                          </div>
                         </div>
                         <div className="bg-rose-50 text-rose-600 px-3 py-1 rounded-lg font-black text-[10px] flex flex-col items-center">
                           <span>{avg1}%</span>
