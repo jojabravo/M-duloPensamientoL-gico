@@ -134,42 +134,49 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
     setConfigLoading(false);
   };
 
-  const toggleChapter = async (capitulo_numero: number, currentStatus: boolean) => {
-    const { error } = await supabase
+  const toggleChapter = async (id: number, currentStatus: boolean) => {
+    console.log('Intentando cambiar estado:', { id, nuevoEstado: !currentStatus });
+    const { data, error, count } = await supabase
       .from('configuracion_capitulos')
       .update({ activo: !currentStatus })
-      .eq('capitulo_numero', capitulo_numero);
+      .eq('id', id)
+      .select();
     
     if (!error) {
-      setChapterConfig(prev => prev.map(c => c.capitulo_numero === capitulo_numero ? { ...c, activo: !currentStatus } : c));
+      console.log('Respuesta Supabase (toggle):', { data, count });
+      setChapterConfig(prev => prev.map(c => c.id === id ? { ...c, activo: !currentStatus } : c));
       playSound('success');
     } else {
-      console.error('Supabase update error:', error);
+      console.error('Error de Supabase (toggle):', error);
       playSound('error');
-      alert(`Error al actualizar la configuración: ${error.message}`);
+      alert(`Error al guardar: ${error.message}. Verifica los permisos de la tabla.`);
     }
   };
 
-  const updateChapterDates = async (capitulo_numero: number, fecha_inicio: string | null, fecha_fin: string | null) => {
-    // Convert datetime-local value to ISO string if present
-    const isoInicio = fecha_inicio ? new Date(fecha_inicio).toISOString() : null;
-    const isoFin = fecha_fin ? new Date(fecha_fin).toISOString() : null;
+  const updateChapterDates = async (id: number, fecha_inicio: string | null, fecha_fin: string | null) => {
+    console.log('Intentando actualizar fechas:', { id, fecha_inicio, fecha_fin });
+    
+    // Asegurar formato compatible con Supabase (YYYY-MM-DD HH:mm:ss)
+    const formattedInicio = fecha_inicio ? fecha_inicio.replace('T', ' ') + ':00' : null;
+    const formattedFin = fecha_fin ? fecha_fin.replace('T', ' ') + ':00' : null;
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('configuracion_capitulos')
       .update({ 
-        fecha_inicio: isoInicio, 
-        fecha_fin: isoFin 
+        fecha_inicio: formattedInicio, 
+        fecha_fin: formattedFin 
       })
-      .eq('capitulo_numero', capitulo_numero);
+      .eq('id', id)
+      .select();
     
     if (!error) {
-      setChapterConfig(prev => prev.map(c => c.capitulo_numero === capitulo_numero ? { ...c, fecha_inicio: isoInicio || undefined, fecha_fin: isoFin || undefined } : c));
+      console.log('Respuesta Supabase (fechas):', data);
+      setChapterConfig(prev => prev.map(c => c.id === id ? { ...c, fecha_inicio: fecha_inicio || undefined, fecha_fin: fecha_fin || undefined } : c));
       playSound('success');
     } else {
-      console.error('Supabase update error:', error);
+      console.error('Error de Supabase (fechas):', error);
       playSound('error');
-      alert(`Error al actualizar las fechas: ${error.message}`);
+      alert(`Error al guardar fechas: ${error.message}. Verifica los permisos de la tabla.`);
     }
   };
 
@@ -663,7 +670,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                             </div>
                             
                             <button 
-                              onClick={() => toggleChapter(cap.capitulo_numero, cap.activo)}
+                              onClick={() => toggleChapter(cap.id, cap.activo)}
                               className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none ${cap.activo ? 'bg-emerald-500' : 'bg-gray-300'}`}
                             >
                               <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-md ${cap.activo ? 'translate-x-7' : 'translate-x-1'}`} />
@@ -676,7 +683,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                               <input 
                                 type="datetime-local"
                                 value={cap.fecha_inicio ? cap.fecha_inicio.slice(0, 16) : ''}
-                                onChange={(e) => updateChapterDates(cap.capitulo_numero, e.target.value || null, cap.fecha_fin || null)}
+                                onChange={(e) => updateChapterDates(cap.id, e.target.value || null, cap.fecha_fin || null)}
                                 className="text-[10px] font-bold bg-white border border-gray-200 rounded-lg px-2 py-1 outline-none focus:border-emerald-500"
                               />
                             </div>
@@ -685,7 +692,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                               <input 
                                 type="datetime-local"
                                 value={cap.fecha_fin ? cap.fecha_fin.slice(0, 16) : ''}
-                                onChange={(e) => updateChapterDates(cap.capitulo_numero, cap.fecha_inicio || null, e.target.value || null)}
+                                onChange={(e) => updateChapterDates(cap.id, cap.fecha_inicio || null, e.target.value || null)}
                                 className="text-[10px] font-bold bg-white border border-gray-200 rounded-lg px-2 py-1 outline-none focus:border-emerald-500"
                               />
                             </div>
@@ -714,7 +721,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                               </div>
                               
                               <button 
-                                onClick={() => toggleChapter(cap.capitulo_numero, cap.activo)}
+                                onClick={() => toggleChapter(cap.id, cap.activo)}
                                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${cap.activo ? 'bg-emerald-400' : 'bg-gray-300'}`}
                               >
                                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${cap.activo ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -727,7 +734,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                                 <input 
                                   type="datetime-local"
                                   value={cap.fecha_inicio ? cap.fecha_inicio.slice(0, 16) : ''}
-                                  onChange={(e) => updateChapterDates(cap.capitulo_numero, e.target.value || null, cap.fecha_fin || null)}
+                                  onChange={(e) => updateChapterDates(cap.id, e.target.value || null, cap.fecha_fin || null)}
                                   className="text-[9px] font-bold bg-white border border-emerald-100 rounded-lg px-2 py-1 outline-none focus:border-emerald-400"
                                 />
                               </div>
@@ -736,7 +743,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                                 <input 
                                   type="datetime-local"
                                   value={cap.fecha_fin ? cap.fecha_fin.slice(0, 16) : ''}
-                                  onChange={(e) => updateChapterDates(cap.capitulo_numero, cap.fecha_inicio || null, e.target.value || null)}
+                                  onChange={(e) => updateChapterDates(cap.id, cap.fecha_inicio || null, e.target.value || null)}
                                   className="text-[9px] font-bold bg-white border border-emerald-100 rounded-lg px-2 py-1 outline-none focus:border-emerald-400"
                                 />
                               </div>
