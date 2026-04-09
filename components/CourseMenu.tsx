@@ -103,15 +103,13 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
               <span>INTERACCIÓN Y APRENDIZAJE DIGITAL</span>
             </div>
           </div>
-          <div className="md:w-1/2 aspect-video">
-            <iframe 
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/zjGdDiIHWqI" 
-              title="Experiencia de Aprendizaje Lógico" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-              allowFullScreen
-            ></iframe>
+          <div className="md:w-1/2 aspect-video overflow-hidden">
+            <img 
+              src="https://i.postimg.cc/xdM6pD4V/Diseno-sin-titulo.gif" 
+              alt="Experiencia de Aprendizaje Lógico"
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
           </div>
         </div>
       </div>
