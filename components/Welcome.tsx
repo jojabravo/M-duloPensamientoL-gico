@@ -38,7 +38,7 @@ const Welcome: React.FC<Props> = ({ onLogin, onAdmin }) => {
         <div className="relative group">
           <div className="rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-white/50 backdrop-blur-sm transition-all duration-500 hover:shadow-purple-200/50">
             <img 
-              src="/preview.jpg" 
+              src="https://i.postimg.cc/PJhZ3xq3/preview.jpg" 
               alt="Portada Pensamiento Lógico" 
               className="w-full h-auto max-h-[400px] object-contain mx-auto"
               referrerPolicy="no-referrer"
