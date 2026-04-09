@@ -42,6 +42,9 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
   const [lastNotification, setLastNotification] = useState<{show: boolean, message: string}>({ show: false, message: '' });
   const [activeTab, setActiveTab] = useState<'students' | 'messaging' | 'config'>('students');
   const [chapterConfig, setChapterConfig] = useState<{id: number, capitulo_numero: number, nombre: string, activo: boolean, fecha_inicio?: string, fecha_fin?: string}[]>([]);
+  const [originalConfig, setOriginalConfig] = useState<any[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
 
   // Legacy/Other communication states (keeping for announcements)
@@ -130,54 +133,77 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
     
     if (!error && data) {
       setChapterConfig(data);
+      setOriginalConfig(JSON.parse(JSON.stringify(data)));
+      setHasChanges(false);
     }
     setConfigLoading(false);
   };
 
-  const toggleChapter = async (id: number, currentStatus: boolean) => {
-    console.log('Intentando cambiar estado:', { id, nuevoEstado: !currentStatus });
-    const { data, error, count } = await supabase
-      .from('configuracion_capitulos')
-      .update({ activo: !currentStatus })
-      .eq('id', id)
-      .select();
-    
-    if (!error) {
-      console.log('Respuesta Supabase (toggle):', { data, count });
-      setChapterConfig(prev => prev.map(c => c.id === id ? { ...c, activo: !currentStatus } : c));
-      playSound('success');
-    } else {
-      console.error('Error de Supabase (toggle):', error);
-      playSound('error');
-      alert(`Error al guardar: ${error.message}. Verifica los permisos de la tabla.`);
-    }
+  const toggleChapter = (id: number, currentStatus: boolean) => {
+    setChapterConfig(prev => {
+      const newState = prev.map(c => c.id === id ? { ...c, activo: !currentStatus } : c);
+      checkChanges(newState);
+      return newState;
+    });
+    playSound('pop');
   };
 
-  const updateChapterDates = async (id: number, fecha_inicio: string | null, fecha_fin: string | null) => {
-    console.log('Intentando actualizar fechas:', { id, fecha_inicio, fecha_fin });
-    
-    // Asegurar formato compatible con Supabase (YYYY-MM-DD HH:mm:ss)
-    const formattedInicio = fecha_inicio ? fecha_inicio.replace('T', ' ') + ':00' : null;
-    const formattedFin = fecha_fin ? fecha_fin.replace('T', ' ') + ':00' : null;
+  const updateChapterDates = (id: number, fecha_inicio: string | null, fecha_fin: string | null) => {
+    setChapterConfig(prev => {
+      const newState = prev.map(c => c.id === id ? { ...c, fecha_inicio: fecha_inicio || undefined, fecha_fin: fecha_fin || undefined } : c);
+      checkChanges(newState);
+      return newState;
+    });
+  };
 
-    const { data, error } = await supabase
-      .from('configuracion_capitulos')
-      .update({ 
-        fecha_inicio: formattedInicio, 
-        fecha_fin: formattedFin 
-      })
-      .eq('id', id)
-      .select();
-    
-    if (!error) {
-      console.log('Respuesta Supabase (fechas):', data);
-      setChapterConfig(prev => prev.map(c => c.id === id ? { ...c, fecha_inicio: fecha_inicio || undefined, fecha_fin: fecha_fin || undefined } : c));
-      playSound('success');
-    } else {
-      console.error('Error de Supabase (fechas):', error);
-      playSound('error');
-      alert(`Error al guardar fechas: ${error.message}. Verifica los permisos de la tabla.`);
+  const checkChanges = (current: any[]) => {
+    const isDifferent = JSON.stringify(current) !== JSON.stringify(originalConfig);
+    setHasChanges(isDifferent);
+  };
+
+  const saveAllConfig = async () => {
+    setIsSavingConfig(true);
+    let successCount = 0;
+    let errorOccurred = false;
+
+    // Solo guardamos los que han cambiado
+    const changedItems = chapterConfig.filter(item => {
+      const original = originalConfig.find(o => o.id === item.id);
+      return JSON.stringify(item) !== JSON.stringify(original);
+    });
+
+    for (const item of changedItems) {
+      // Formatear fechas para Supabase
+      const formattedInicio = item.fecha_inicio ? item.fecha_inicio.replace('T', ' ').slice(0, 19) : null;
+      const formattedFin = item.fecha_fin ? item.fecha_fin.replace('T', ' ').slice(0, 19) : null;
+
+      const { error } = await supabase
+        .from('configuracion_capitulos')
+        .update({ 
+          activo: item.activo,
+          fecha_inicio: formattedInicio,
+          fecha_fin: formattedFin
+        })
+        .eq('id', item.id);
+
+      if (error) {
+        console.error(`Error guardando item ${item.id}:`, error);
+        errorOccurred = true;
+      } else {
+        successCount++;
+      }
     }
+
+    if (!errorOccurred) {
+      setOriginalConfig(JSON.parse(JSON.stringify(chapterConfig)));
+      setHasChanges(false);
+      playSound('success');
+      alert('¡Todos los cambios se han guardado correctamente!');
+    } else {
+      playSound('error');
+      alert('Algunos cambios no se pudieron guardar. Por favor, verifica tu conexión o los permisos de la base de datos.');
+    }
+    setIsSavingConfig(false);
   };
 
   // Real-time subscription for new messages
@@ -631,14 +657,31 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
         {activeTab === 'config' && (
           <div className="animate-fadeIn max-w-2xl mx-auto">
             <div className="bg-white rounded-[3rem] shadow-xl border-4 border-emerald-50 p-10">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 text-2xl shadow-sm">
-                  <i className="fas fa-toggle-on"></i>
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 text-2xl shadow-sm">
+                    <i className="fas fa-toggle-on"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-gray-800 tracking-tighter">Interruptores de Capítulos</h3>
+                    <p className="text-gray-500 font-medium">Habilita o deshabilita el acceso de los estudiantes</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-2xl font-black text-gray-800 tracking-tighter">Interruptores de Capítulos</h3>
-                  <p className="text-gray-500 font-medium">Habilita o deshabilita el acceso de los estudiantes</p>
-                </div>
+                
+                {hasChanges && (
+                  <button 
+                    onClick={saveAllConfig}
+                    disabled={isSavingConfig}
+                    className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition-all animate-bounce-subtle"
+                  >
+                    {isSavingConfig ? (
+                      <i className="fas fa-circle-notch animate-spin"></i>
+                    ) : (
+                      <i className="fas fa-save"></i>
+                    )}
+                    {isSavingConfig ? 'Guardando...' : 'Guardar Cambios'}
+                  </button>
+                )}
               </div>
 
               <div className="space-y-6">
