@@ -34,11 +34,20 @@ const Welcome: React.FC<Props> = ({ onLogin, onAdmin }) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 animate-fadeIn">
-      <div className="mb-8 relative">
-        <div className="w-40 h-40 md:w-48 md:h-48 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-white text-5xl shadow-2xl border-8 border-white relative z-10">
-          <i className="fas fa-brain"></i>
+      <div className="mb-10 w-full max-w-2xl px-4">
+        <div className="relative group">
+          <div className="rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-white/50 backdrop-blur-sm transition-all duration-500 hover:shadow-purple-200/50">
+            <img 
+              src="/preview.jpg" 
+              alt="Portada Pensamiento Lógico" 
+              className="w-full h-auto max-h-[400px] object-contain mx-auto"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="absolute -bottom-4 -right-4 w-14 h-14 bg-yellow-400 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg animate-pulse z-20">
+            <i className="fas fa-brain"></i>
+          </div>
         </div>
-        <div className="absolute -top-2 -left-2 w-10 h-10 bg-yellow-400 rounded-full animate-bounce shadow-lg"></div>
       </div>
       
       <h1 className="text-3xl md:text-5xl font-black text-gray-800 mb-2">

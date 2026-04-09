@@ -89,6 +89,33 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
         </div>
       </div>
 
+      {/* Video de Experiencia */}
+      <div className="mb-10 bg-white rounded-[2.5rem] overflow-hidden shadow-xl border-2 border-purple-100">
+        <div className="flex flex-col md:flex-row">
+          <div className="md:w-1/2 p-8 flex flex-col justify-center">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400 mb-2">Nuestra Experiencia</span>
+            <h3 className="text-2xl font-black mb-4 text-gray-800">El Proyecto en Acción</h3>
+            <p className="text-gray-500 text-sm leading-relaxed mb-6">
+              Observa a los estudiantes interactuando con la plataforma y desarrollando sus habilidades de pensamiento lógico en el aula.
+            </p>
+            <div className="flex items-center gap-2 text-xs font-bold text-purple-600">
+              <i className="fas fa-users"></i>
+              <span>INTERACCIÓN Y APRENDIZAJE DIGITAL</span>
+            </div>
+          </div>
+          <div className="md:w-1/2 aspect-video">
+            <iframe 
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/zjGdDiIHWqI" 
+              title="Experiencia de Aprendizaje Lógico" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6">
         {sections.map(s => (
           <div 

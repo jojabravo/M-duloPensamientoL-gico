@@ -120,6 +120,29 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
         </div>
       </div>
 
+      {/* Video de Motivación - YouTube Short */}
+      <div className="mb-12 flex flex-col items-center">
+        <div className="max-w-sm w-full bg-white p-4 rounded-[2.5rem] shadow-xl border-2 border-orange-100">
+          <div className="text-center mb-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">¡Aceptamos el Reto!</span>
+            <h4 className="text-lg font-black text-gray-800">Energía de Agentes</h4>
+          </div>
+          <div className="aspect-[9/16] rounded-3xl overflow-hidden shadow-inner bg-gray-100">
+            <iframe 
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/b5yiNFVv7Tw" 
+              title="Jóvenes aceptando el reto" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen
+            ></iframe>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-3 text-center font-bold uppercase tracking-tighter">
+            Nuestros estudiantes listos para el Capítulo 2
+          </p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
         {modules.map(m => (
           <div 
