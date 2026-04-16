@@ -492,14 +492,51 @@ const LogicStarActivity: React.FC<{ studentName: string, onNext: () => void }> =
         <span className="text-orange-600 font-black">(Toca una letra y luego un espacio para colocarla)</span>
       </p>
 
-      <div className="relative w-40 h-40 md:w-56 md:h-56 mb-4 md:mb-6 shrink-0">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <i className="fas fa-star text-[8rem] md:text-[11rem] text-orange-100"></i>
+      <div className="relative w-56 h-56 md:w-80 md:h-80 mb-6 md:mb-12 shrink-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-4">
+          <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-xl overflow-visible">
+            {/* Background decorative circles */}
+            <circle cx="100" cy="100" r="55" fill="none" stroke="#fed7aa" strokeWidth="2" opacity="0.5" />
+            <circle cx="100" cy="100" r="50" fill="none" stroke="#f97316" strokeWidth="1" />
+            
+            {/* Medium Points (Ordinal - NE, SE, SW, NW) */}
+            <g transform="rotate(45 100 100)">
+              <polygon points="100,20 108,100 100,180 92,100" fill="#fdba74" stroke="#f97316" strokeWidth="0.5" />
+            </g>
+            <g transform="rotate(-45 100 100)">
+              <polygon points="100,20 108,100 100,180 92,100" fill="#fdba74" stroke="#f97316" strokeWidth="0.5" />
+            </g>
+
+            {/* Large Points (Cardinal - N, S, W, E) */}
+            {/* North */}
+            <g>
+              <polygon points="100,5 100,100 112,100" fill="#f97316" stroke="#ea580c" strokeWidth="0.5" />
+              <polygon points="100,5 100,100 88,100" fill="#ea580c" stroke="#ea580c" strokeWidth="0.5" />
+            </g>
+            {/* South */}
+            <g>
+              <polygon points="100,195 100,100 88,100" fill="#f97316" stroke="#ea580c" strokeWidth="0.5" />
+              <polygon points="100,195 100,100 112,100" fill="#ea580c" stroke="#ea580c" strokeWidth="0.5" />
+            </g>
+            {/* West */}
+            <g>
+              <polygon points="5,100 100,100 100,88" fill="#f97316" stroke="#ea580c" strokeWidth="0.5" />
+              <polygon points="5,100 100,100 100,112" fill="#ea580c" stroke="#ea580c" strokeWidth="0.5" />
+            </g>
+            {/* East */}
+            <g>
+              <polygon points="195,100 100,100 100,112" fill="#f97316" stroke="#ea580c" strokeWidth="0.5" />
+              <polygon points="195,100 100,100 100,88" fill="#ea580c" stroke="#ea580c" strokeWidth="0.5" />
+            </g>
+
+            {/* Center decoration */}
+            <circle cx="100" cy="100" r="8" fill="white" stroke="#ea580c" strokeWidth="1" />
+          </svg>
         </div>
         {alphabet.map((letter, i) => {
           const angle = (i / alphabet.length) * 2 * Math.PI - Math.PI / 2;
-          const radius = window.innerWidth < 768 ? 70 : 90;
-          const center = window.innerWidth < 768 ? 80 : 112;
+          const radius = window.innerWidth < 768 ? 95 : 135;
+          const center = window.innerWidth < 768 ? 112 : 160;
           const x = center + radius * Math.cos(angle);
           const y = center + radius * Math.sin(angle);
           const isSelected = selectedLetter === letter;
@@ -526,10 +563,14 @@ const LogicStarActivity: React.FC<{ studentName: string, onNext: () => void }> =
                 setSelectedLetter(letter);
                 playSound('pop');
               }}
-              className={`absolute w-5 h-5 md:w-7 md:h-7 rounded-lg flex items-center justify-center font-black cursor-grab active:cursor-grabbing shadow-md z-20 text-[8px] md:text-[10px] transition-all ${
-                isSelected ? 'bg-orange-700 text-white scale-125 ring-4 ring-orange-300' : 'bg-orange-50 text-orange-900'
+              className={`absolute w-5 h-5 md:w-8 md:h-8 rounded-lg flex items-center justify-center font-black cursor-grab active:cursor-grabbing shadow-md z-20 text-[10px] md:text-xs transition-all ${
+                isSelected ? 'bg-orange-700 text-white scale-125 ring-4 ring-orange-300' : 'bg-orange-50 text-orange-900 border border-orange-200'
               }`}
-              style={{ left: x, top: y }}
+              style={{ 
+                left: x - (window.innerWidth < 768 ? 10 : 16), 
+                top: y - (window.innerWidth < 768 ? 10 : 16),
+                transform: `rotate(${angle + Math.PI/2}rad)` 
+              }}
             >
               {letter}
             </motion.div>
