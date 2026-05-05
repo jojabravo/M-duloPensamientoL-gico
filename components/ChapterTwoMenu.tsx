@@ -45,9 +45,9 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
       title: 'Bloque 2: Ecuaciones Gráficas',
       icon: 'fa-scale-balanced',
       color: 'bg-emerald-500',
-      active: isAvailable(config.ch2_bloque2_activo !== false, config.ch2_bloque2_inicio, config.ch2_bloque2_fin) && (isTestUser || (student.progreso_criptogramas || 0) >= 60),
+      active: isAvailable(config.ch2_bloque2_activo !== false, config.ch2_bloque2_inicio, config.ch2_bloque2_fin),
       desc: 'Determina el valor de figuras geométricas en sistemas visuales equilibrados.',
-      required: (student.progreso_criptogramas || 0) < 60 ? 'Supera Criptogramas (60%)' : 'Habilitación por fecha',
+      required: 'Habilitación por fecha / Progreso',
       progress: student.progreso_ecuaciones_graficas || 0
     },
     {
@@ -55,9 +55,9 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
       title: 'Bloque 3: Crucinúmeros y Retos',
       icon: 'fa-puzzle-piece',
       color: 'bg-amber-500',
-      active: isAvailable(config.ch2_bloque3_activo !== false, config.ch2_bloque3_inicio, config.ch2_bloque3_fin) && (isTestUser || (student.progreso_ecuaciones_graficas || 0) >= 60),
+      active: isAvailable(config.ch2_bloque3_activo !== false, config.ch2_bloque3_inicio, config.ch2_bloque3_fin),
       desc: 'Crucinúmeros, Pirámides, Cuadrados Mágicos y Sudoku Detective.',
-      required: (student.progreso_ecuaciones_graficas || 0) < 60 ? 'Supera Ecuaciones (60%)' : 'Habilitación por fecha',
+      required: 'Habilitación por fecha / Progreso',
       progress: ((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4
     },
     {
@@ -65,9 +65,9 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
       title: 'Bloque 4: Mensaje Oculto',
       icon: 'fa-envelope-open-text',
       color: 'bg-rose-500',
-      active: isAvailable(config.ch2_bloque4_activo !== false, config.ch2_bloque4_inicio, config.ch2_bloque4_fin) && (isTestUser || (((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4) >= 60),
+      active: isAvailable(config.ch2_bloque4_activo !== false, config.ch2_bloque4_inicio, config.ch2_bloque4_fin),
       desc: 'Crea y descifra códigos secretos utilizando lógica matemática.',
-      required: (((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4) < 60 ? 'Supera Bloque 3 (60%)' : 'Habilitación por fecha',
+      required: 'Habilitación por fecha / Progreso',
       progress: student.progreso_mensaje_oculto || 0
     }
   ];
