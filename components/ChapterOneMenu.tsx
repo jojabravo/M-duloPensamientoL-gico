@@ -1,16 +1,29 @@
 
 import React from 'react';
 import { playSound } from '../audio';
-import { StudentProfile } from '../types';
+import { StudentProfile, AppConfig } from '../types';
 
 interface Props {
   student: StudentProfile;
+  config: AppConfig;
   onSelectModule: (moduleId: string) => void;
   onBack: () => void;
 }
 
-const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) => {
+const ChapterOneMenu: React.FC<Props> = ({ student, config, onSelectModule, onBack }) => {
   const isTestUser = student.Usuario === 'estudiante.prueba';
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return null;
+      return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    } catch (e) {
+      return null;
+    }
+  };
+
   const modules = [
     {
       id: 'ordering',
@@ -19,7 +32,9 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       color: 'bg-purple-600',
       active: true,
       desc: 'Lineal (horizontal y vertical), circular y tablas de doble entrada.',
-      progress: student.progreso_ordenamiento || 0
+      progress: student.progreso_ordenamiento || 0,
+      start: config.capitulo_1_inicio,
+      end: config.capitulo_1_fin
     },
     {
       id: 'logic',
@@ -29,7 +44,9 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       active: isTestUser || (student.progreso_ordenamiento || 0) >= 60,
       desc: 'Definición, tipos, conectores, simbologías y reglas de inferencia.',
       required: 'Supera Ordenamiento (60%)',
-      progress: student.progreso_proposiciones || 0
+      progress: student.progreso_proposiciones || 0,
+      start: config.capitulo_1_inicio,
+      end: config.capitulo_1_fin
     },
     {
       id: 'quantifiers',
@@ -39,7 +56,9 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       active: isTestUser || (student.progreso_proposiciones || 0) >= 60,
       desc: 'Videojuego: Reconocimiento, simbolización y negación de cuantificadores.',
       required: 'Supera Proposiciones (60%)',
-      progress: student.progreso_cuantificadores || 0
+      progress: student.progreso_cuantificadores || 0,
+      start: config.capitulo_1_inicio,
+      end: config.capitulo_1_fin
     },
     {
       id: 'microbit',
@@ -49,7 +68,9 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
       active: isTestUser || (student.progreso_cuantificadores || 0) >= 60,
       desc: 'Programación lógica aplicada a dispositivos Microbit reales y virtuales.',
       required: 'Supera Cuantificadores (60%)',
-      progress: student.progreso_microbit || 0
+      progress: student.progreso_microbit || 0,
+      start: config.capitulo_1_inicio,
+      end: config.capitulo_1_fin
     }
   ];
 
@@ -76,8 +97,13 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
                 <h3 className="text-3xl font-black tracking-tight">Capítulo 1: Pensamiento Verbal</h3>
               </div>
             </div>
-            <div className="hidden md:block">
-              <p className="text-purple-100 font-black text-xs uppercase tracking-[0.2em]">Misión: Análisis de Información</p>
+            <div className="hidden md:block text-right">
+              <p className="text-purple-100 font-black text-[10px] uppercase tracking-[0.2em]">Misión: Análisis de Información</p>
+              {config.capitulo_1_inicio && config.capitulo_1_fin && (
+                <p className="text-white text-[9px] font-bold uppercase tracking-tight mt-1">
+                  Abierto: {formatDate(config.capitulo_1_inicio)} - {formatDate(config.capitulo_1_fin)}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -113,7 +139,17 @@ const ChapterOneMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) =>
                 <i className={`fas ${m.icon}`}></i>
               </div>
               <div className="flex-grow w-full">
-                <h3 className="font-black text-gray-800 text-xl md:text-2xl mb-3 tracking-tight leading-tight">{m.title}</h3>
+                <h3 className="font-black text-gray-800 text-xl md:text-2xl mb-1 tracking-tight leading-tight">{m.title}</h3>
+                
+                {/* Fechas de disponibilidad */}
+                {(m.start || m.end) && (
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="text-[9px] font-black bg-gray-100 text-gray-500 px-3 py-1 rounded-full uppercase tracking-tighter">
+                      <i className="far fa-calendar-alt mr-1"></i>
+                      {m.start ? formatDate(m.start) : 'Abierto'} - {m.end ? formatDate(m.end) : 'Sinfín'}
+                    </span>
+                  </div>
+                )}
                 
                 {/* Progress Bar */}
                 {m.active && (

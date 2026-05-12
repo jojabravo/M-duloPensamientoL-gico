@@ -1,16 +1,29 @@
 
 import React from 'react';
 import { playSound } from '../audio';
-import { StudentProfile } from '../types';
+import { StudentProfile, AppConfig } from '../types';
 
 interface Props {
   student: StudentProfile;
+  config: AppConfig;
   onSelectModule: (moduleId: string) => void;
   onBack: () => void;
 }
 
-const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, onSelectModule, onBack }) => {
+const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, config, onSelectModule, onBack }) => {
   const isTestUser = student.Usuario === 'estudiante.prueba';
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return null;
+      return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    } catch (e) {
+      return null;
+    }
+  };
+
   const modules = [
     {
       id: 'crucinumeros',
@@ -80,8 +93,13 @@ const ChapterTwoBlockThreeMenu: React.FC<Props> = ({ student, onSelectModule, on
                 <h3 className="text-3xl font-black tracking-tight">Crucinúmeros y Retos</h3>
               </div>
             </div>
-            <div className="hidden md:block">
-              <p className="text-amber-100 font-black text-xs uppercase tracking-[0.2em]">Misión: Recuperación de Datos</p>
+            <div className="hidden md:block text-right">
+              <p className="text-amber-100 font-black text-[10px] uppercase tracking-[0.2em]">Misión: Recuperación de Datos</p>
+              {config.ch2_bloque3_inicio && config.ch2_bloque3_fin && (
+                <p className="text-white text-[9px] font-bold uppercase tracking-tight mt-1">
+                  Abierto: {formatDate(config.ch2_bloque3_inicio)} - {formatDate(config.ch2_bloque3_fin)}
+                </p>
+              )}
             </div>
           </div>
         </div>

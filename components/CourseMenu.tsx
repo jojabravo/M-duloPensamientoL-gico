@@ -31,6 +31,17 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
     return true;
   };
 
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return null;
+      return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    } catch (e) {
+      return null;
+    }
+  };
+
   const sections = [
     { 
       id: 'verbal', 
@@ -38,7 +49,9 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       icon: 'fa-font', 
       color: 'bg-purple-600', 
       active: isAvailable(config.capitulo_1_activo, config.capitulo_1_inicio, config.capitulo_1_fin),
-      desc: 'Ordenamiento de la información, lógica verbal y deducción.'
+      desc: 'Ordenamiento de la información, lógica verbal y deducción.',
+      start: config.capitulo_1_inicio,
+      end: config.capitulo_1_fin
     },
     { 
       id: 'num', 
@@ -46,7 +59,9 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       icon: 'fa-magnifying-glass', 
       color: 'bg-orange-500', 
       active: isAvailable(config.capitulo_2_activo, config.capitulo_2_inicio, config.capitulo_2_fin),
-      desc: 'Criptogramas, Ecuaciones Gráficas, Crucinúmeros y Mensaje Oculto.'
+      desc: 'Criptogramas, Ecuaciones Gráficas, Crucinúmeros y Mensaje Oculto.',
+      start: config.capitulo_2_inicio,
+      end: config.capitulo_2_fin
     },
     { 
       id: 'esp', 
@@ -54,7 +69,9 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       icon: 'fa-cube', 
       color: 'bg-pink-500', 
       active: isAvailable(config.capitulo_3_activo, config.capitulo_3_inicio, config.capitulo_3_fin),
-      desc: 'Transformaciones Isométricas (traslación, rotación, simetría), uso de GeoGebra y diseño de mosaicos.'
+      desc: 'Transformaciones Isométricas (traslación, rotación, simetría), uso de GeoGebra y diseño de mosaicos.',
+      start: config.capitulo_3_inicio,
+      end: config.capitulo_3_fin
     },
     { 
       id: 'abs', 
@@ -62,7 +79,9 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
       icon: 'fa-shapes', 
       color: 'bg-emerald-500', 
       active: isAvailable(config.capitulo_4_activo, config.capitulo_4_inicio, config.capitulo_4_fin),
-      desc: 'Patrones visuales, analogías gráficas y matrices.'
+      desc: 'Patrones visuales, analogías gráficas y matrices.',
+      start: config.capitulo_4_inicio,
+      end: config.capitulo_4_fin
     }
   ];
 
@@ -129,6 +148,17 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
                 <div className="flex justify-between items-center mb-1">
                   <h3 className="font-bold text-gray-800 text-lg">{s.title}</h3>
                 </div>
+                
+                {/* Fechas de disponibilidad */}
+                {(s.start || s.end) && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`text-[9px] font-black ${s.id === 'num' ? 'bg-orange-50 text-orange-600' : 'bg-purple-50 text-purple-600'} px-3 py-1 rounded-full uppercase tracking-tighter`}>
+                      <i className="far fa-calendar-alt mr-1"></i>
+                      {s.start ? formatDate(s.start) : 'Inicia'} - {s.end ? formatDate(s.end) : 'Sinfín'}
+                    </span>
+                  </div>
+                )}
+
                 <p className="text-sm text-gray-500 leading-snug">{s.desc}</p>
                 {!s.active ? (
                   <span className="inline-block mt-3 text-[9px] bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">

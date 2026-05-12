@@ -29,6 +29,17 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
     return true;
   };
 
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return null;
+      return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    } catch (e) {
+      return null;
+    }
+  };
+
   const modules = [
     {
       id: 'criptogramas',
@@ -38,7 +49,9 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
       active: isAvailable(config.ch2_bloque1_activo !== false, config.ch2_bloque1_inicio, config.ch2_bloque1_fin),
       desc: 'Descifra números tras letras y símbolos en operaciones matemáticas.',
       progress: student.progreso_criptogramas || 0,
-      required: 'Habilitación por fecha'
+      required: 'Habilitación por fecha',
+      start: config.ch2_bloque1_inicio,
+      end: config.ch2_bloque1_fin
     },
     {
       id: 'ecuaciones',
@@ -48,7 +61,9 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
       active: isAvailable(config.ch2_bloque2_activo !== false, config.ch2_bloque2_inicio, config.ch2_bloque2_fin),
       desc: 'Determina el valor de figuras geométricas en sistemas visuales equilibrados.',
       required: 'Habilitación por fecha / Progreso',
-      progress: student.progreso_ecuaciones_graficas || 0
+      progress: student.progreso_ecuaciones_graficas || 0,
+      start: config.ch2_bloque2_inicio,
+      end: config.ch2_bloque2_fin
     },
     {
       id: 'block3',
@@ -58,7 +73,9 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
       active: isAvailable(config.ch2_bloque3_activo !== false, config.ch2_bloque3_inicio, config.ch2_bloque3_fin),
       desc: 'Crucinúmeros, Pirámides, Cuadrados Mágicos y Sudoku Detective.',
       required: 'Habilitación por fecha / Progreso',
-      progress: ((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4
+      progress: ((student.progreso_crucinumeros || 0) + (student.progreso_sudoku || 0) + (student.progreso_magic_squares || 0) + (student.progreso_piramides || 0)) / 4,
+      start: config.ch2_bloque3_inicio,
+      end: config.ch2_bloque3_fin
     },
     {
       id: 'mensaje_oculto',
@@ -68,7 +85,9 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
       active: isAvailable(config.ch2_bloque4_activo !== false, config.ch2_bloque4_inicio, config.ch2_bloque4_fin),
       desc: 'Crea y descifra códigos secretos utilizando lógica matemática.',
       required: 'Habilitación por fecha / Progreso',
-      progress: student.progreso_mensaje_oculto || 0
+      progress: student.progreso_mensaje_oculto || 0,
+      start: config.ch2_bloque4_inicio,
+      end: config.ch2_bloque4_fin
     }
   ];
 
@@ -95,8 +114,13 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
                 <h3 className="text-3xl font-black tracking-tight">Capítulo 2: Pensamiento Lógico Matemático</h3>
               </div>
             </div>
-            <div className="hidden md:block">
-              <p className="text-orange-100 font-black text-xs uppercase tracking-[0.2em]">Misión: Desafío Numérico</p>
+            <div className="hidden md:block text-right">
+              <p className="text-orange-100 font-black text-[10px] uppercase tracking-[0.2em]">Misión: Desafío Numérico</p>
+              {config.capitulo_2_inicio && config.capitulo_2_fin && (
+                <p className="text-white text-[9px] font-bold uppercase tracking-tight mt-1">
+                  Abierto: {formatDate(config.capitulo_2_inicio)} - {formatDate(config.capitulo_2_fin)}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -155,7 +179,17 @@ const ChapterTwoMenu: React.FC<Props> = ({ student, config, onSelectModule, onBa
                 <i className={`fas ${m.icon}`}></i>
               </div>
               <div className="flex-grow w-full">
-                <h3 className="font-black text-gray-800 text-xl md:text-2xl mb-3 tracking-tight leading-tight">{m.title}</h3>
+                <h3 className="font-black text-gray-800 text-xl md:text-2xl mb-1 tracking-tight leading-tight">{m.title}</h3>
+                
+                {/* Fechas de disponibilidad */}
+                {(m.start || m.end) && (
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="text-[9px] font-black bg-gray-100 text-gray-500 px-3 py-1 rounded-full uppercase tracking-tighter">
+                      <i className="far fa-calendar-alt mr-1"></i>
+                      {m.start ? formatDate(m.start) : 'Abierto'} - {m.end ? formatDate(m.end) : 'Sinfín'}
+                    </span>
+                  </div>
+                )}
                 
                 {/* Progress Bar */}
                 {m.active && (

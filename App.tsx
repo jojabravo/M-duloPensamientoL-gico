@@ -464,6 +464,7 @@ const App: React.FC = () => {
         return (
           <ChapterOneMenu 
             student={student!}
+            config={config}
             onSelectModule={(id) => {
               if (id === 'ordering') {
                 const prog = student?.progreso_ordenamiento || 0;
@@ -507,6 +508,7 @@ const App: React.FC = () => {
         return (
           <ChapterTwoBlockThreeMenu
             student={student!}
+            config={config}
             onSelectModule={(id) => {
               if (id === 'crucinumeros') setCurrentView(View.CRUCINUMERO);
               else if (id === 'pyramids') setCurrentView(View.NUMERIC_PYRAMIDS);
