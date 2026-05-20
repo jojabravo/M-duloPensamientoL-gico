@@ -27,83 +27,8 @@
     <meta property="twitter:description" content="Desarrolla tu pensamiento lógico a través de retos interactivos, descubre patrones y aprende a resolver problemas de forma creativa. ¡Aquí comienza tu entrenamiento mental!">
     <meta property="twitter:image" content="https://i.postimg.cc/PJhZ3xq3/preview.jpg">
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Quicksand', sans-serif;
-            scroll-behavior: smooth;
-        }
-        .bg-pattern {
-            background-color: #f3f4f6;
-            background-image: radial-gradient(#8b5cf6 0.5px, transparent 0.5px), radial-gradient(#8b5cf6 0.5px, #f3f4f6 0.5px);
-            background-size: 20px 20px;
-            background-position: 0 0, 10px 10px;
-            opacity: 0.1;
-        }
-        @keyframes diamond-shine {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        @keyframes sparkle {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-        .diamond-gradient {
-            background: linear-gradient(
-                45deg,
-                #22d3ee,
-                #818cf8,
-                #c084fc,
-                #22d3ee
-            );
-            background-size: 300% 300%;
-            animation: diamond-shine 3s ease infinite;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
-        }
-        .diamond-bg-animated {
-            background: linear-gradient(
-                45deg,
-                #22d3ee,
-                #818cf8,
-                #c084fc,
-                #22d3ee
-            );
-            background-size: 400% 400%;
-            animation: diamond-shine 5s ease infinite;
-        }
-        .sparkle-effect {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: white;
-            border-radius: 50%;
-            box-shadow: 0 0 10px white, 0 0 20px #22d3ee;
-            animation: sparkle 2s infinite;
-        }
-        .diamond-shadow {
-            filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.6));
-        }
-        .animate-fade-up {
-            animation: fade-up 0.8s ease-out forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        @keyframes fade-up {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes bounce-subtle {
-            0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
-            50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
-        }
-        .animate-bounce-subtle {
-            animation: bounce-subtle 2s infinite;
-        }
-    </style>
 <script type="importmap">
 {
   "imports": {

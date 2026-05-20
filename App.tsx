@@ -713,7 +713,7 @@ const App: React.FC = () => {
           </div>
         ) : renderView()}
       </main>
-      <Footer />
+      {currentView !== View.WELCOME && <Footer />}
     </div>
   );
 };
