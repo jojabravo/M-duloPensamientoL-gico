@@ -63,33 +63,31 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
     }
     
     // Create puzzle by hiding some blocks
-    // Ensure at least one per row is hidden
-    let hiddenCount = 0;
-    puzzle = flatSolution.map((val, idx) => {
-      // For levels 1-3, always show the top block
-      if (lvl < 4 && idx === 0) return val;
-      
+    if (lvl === 4) {
       // For Pascal (lvl 4), hide specific strategic blocks
-      if (lvl === 4) {
+      puzzle = flatSolution.map((val, idx) => {
         // Hide 1s on the edges sometimes, and middle values
         const isEdge = val === 1;
         const hideChance = isEdge ? 0.2 : 0.6;
         const hidden = Math.random() < hideChance;
-        if (hidden) hiddenCount++;
         return hidden ? null : val;
+      });
+    } else {
+      // For levels 1-3, use a balanced hiding count to avoid over hidding or unsolvable setups:
+      // Level 1: hides 3 blocks. Level 2: hides 5 blocks. Level 3: hides 7 blocks.
+      // We always show the top block (index 0).
+      const numToHide = lvl === 1 ? 3 : lvl === 2 ? 5 : 7;
+      puzzle = [...flatSolution];
+      const hideableIndices = Array.from({ length: puzzle.length - 1 }, (_, i) => i + 1);
+      
+      // Shuffle indices
+      for (let i = hideableIndices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [hideableIndices[i], hideableIndices[j]] = [hideableIndices[j], hideableIndices[i]];
       }
-
-      const hidden = Math.random() > 0.5;
-      if (hidden) hiddenCount++;
-      return hidden ? null : val;
-    });
-
-    // Safety check: if no blocks are hidden, force hide at least 5
-    if (hiddenCount < 3) {
-      const indices = Array.from({ length: puzzle.length }, (_, i) => i);
-      for (let i = 0; i < 5; i++) {
-        const randomIdx = indices.splice(Math.floor(Math.random() * indices.length), 1)[0];
-        puzzle[randomIdx] = null;
+      
+      for (let i = 0; i < numToHide; i++) {
+        puzzle[hideableIndices[i]] = null;
       }
     }
     
@@ -174,8 +172,10 @@ const NumericPyramids: React.FC<Props> = ({ student, onBack, onComplete }) => {
     }
 
     return (
-      <div className={`flex flex-col gap-0.5 md:gap-1 ${level === 4 ? 'overflow-auto max-h-[60vh] p-4 bg-white/30 rounded-3xl' : ''}`}>
-        {pyramidRows}
+      <div className={`overflow-auto w-full p-4 bg-white/30 rounded-3xl ${level === 4 ? 'max-h-[60vh]' : ''}`}>
+        <div className="flex flex-col gap-0.5 md:gap-1 min-w-max mx-auto p-4">
+          {pyramidRows}
+        </div>
       </div>
     );
   };
