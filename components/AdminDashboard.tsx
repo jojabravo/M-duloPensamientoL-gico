@@ -26,6 +26,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('Todos');
   const [performanceFilter, setPerformanceFilter] = useState('Todos');
+  const [selectedChapter, setSelectedChapter] = useState<'all' | '1' | '2' | '3' | '4'>('all');
   const [viewMode, setViewMode] = useState<'table' | 'gallery'>('table');
   const [showInProcess, setShowInProcess] = useState(false);
 
@@ -382,12 +383,56 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
     return { label: 'BAJO', color: 'text-rose-600 bg-rose-50' };
   };
 
+  const getStudentScore = (student: StudentProfile, chapter: 'all' | '1' | '2' | '3' | '4') => {
+    const avg1 = Math.round((
+      (student.progreso_ordenamiento || 0) +
+      (student.progreso_proposiciones || 0) +
+      (student.progreso_cuantificadores || 0) +
+      (student.progreso_microbit || 0)
+    ) / 4);
+
+    const block3Avg = (
+      (student.progreso_sudoku || 0) +
+      (student.progreso_magic_squares || 0) +
+      (student.progreso_crucinumeros || 0) +
+      (student.progreso_piramides || 0)
+    ) / 4;
+
+    const avg2 = Math.round(student.nota_capitulo_2 || (
+      (student.progreso_criptogramas || 0) +
+      (student.progreso_ecuaciones_graficas || 0) +
+      block3Avg +
+      (student.progreso_mensaje_oculto || 0)
+    ) / 4);
+
+    const avg3 = Math.round(student.nota_capitulo_3 || (
+      (student.progreso_transformaciones || 0) +
+      (student.progreso_mosaicos || 0) +
+      (student.progreso_conteocubos || 0) +
+      (student.progreso_cubosoma || 0)
+    ) / 4);
+
+    const avg4 = Math.round(student.nota_capitulo_4 || (
+      (student.progreso_secuencias_graficas || 0) +
+      (student.progreso_secuencias_numericas || 0) +
+      (student.progreso_lateral || 0) +
+      (student.progreso_historia_final || 0)
+    ) / 4);
+
+    if (chapter === '1') return avg1;
+    if (chapter === '2') return avg2;
+    if (chapter === '3') return avg3;
+    if (chapter === '4') return avg4;
+
+    return Math.max(avg1, avg2, avg3, avg4);
+  };
+
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
       const searchStr = (s.Nombre || s.Usuario || '').toLowerCase();
       const matchesSearch = searchStr.includes(searchTerm.toLowerCase().trim());
       const matchesGrade = selectedGrade === 'Todos' || (s.Grado || '').trim() === selectedGrade;
-      const avg = s.nota_capitulo_1 || 0;
+      const avg = getStudentScore(s, selectedChapter);
       let matchesPerformance = true;
       if (performanceFilter === 'BAJO') matchesPerformance = avg < 60;
       else if (performanceFilter === 'BÁSICO') matchesPerformance = avg >= 60 && avg < 80;
@@ -396,7 +441,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
       
       return matchesSearch && matchesGrade && matchesPerformance;
     });
-  }, [students, searchTerm, selectedGrade, performanceFilter]);
+  }, [students, searchTerm, selectedGrade, performanceFilter, selectedChapter]);
 
   const grades = useMemo(() => {
     const uniqueGrades = Array.from(new Set(students.map(s => s.Grado).filter(Boolean)));
@@ -421,7 +466,18 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
       'Crucinúmeros y Retos %',
       'Mensaje Oculto %',
       'Promedio Capitulo 2',
-      'Estado Academico'
+      'Transformaciones %',
+      'Mosaicos %',
+      'Conteo Cubos %',
+      'Soma Cubo %',
+      'Promedio Capitulo 3',
+      'Secuencias Gráficas %',
+      'Secuencias Numéricas %',
+      'Lateralidad %',
+      'Historia Final %',
+      'Promedio Capitulo 4',
+      'Nota Final',
+      'Nivel Desempeño'
     ];
 
     const rows = filteredStudents.map(s => {
@@ -439,18 +495,29 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
         (s.progreso_piramides || 0)
       ) / 4;
       
-      const avg2 = (
+      const avg2 = Math.round(s.nota_capitulo_2 || (
         (s.progreso_criptogramas || 0) +
         (s.progreso_ecuaciones_graficas || 0) +
         block3Avg +
         (s.progreso_mensaje_oculto || 0)
-      ) / 4;
+      ) / 4);
 
-      const maxAvg = Math.max(avg1, avg2);
-      let estado = 'BAJO';
-      if (maxAvg >= 90) estado = 'SUPERIOR';
-      else if (maxAvg >= 80) estado = 'ALTO';
-      else if (maxAvg >= 60) estado = 'BÁSICO';
+      const avg3 = Math.round(s.nota_capitulo_3 || (
+        (s.progreso_transformaciones || 0) +
+        (s.progreso_mosaicos || 0) +
+        (s.progreso_conteocubos || 0) +
+        (s.progreso_cubosoma || 0)
+      ) / 4);
+
+      const avg4 = Math.round(s.nota_capitulo_4 || (
+        (s.progreso_secuencias_graficas || 0) +
+        (s.progreso_secuencias_numericas || 0) +
+        (s.progreso_lateral || 0) +
+        (s.progreso_historia_final || 0)
+      ) / 4);
+
+      const finalAvg = Math.max(avg1, avg2, avg3, avg4);
+      const perf = getPerformanceLevel(finalAvg);
 
       return [
         `"${s.Usuario}"`,
@@ -466,8 +533,19 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
         s.progreso_ecuaciones_graficas || 0,
         Math.round(block3Avg),
         s.progreso_mensaje_oculto || 0,
-        Math.round(avg2),
-        `"${estado}"`
+        avg2,
+        s.progreso_transformaciones || 0,
+        s.progreso_mosaicos || 0,
+        s.progreso_conteocubos || 0,
+        s.progreso_cubosoma || 0,
+        avg3,
+        s.progreso_secuencias_graficas || 0,
+        s.progreso_secuencias_numericas || 0,
+        s.progreso_lateral || 0,
+        s.progreso_historia_final || 0,
+        avg4,
+        finalAvg,
+        `"${perf.label}"`
       ];
     });
 
@@ -852,6 +930,17 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                   <option value="BÁSICO">Básico (60-79%)</option>
                   <option value="BAJO">Bajo (0-59%)</option>
                 </select>
+                <select 
+                  value={selectedChapter}
+                  onChange={(e) => setSelectedChapter(e.target.value as any)}
+                  className="flex-1 md:flex-none px-6 py-4 bg-indigo-50 border-2 border-indigo-100 text-indigo-700 rounded-2xl focus:border-indigo-500 outline-none font-black cursor-pointer shadow-sm"
+                >
+                  <option value="all">📚 Todos los Capítulos</option>
+                  <option value="1">Capítulo 1: Lógica y Algoritmos</option>
+                  <option value="2">Capítulo 2: Criptografía e Ingenio</option>
+                  <option value="3">Capítulo 3: Espacial e Isometría</option>
+                  <option value="4">Capítulo 4: Sucesiones y Lateralidad</option>
+                </select>
               </div>
 
               <div className="flex flex-wrap gap-4 w-full md:w-auto">
@@ -1182,22 +1271,56 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                   <th className="px-6 py-4 text-left">Estudiante</th>
                   <th className="px-6 py-4 text-center">Grado</th>
                   <th className="px-6 py-4 text-center">Última Conexión</th>
-                  <th className="px-6 py-4 text-center">Cap. 1: Orden.</th>
-                  <th className="px-6 py-4 text-center">Cap. 1: Lógica</th>
-                  <th className="px-6 py-4 text-center">Cap. 1: Cuant.</th>
-                  <th className="px-6 py-4 text-center">Cap. 1: Micro.</th>
-                  <th className="px-6 py-4 text-center">Cap. 2: Bloque 1</th>
-                  <th className="px-6 py-4 text-center">Cap. 2: Bloque 2</th>
-                  <th className="px-6 py-4 text-center">Cap. 2: Bloque 3</th>
-                  <th className="px-6 py-4 text-center">Cap. 2: Bloque 4</th>
-                  <th className="px-6 py-4 text-center">Nota Final</th>
+                  {selectedChapter === 'all' && (
+                    <>
+                      <th className="px-6 py-4 text-center text-purple-600">Cap. 1 Prom.</th>
+                      <th className="px-6 py-4 text-center text-pink-600">Cap. 2 Prom.</th>
+                      <th className="px-6 py-4 text-center text-indigo-600">Cap. 3 Prom.</th>
+                      <th className="px-6 py-4 text-center text-rose-600">Cap. 4 Prom.</th>
+                    </>
+                  )}
+                  {selectedChapter === '1' && (
+                    <>
+                      <th className="px-6 py-4 text-center">Cap. 1: Orden.</th>
+                      <th className="px-6 py-4 text-center">Cap. 1: Lógica</th>
+                      <th className="px-6 py-4 text-center">Cap. 1: Cuant.</th>
+                      <th className="px-6 py-4 text-center">Cap. 1: Micro.</th>
+                    </>
+                  )}
+                  {selectedChapter === '2' && (
+                    <>
+                      <th className="px-6 py-4 text-center">Cap. 2: Cripto</th>
+                      <th className="px-6 py-4 text-center">Cap. 2: Ecuac.</th>
+                      <th className="px-6 py-4 text-center">Cap. 2: Retos</th>
+                      <th className="px-6 py-4 text-center">Cap. 2: Mensaje</th>
+                    </>
+                  )}
+                  {selectedChapter === '3' && (
+                    <>
+                      <th className="px-6 py-4 text-center">Cap. 3: Transf</th>
+                      <th className="px-6 py-4 text-center">Cap. 3: Mosai.</th>
+                      <th className="px-6 py-4 text-center">Cap. 3: Conteo</th>
+                      <th className="px-6 py-4 text-center">Cap. 3: Soma</th>
+                    </>
+                  )}
+                  {selectedChapter === '4' && (
+                    <>
+                      <th className="px-6 py-4 text-center">Cap. 4: Suc. Gr.</th>
+                      <th className="px-6 py-4 text-center">Cap. 4: Suc. Nu.</th>
+                      <th className="px-6 py-4 text-center">Cap. 4: Later.</th>
+                      <th className="px-6 py-4 text-center">Cap. 4: Historia</th>
+                    </>
+                  )}
+                  <th className="px-6 py-4 text-center">
+                    {selectedChapter === 'all' ? 'Nota Final' : `Nota Cap. ${selectedChapter}`}
+                  </th>
                   <th className="px-6 py-4 text-center">Desempeño</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={13} className="text-center py-20">
+                    <td colSpan={9} className="text-center py-20">
                       <div className="animate-spin text-4xl text-purple-600 mb-4">
                         <i className="fas fa-circle-notch"></i>
                       </div>
@@ -1206,7 +1329,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                   </tr>
                 ) : filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={13} className="text-center py-20">
+                    <td colSpan={9} className="text-center py-20">
                       <p className="font-black text-gray-400 uppercase tracking-widest">No se encontraron estudiantes</p>
                     </td>
                   </tr>
@@ -1226,14 +1349,34 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                       (student.progreso_piramides || 0)
                     ) / 4;
 
-                    const avg2 = Math.round((
+                    const avg2 = Math.round(student.nota_capitulo_2 || (
                       (student.progreso_criptogramas || 0) +
                       (student.progreso_ecuaciones_graficas || 0) +
                       block3Avg +
                       (student.progreso_mensaje_oculto || 0)
                     ) / 4);
 
-                    const maxAvg = Math.max(avg1, avg2);
+                    const avg3 = Math.round(student.nota_capitulo_3 || (
+                      (student.progreso_transformaciones || 0) +
+                      (student.progreso_mosaicos || 0) +
+                      (student.progreso_conteocubos || 0) +
+                      (student.progreso_cubosoma || 0)
+                    ) / 4);
+
+                    const avg4 = Math.round(student.nota_capitulo_4 || (
+                      (student.progreso_secuencias_graficas || 0) +
+                      (student.progreso_secuencias_numericas || 0) +
+                      (student.progreso_lateral || 0) +
+                      (student.progreso_historia_final || 0)
+                    ) / 4);
+
+                    let displayAvg = Math.max(avg1, avg2, avg3, avg4);
+                    if (selectedChapter === '1') displayAvg = avg1;
+                    else if (selectedChapter === '2') displayAvg = avg2;
+                    else if (selectedChapter === '3') displayAvg = avg3;
+                    else if (selectedChapter === '4') displayAvg = avg4;
+
+                    const displayPerf = getPerformanceLevel(displayAvg);
 
                     return (
                     <tr key={student.Usuario} className="group">
@@ -1268,8 +1411,25 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                         </span>
                       </td>
                       
-                      {/* Progress Columns Chapter 1 */}
-                      {[
+                      {/* Dynamic Progress Columns */}
+                      {selectedChapter === 'all' && (
+                        <>
+                          <td className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                            <span className="text-xs font-black text-purple-600">{avg1}%</span>
+                          </td>
+                          <td className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                            <span className="text-xs font-black text-pink-600">{avg2}%</span>
+                          </td>
+                          <td className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                            <span className="text-xs font-black text-indigo-600">{avg3}%</span>
+                          </td>
+                          <td className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                            <span className="text-xs font-black text-rose-600">{avg4}%</span>
+                          </td>
+                        </>
+                      )}
+
+                      {selectedChapter === '1' && [
                         student.progreso_ordenamiento,
                         student.progreso_proposiciones,
                         student.progreso_cuantificadores,
@@ -1288,8 +1448,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                         </td>
                       ))}
 
-                      {/* Progress Columns Chapter 2 */}
-                      {[
+                      {selectedChapter === '2' && [
                         student.progreso_criptogramas,
                         student.progreso_ecuaciones_graficas,
                         block3Avg,
@@ -1308,25 +1467,58 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                         </td>
                       ))}
 
+                      {selectedChapter === '3' && [
+                        student.progreso_transformaciones,
+                        student.progreso_mosaicos,
+                        student.progreso_conteocubos,
+                        student.progreso_cubosoma
+                      ].map((val, idx) => (
+                        <td key={`cap3-${idx}`} className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                          <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
+                            <span className="text-[10px] font-black text-gray-400">{Math.round(val || 0)}%</span>
+                            <div className="w-full h-2 bg-white rounded-full overflow-hidden shadow-inner border border-gray-100">
+                              <div 
+                                className={`h-full transition-all duration-1000 ${getProgressColor(val || 0)}`}
+                                style={{ width: `${val || 0}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </td>
+                      ))}
+
+                      {selectedChapter === '4' && [
+                        student.progreso_secuencias_graficas,
+                        student.progreso_secuencias_numericas,
+                        student.progreso_lateral,
+                        student.progreso_historia_final
+                      ].map((val, idx) => (
+                        <td key={`cap4-${idx}`} className="bg-gray-50 px-4 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
+                          <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
+                            <span className="text-[10px] font-black text-gray-400">{Math.round(val || 0)}%</span>
+                            <div className="w-full h-2 bg-white rounded-full overflow-hidden shadow-inner border border-gray-100">
+                              <div 
+                                className={`h-full transition-all duration-1000 ${getProgressColor(val || 0)}`}
+                                style={{ width: `${val || 0}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </td>
+                      ))}
+
                       <td className="bg-gray-50 px-6 py-5 text-center border-y-2 border-transparent group-hover:border-purple-200 transition-all">
                         <div className="inline-flex flex-col items-center">
                           <span className="text-xl font-black text-gray-800 leading-none">
-                            {Math.round(maxAvg)}
+                            {Math.round(displayAvg)}
                             <span className="text-[10px] text-purple-400 ml-0.5">%</span>
                           </span>
-                          <div className={`w-12 h-1 mt-1 rounded-full ${getProgressColor(maxAvg)}`}></div>
+                          <div className={`w-12 h-1 mt-1 rounded-full ${getProgressColor(displayAvg)}`}></div>
                         </div>
                       </td>
 
                       <td className="bg-gray-50 px-6 py-5 rounded-r-[2rem] text-center border-y-2 border-r-2 border-transparent group-hover:border-purple-200 transition-all">
-                        {(() => {
-                          const perf = getPerformanceLevel(maxAvg);
-                          return (
-                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border border-black/5 ${perf.color}`}>
-                              {perf.label}
-                            </span>
-                          );
-                        })()}
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border border-black/5 ${displayPerf.color}`}>
+                          {displayPerf.label}
+                        </span>
                       </td>
                     </tr>
                   );
@@ -1352,20 +1544,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                 </div>
                 <div className="space-y-4">
                   {filteredStudents.filter(r => {
-                    const avg1 = Math.round((
-                      (r.progreso_ordenamiento || 0) +
-                      (r.progreso_proposiciones || 0) +
-                      (r.progreso_cuantificadores || 0) +
-                      (r.progreso_microbit || 0)
-                    ) / 4);
-                    return avg1 >= 30 && avg1 < 60;
+                    const score = getStudentScore(r, selectedChapter);
+                    return score >= 30 && score < 60;
                   }).map((r, i) => {
-                    const avg1 = Math.round((
-                      (r.progreso_ordenamiento || 0) +
-                      (r.progreso_proposiciones || 0) +
-                      (r.progreso_cuantificadores || 0) +
-                      (r.progreso_microbit || 0)
-                    ) / 4);
+                    const score = getStudentScore(r, selectedChapter);
                     return (
                     <div 
                       key={r.Usuario} 
@@ -1374,7 +1556,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                     >
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 font-black text-sm border border-orange-100">
-                          {avg1}%
+                          {score}%
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
@@ -1405,20 +1587,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                 </div>
                 <div className="space-y-4">
                   {filteredStudents.filter(r => {
-                    const avg1 = Math.round((
-                      (r.progreso_ordenamiento || 0) +
-                      (r.progreso_proposiciones || 0) +
-                      (r.progreso_cuantificadores || 0) +
-                      (r.progreso_microbit || 0)
-                    ) / 4);
-                    return avg1 >= 60 && avg1 < 96;
+                    const score = getStudentScore(r, selectedChapter);
+                    return score >= 60 && score < 96;
                   }).map((r, i) => {
-                    const avg1 = Math.round((
-                      (r.progreso_ordenamiento || 0) +
-                      (r.progreso_proposiciones || 0) +
-                      (r.progreso_cuantificadores || 0) +
-                      (r.progreso_microbit || 0)
-                    ) / 4);
+                    const score = getStudentScore(r, selectedChapter);
                     return (
                     <div 
                       key={r.Usuario} 
@@ -1427,7 +1599,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                     >
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 font-black text-sm border border-slate-200">
-                          {avg1}%
+                          {score}%
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
@@ -1458,20 +1630,10 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                 </div>
                 <div className="space-y-4">
                   {filteredStudents.filter(r => {
-                    const avg1 = Math.round((
-                      (r.progreso_ordenamiento || 0) +
-                      (r.progreso_proposiciones || 0) +
-                      (r.progreso_cuantificadores || 0) +
-                      (r.progreso_microbit || 0)
-                    ) / 4);
-                    return avg1 >= 96 && avg1 < 100;
+                    const score = getStudentScore(r, selectedChapter);
+                    return score >= 96 && score < 100;
                   }).map((r, i) => {
-                    const avg1 = Math.round((
-                      (r.progreso_ordenamiento || 0) +
-                      (r.progreso_proposiciones || 0) +
-                      (r.progreso_cuantificadores || 0) +
-                      (r.progreso_microbit || 0)
-                    ) / 4);
+                    const score = getStudentScore(r, selectedChapter);
                     return (
                     <div 
                       key={r.Usuario} 
@@ -1480,7 +1642,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                     >
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600 font-black text-sm border border-yellow-200">
-                          {avg1}%
+                          {score}%
                         </div>
                         <div className="flex flex-col">
                           <span className="font-black text-gray-800 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
@@ -1513,13 +1675,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                 </div>
                 <div className="space-y-4">
                   {filteredStudents.filter(r => {
-                    const avg1 = Math.round((
-                      (r.progreso_ordenamiento || 0) +
-                      (r.progreso_proposiciones || 0) +
-                      (r.progreso_cuantificadores || 0) +
-                      (r.progreso_microbit || 0)
-                    ) / 4);
-                    return avg1 >= 100;
+                    const score = getStudentScore(r, selectedChapter);
+                    return score >= 100;
                   }).map((r, i) => (
                     <div 
                       key={r.Usuario} 

@@ -63,7 +63,12 @@ export enum View {
   CRUCINUMERO = 'CRUCINUMERO',
   NUMERIC_PYRAMIDS = 'NUMERIC_PYRAMIDS',
   CH2_BLOCK3_MENU = 'CH2_BLOCK3_MENU',
-  HIDDEN_MESSAGE = 'HIDDEN_MESSAGE'
+  HIDDEN_MESSAGE = 'HIDDEN_MESSAGE',
+  CHAPTER_3_MENU = 'CHAPTER_3_MENU',
+  ISOMETRIC_TRANSFORMATIONS = 'ISOMETRIC_TRANSFORMATIONS',
+  MOSAIC_DESIGN = 'MOSAIC_DESIGN',
+  CUBE_COUNTING = 'CUBE_COUNTING',
+  SOMA_CUBE = 'SOMA_CUBE'
 }
 
 export interface StudentProfile {
@@ -85,8 +90,13 @@ export interface StudentProfile {
   progreso_mensaje_oculto?: number;
   nota_capitulo_2?: number;
   progreso_transformaciones?: number;
+  progreso_transformaciones_traslacion?: number;
+  progreso_transformaciones_simetria?: number;
+  progreso_transformaciones_rotacion?: number;
   progreso_geogebra?: number;
   progreso_mosaicos?: number;
+  progreso_conteocubos?: number;
+  progreso_cubosoma?: number;
   nota_capitulo_3?: number;
   nota_capitulo_4?: number;
   progreso_secuencias_graficas?: number;

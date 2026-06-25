@@ -32,6 +32,11 @@ import Sudoku from './components/Sudoku';
 import MagicSquares from './components/MagicSquares';
 import Crucinumero from './components/Crucinumero';
 import HiddenMessage from './components/HiddenMessage';
+import ChapterThreeMenu from './components/ChapterThreeMenu';
+import IsometricTransformations from './components/IsometricTransformations';
+import MosaicDesign from './components/MosaicDesign';
+import CubeCounting from './components/CubeCounting';
+import SomaCube from './components/SomaCube';
 import Footer from './components/Footer';
 
 const App: React.FC = () => {
@@ -353,9 +358,18 @@ const App: React.FC = () => {
       (updated.progreso_mensaje_oculto || 0)
     ) / 4);
 
+    // Chapter 3 Calculations
+    const avg3 = Math.round((
+      (updated.progreso_transformaciones || 0) +
+      (updated.progreso_mosaicos || 0) +
+      (updated.progreso_conteocubos || 0) +
+      (updated.progreso_cubosoma || 0)
+    ) / 4);
+
     updated.nota_capitulo_1 = avg1;
     updated.nota_capitulo_2 = avg2;
-    updated.nivel_desempeno = getPerformanceLevel(Math.max(avg1, avg2));
+    updated.nota_capitulo_3 = avg3;
+    updated.nivel_desempeno = getPerformanceLevel(Math.max(avg1, avg2, avg3));
 
     // Update state and local storage
     setStudent(updated);
@@ -373,6 +387,7 @@ const App: React.FC = () => {
           [column]: newValue,
           nota_capitulo_1: updated.nota_capitulo_1,
           nota_capitulo_2: updated.nota_capitulo_2,
+          nota_capitulo_3: updated.nota_capitulo_3,
           ultima_conexion: updated.ultima_conexion
         })
         .filter('Usuario', 'ilike', userToUpdate)
@@ -391,6 +406,7 @@ const App: React.FC = () => {
             [column]: newValue,
             nota_capitulo_1: updated.nota_capitulo_1,
             nota_capitulo_2: updated.nota_capitulo_2,
+            nota_capitulo_3: updated.nota_capitulo_3,
             ultima_conexion: updated.ultima_conexion
           })
           .eq('Usuario', updated.Usuario)
@@ -459,6 +475,7 @@ const App: React.FC = () => {
         return <CourseMenu student={student!} config={config} onSelect={(id) => {
           if (id === 'verbal') setCurrentView(View.CHAPTER_1_MENU);
           else if (id === 'num') setCurrentView(View.CHAPTER_2_MENU);
+          else if (id === 'esp') setCurrentView(View.CHAPTER_3_MENU);
         }} onShowResults={() => setCurrentView(View.RESULTS)} onShowCommunication={() => setCurrentView(View.COMMUNICATION)} />;
       case View.CHAPTER_1_MENU:
         return (
@@ -585,6 +602,60 @@ const App: React.FC = () => {
             onBack={() => setCurrentView(View.CHAPTER_2_MENU)}
             onComplete={(newProg) => {
               updateSupabaseProgress('progreso_mensaje_oculto', newProg, 'absolute');
+            }}
+          />
+        );
+      case View.CHAPTER_3_MENU:
+        return (
+          <ChapterThreeMenu 
+            student={student!}
+            config={config}
+            onSelectModule={(id) => {
+              if (id === 'transformaciones') setCurrentView(View.ISOMETRIC_TRANSFORMATIONS);
+              else if (id === 'mosaicos') setCurrentView(View.MOSAIC_DESIGN);
+              else if (id === 'conteocubos') setCurrentView(View.CUBE_COUNTING);
+              else if (id === 'cubosoma') setCurrentView(View.SOMA_CUBE);
+            }}
+            onBack={() => setCurrentView(View.MENU)}
+          />
+        );
+      case View.ISOMETRIC_TRANSFORMATIONS:
+        return (
+          <IsometricTransformations 
+            student={student!}
+            onBack={() => setCurrentView(View.CHAPTER_3_MENU)}
+            onComplete={(column, newProg) => {
+              updateSupabaseProgress(column as keyof StudentProfile, newProg, 'absolute');
+            }}
+          />
+        );
+      case View.MOSAIC_DESIGN:
+        return (
+          <MosaicDesign 
+            student={student!}
+            onBack={() => setCurrentView(View.CHAPTER_3_MENU)}
+            onComplete={(column, newProg) => {
+              updateSupabaseProgress(column as keyof StudentProfile, newProg, 'absolute');
+            }}
+          />
+        );
+      case View.CUBE_COUNTING:
+        return (
+          <CubeCounting 
+            student={student!}
+            onBack={() => setCurrentView(View.CHAPTER_3_MENU)}
+            onComplete={(column, newProg) => {
+              updateSupabaseProgress(column as keyof StudentProfile, newProg, 'absolute');
+            }}
+          />
+        );
+      case View.SOMA_CUBE:
+        return (
+          <SomaCube 
+            student={student!}
+            onBack={() => setCurrentView(View.CHAPTER_3_MENU)}
+            onComplete={(column, newProg) => {
+              updateSupabaseProgress(column as keyof StudentProfile, newProg, 'absolute');
             }}
           />
         );
