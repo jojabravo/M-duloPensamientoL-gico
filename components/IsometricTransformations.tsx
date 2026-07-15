@@ -125,9 +125,9 @@ const IsometricTransformations: React.FC<Props> = ({ student, onBack, onComplete
     {
       id: 11,
       title: 'Notas Musicales 🎵🎵',
-      desc: 'Notas musicales idénticas de igual tamaño, una inclinada.',
-      isIsometric: true,
-      reason: 'Es una rotación, conserva forma y tamaño.'
+      desc: 'Tienen diferente estructura (una es una pareja de corcheas con barra de unión y la otra es una semicorchea suelta con dos corchetes).',
+      isIsometric: false,
+      reason: 'No conservan la misma estructura ni la misma forma, por lo que no es una isometría.'
     },
     {
       id: 12,

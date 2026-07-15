@@ -11,9 +11,10 @@ interface Props {
   onSelect: (chapterId: string) => void;
   onShowResults: () => void;
   onShowCommunication: () => void;
+  onStartTour?: () => void;
 }
 
-const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults, onShowCommunication }) => {
+const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults, onShowCommunication, onStartTour }) => {
   const [activeTab, setActiveTab] = useState<'formativo' | 'evaluativo' | 'reconocimiento'>('formativo');
   const [simulatedScore, setSimulatedScore] = useState<number>(75);
   const isTestUser = student.Usuario === 'estudiante.prueba';
@@ -97,14 +98,22 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
         </div>
         <div className="flex flex-wrap justify-center md:justify-end items-center gap-3">
           <button 
+            onClick={() => { playSound('pop'); onStartTour?.(); }}
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black shadow-md hover:shadow-xl hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <i className="fas fa-compass"></i> REPETIR GUÍA
+          </button>
+          <button 
+            id="tour-btn-report"
             onClick={() => { playSound('pop'); onShowResults(); }}
-            className="px-6 py-3 bg-white border-2 border-purple-100 rounded-2xl font-black text-purple-600 shadow-sm hover:shadow-xl hover:bg-purple-50 transition-all flex items-center gap-2"
+            className="px-6 py-3 bg-white border-2 border-purple-100 rounded-2xl font-black text-purple-600 shadow-sm hover:shadow-xl hover:bg-purple-50 transition-all flex items-center gap-2 cursor-pointer"
           >
             <i className="fas fa-file-invoice"></i> VER MI REPORTE
           </button>
           <button 
+            id="tour-btn-mailbox"
             onClick={() => { playSound('pop'); onShowCommunication(); }}
-            className="px-6 py-3 bg-white border-2 border-indigo-100 rounded-2xl font-black text-indigo-600 shadow-sm hover:shadow-xl hover:bg-indigo-50 transition-all flex items-center gap-2"
+            className="px-6 py-3 bg-white border-2 border-indigo-100 rounded-2xl font-black text-indigo-600 shadow-sm hover:shadow-xl hover:bg-indigo-50 transition-all flex items-center gap-2 cursor-pointer"
           >
             <i className="fas fa-envelope"></i> BUZÓN Y AVISOS
           </button>
@@ -136,7 +145,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div id="tour-chapter-grid" className="grid md:grid-cols-2 gap-6">
         {sections.map(s => (
           <div 
             key={s.id}
@@ -468,7 +477,7 @@ const CourseMenu: React.FC<Props> = ({ student, config, onSelect, onShowResults,
           const sim = getSimulationResult(simulatedScore);
 
           return (
-            <div className="bg-purple-900/5 text-purple-900 border-2 border-dashed border-purple-200 rounded-3xl p-6 md:p-8 relative z-10">
+            <div id="tour-simulator" className="bg-purple-900/5 text-purple-900 border-2 border-dashed border-purple-200 rounded-3xl p-6 md:p-8 relative z-10">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
                 <div>
                   <span className="bg-purple-200 text-purple-800 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-2 inline-block">

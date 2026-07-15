@@ -38,11 +38,13 @@ import MosaicDesign from './components/MosaicDesign';
 import CubeCounting from './components/CubeCounting';
 import SomaCube from './components/SomaCube';
 import Footer from './components/Footer';
+import { OnboardingTour } from './components/OnboardingTour';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.WELCOME);
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isTourOpen, setIsTourOpen] = useState(false);
   const [config, setConfig] = useState<AppConfig>({
     capitulo_1_activo: true,
     capitulo_2_activo: false,
@@ -56,6 +58,16 @@ const App: React.FC = () => {
   useEffect(() => {
     studentRef.current = student;
   }, [student]);
+
+  // Auto-start onboarding tour for new students upon first-time entry
+  useEffect(() => {
+    if (student && currentView === View.MENU) {
+      const hasCompleted = localStorage.getItem(`logica_onboarding_completed_${student.Usuario}`);
+      if (!hasCompleted) {
+        setIsTourOpen(true);
+      }
+    }
+  }, [student?.Usuario, currentView]);
 
   // Simulation states
   const [hSlots, setHSlots] = useState<(Person | null)[]>(Array(5).fill(null));
@@ -472,11 +484,20 @@ const App: React.FC = () => {
       case View.WELCOME:
         return <Welcome onLogin={handleLogin} onAdmin={handleAdminAccess} />;
       case View.MENU:
-        return <CourseMenu student={student!} config={config} onSelect={(id) => {
-          if (id === 'verbal') setCurrentView(View.CHAPTER_1_MENU);
-          else if (id === 'num') setCurrentView(View.CHAPTER_2_MENU);
-          else if (id === 'esp') setCurrentView(View.CHAPTER_3_MENU);
-        }} onShowResults={() => setCurrentView(View.RESULTS)} onShowCommunication={() => setCurrentView(View.COMMUNICATION)} />;
+        return (
+          <CourseMenu 
+            student={student!} 
+            config={config} 
+            onSelect={(id) => {
+              if (id === 'verbal') setCurrentView(View.CHAPTER_1_MENU);
+              else if (id === 'num') setCurrentView(View.CHAPTER_2_MENU);
+              else if (id === 'esp') setCurrentView(View.CHAPTER_3_MENU);
+            }} 
+            onShowResults={() => setCurrentView(View.RESULTS)} 
+            onShowCommunication={() => setCurrentView(View.COMMUNICATION)} 
+            onStartTour={() => setIsTourOpen(true)}
+          />
+        );
       case View.CHAPTER_1_MENU:
         return (
           <ChapterOneMenu 
@@ -717,6 +738,9 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden pb-10">
       <div className="absolute inset-0 bg-pattern -z-10"></div>
+      {student && (
+        <OnboardingTour student={student} isOpen={isTourOpen} onClose={() => setIsTourOpen(false)} />
+      )}
       {currentView !== View.WELCOME && currentView !== View.ADMIN && (
         <header className="bg-white/90 backdrop-blur-xl sticky top-0 z-50 shadow-sm border-b border-purple-100">
           <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-4">
