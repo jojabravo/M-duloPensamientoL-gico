@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../src/supabaseClient';
 import { StudentProfile, MailMessage, Announcement } from '../types';
 import { playSound } from '../audio';
+import { PerformanceAnalyticsTab } from './PerformanceAnalyticsTab';
+import { StudentPerformanceModal } from './StudentPerformanceModal';
 
 interface Props {
   onBack: () => void;
@@ -41,7 +43,8 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
   const [isMassMode, setIsMassMode] = useState(false);
   const [commLoading, setCommLoading] = useState(false);
   const [lastNotification, setLastNotification] = useState<{show: boolean, message: string}>({ show: false, message: '' });
-  const [activeTab, setActiveTab] = useState<'students' | 'messaging' | 'config'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'analytics' | 'messaging' | 'config'>('students');
+  const [selectedStudentForChart, setSelectedStudentForChart] = useState<StudentProfile | null>(null);
   const [chapterConfig, setChapterConfig] = useState<{id: number, capitulo_numero: number, nombre: string, activo: boolean, fecha_inicio?: string, fecha_fin?: string}[]>([]);
   const [originalConfig, setOriginalConfig] = useState<any[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
@@ -714,6 +717,13 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
             <span>Estudiantes y Notas</span>
           </button>
           <button 
+            onClick={() => setActiveTab('analytics')}
+            className={`flex-1 lg:flex-none px-4 md:px-8 py-3 md:py-4 rounded-[1.5rem] lg:rounded-full font-black text-[10px] md:text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${activeTab === 'analytics' ? 'bg-white text-purple-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <i className="fas fa-chart-pie"></i>
+            <span>Analítica y Rendimiento</span>
+          </button>
+          <button 
             onClick={() => setActiveTab('messaging')}
             className={`flex-1 lg:flex-none px-4 md:px-8 py-3 md:py-4 rounded-[1.5rem] lg:rounded-full font-black text-[10px] md:text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 relative ${activeTab === 'messaging' ? 'bg-white text-indigo-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
           >
@@ -892,6 +902,16 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="animate-fadeIn">
+            <PerformanceAnalyticsTab
+              students={students}
+              onSelectStudent={(s) => setSelectedStudentForChart(s)}
+              onViewAsStudent={onViewAsStudent}
+            />
           </div>
         )}
 
@@ -1390,8 +1410,16 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                             <div className="flex items-center gap-2">
                               {student.Nombre && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">@{student.Usuario}</span>}
                               <button 
+                                onClick={() => setSelectedStudentForChart(student)}
+                                className="text-[9px] font-black text-purple-600 hover:text-purple-800 uppercase tracking-tighter flex items-center gap-1 bg-purple-50 hover:bg-purple-100 px-2 py-0.5 rounded-md transition-colors"
+                                title="Ver Ficha Gráfica Individual"
+                              >
+                                <i className="fas fa-chart-pie"></i>
+                                Ficha Gráfica
+                              </button>
+                              <button 
                                 onClick={() => onViewAsStudent(student)}
-                                className="text-[9px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-tighter flex items-center gap-1 bg-indigo-50 px-2 py-0.5 rounded-md transition-colors"
+                                className="text-[9px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-tighter flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md transition-colors"
                               >
                                 <i className="fas fa-eye"></i>
                                 Ver como
@@ -1563,6 +1591,13 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                           <div className="flex items-center justify-center gap-2 mt-1">
                             <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest">Desempeño Básico</span>
                             <button 
+                              onClick={() => setSelectedStudentForChart(r)}
+                              className="w-6 h-6 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+                              title="Ver Ficha Gráfica"
+                            >
+                              <i className="fas fa-chart-pie text-[10px]"></i>
+                            </button>
+                            <button 
                               onClick={() => onViewAsStudent(r)}
                               className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                               title="Ver como estudiante"
@@ -1605,6 +1640,13 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                           <span className="font-black text-gray-700 text-sm tracking-tight leading-tight">{r.Nombre || r.Usuario}</span>
                           <div className="flex items-center justify-center gap-2 mt-1">
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Desempeño Alto</span>
+                            <button 
+                              onClick={() => setSelectedStudentForChart(r)}
+                              className="w-6 h-6 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+                              title="Ver Ficha Gráfica"
+                            >
+                              <i className="fas fa-chart-pie text-[10px]"></i>
+                            </button>
                             <button 
                               onClick={() => onViewAsStudent(r)}
                               className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
@@ -1649,6 +1691,13 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                           <div className="flex items-center justify-center gap-2 mt-1">
                             <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest">Desempeño Superior</span>
                             <button 
+                              onClick={() => setSelectedStudentForChart(r)}
+                              className="w-6 h-6 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+                              title="Ver Ficha Gráfica"
+                            >
+                              <i className="fas fa-chart-pie text-[10px]"></i>
+                            </button>
+                            <button 
                               onClick={() => onViewAsStudent(r)}
                               className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                               title="Ver como estudiante"
@@ -1692,6 +1741,13 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                           <div className="flex items-center justify-center gap-2 mt-1">
                             <span className="text-[9px] font-black text-cyan-500 uppercase tracking-widest">Desempeño Superior</span>
                             <button 
+                              onClick={() => setSelectedStudentForChart(r)}
+                              className="w-6 h-6 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+                              title="Ver Ficha Gráfica"
+                            >
+                              <i className="fas fa-chart-pie text-[10px]"></i>
+                            </button>
+                            <button 
                               onClick={() => onViewAsStudent(r)}
                               className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                               title="Ver como estudiante"
@@ -1734,39 +1790,32 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
               {showInProcess && (
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fadeIn">
                   {filteredStudents.filter(r => {
-                    const avg1 = Math.round((
-                      (r.progreso_ordenamiento || 0) +
-                      (r.progreso_proposiciones || 0) +
-                      (r.progreso_cuantificadores || 0) +
-                      (r.progreso_microbit || 0)
-                    ) / 4);
-                    return avg1 < 30;
+                    const score = getStudentScore(r, selectedChapter);
+                    return score < 30;
                   }).length === 0 ? (
                     <div className="col-span-full py-10 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                       <p className="font-black text-gray-400 uppercase tracking-widest text-xs">Todos los estudiantes de este grado han superado el 30%</p>
                     </div>
                   ) : (
                     filteredStudents.filter(r => {
-                      const avg1 = Math.round((
-                        (r.progreso_ordenamiento || 0) +
-                        (r.progreso_proposiciones || 0) +
-                        (r.progreso_cuantificadores || 0) +
-                        (r.progreso_microbit || 0)
-                      ) / 4);
-                      return avg1 < 30;
+                      const score = getStudentScore(r, selectedChapter);
+                      return score < 30;
                     }).map((r) => {
-                      const avg1 = Math.round((
-                        (r.progreso_ordenamiento || 0) +
-                        (r.progreso_proposiciones || 0) +
-                        (r.progreso_cuantificadores || 0) +
-                        (r.progreso_microbit || 0)
-                      ) / 4);
+                      const score = getStudentScore(r, selectedChapter);
                       return (
                       <div key={r.Usuario} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
                         <div className="flex flex-col">
                           <span className="font-bold text-gray-700 text-sm truncate max-w-[120px]">{r.Nombre || r.Usuario}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] text-gray-400 font-black">@{r.Usuario}</span>
+                            <button 
+                              onClick={() => setSelectedStudentForChart(r)}
+                              className="text-[8px] font-black text-purple-600 hover:text-purple-800 uppercase tracking-tighter flex items-center gap-1"
+                              title="Ver Ficha Gráfica"
+                            >
+                              <i className="fas fa-chart-pie"></i>
+                              Gráfica
+                            </button>
                             <button 
                               onClick={() => onViewAsStudent(r)}
                               className="text-[8px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-tighter"
@@ -1776,7 +1825,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                           </div>
                         </div>
                         <div className="bg-rose-50 text-rose-600 px-3 py-1 rounded-lg font-black text-[10px] flex flex-col items-center">
-                          <span>{avg1}%</span>
+                          <span>{score}%</span>
                           <span className="text-[7px] uppercase tracking-tighter">Bajo</span>
                         </div>
                       </div>
@@ -1813,6 +1862,16 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
           </div>
         </footer>
       </div>
+
+      {/* MODAL DE RENDIMIENTO INDIVIDUAL DEL ESTUDIANTE */}
+      {selectedStudentForChart && (
+        <StudentPerformanceModal
+          student={selectedStudentForChart}
+          allStudents={students}
+          onClose={() => setSelectedStudentForChart(null)}
+          onViewAsStudent={onViewAsStudent}
+        />
+      )}
     </div>
   );
 };
