@@ -57,13 +57,13 @@ const ResultsDashboard: React.FC<Props> = ({ student, config, onBack }) => {
 
   // PROMEDIO TOTAL CAPÍTULO 2
   const block3Avg = (sudokuModuleAvg + magicModuleAvg + crucModuleAvg + pyrModuleAvg) / 4;
-  const totalCap2 = student.nota_capitulo_2 || (cryptoModuleAvg + eqModuleAvg + block3Avg + msgModuleAvg) / 4;
+  const totalCap2 = Math.round((cryptoModuleAvg + eqModuleAvg + block3Avg + msgModuleAvg) / 4);
 
   // PROMEDIO TOTAL CAPÍTULO 3
-  const totalCap3 = student.nota_capitulo_3 || (transformacionesProg + mosaicosProg + conteoProg + somacuboProg) / 4;
+  const totalCap3 = Math.round((transformacionesProg + mosaicosProg + conteoProg + somacuboProg) / 4);
 
   // PROMEDIO TOTAL CAPÍTULO 4
-  const totalCap4 = student.nota_capitulo_4 || (secGraficasProg + secNumericasProg + lateralProg + historiaProg) / 4;
+  const totalCap4 = Math.round((secGraficasProg + secNumericasProg + lateralProg + historiaProg) / 4);
 
   useEffect(() => {
     const fetchRanking = async () => {
@@ -76,17 +76,17 @@ const ResultsDashboard: React.FC<Props> = ({ student, config, onBack }) => {
       if (data) {
         const processedData = data.map(s => {
           // Chapter 1 Progress
-          const avg1 = s.nota_capitulo_1 || 0;
+          const avg1 = Math.round(((s.progreso_ordenamiento || 0) + (s.progreso_proposiciones || 0) + (s.progreso_cuantificadores || 0) + (s.progreso_microbit || 0)) / 4);
           
           // Chapter 2 Progress
           const block3 = ((s.progreso_sudoku || 0) + (s.progreso_magic_squares || 0) + (s.progreso_crucinumeros || 0) + (s.progreso_piramides || 0)) / 4;
-          const avg2 = s.nota_capitulo_2 || ((s.progreso_criptogramas || 0) + (s.progreso_ecuaciones_graficas || 0) + block3 + (s.progreso_mensaje_oculto || 0)) / 4;
+          const avg2 = Math.round(((s.progreso_criptogramas || 0) + (s.progreso_ecuaciones_graficas || 0) + block3 + (s.progreso_mensaje_oculto || 0)) / 4);
 
           // Chapter 3 Progress
-          const avg3 = s.nota_capitulo_3 || ((s.progreso_transformaciones || 0) + (s.progreso_mosaicos || 0) + (s.progreso_conteocubos || 0) + (s.progreso_cubosoma || 0)) / 4;
+          const avg3 = Math.round(((s.progreso_transformaciones || 0) + (s.progreso_mosaicos || 0) + (s.progreso_conteocubos || 0) + (s.progreso_cubosoma || 0)) / 4);
 
           // Chapter 4 Progress
-          const avg4 = s.nota_capitulo_4 || ((s.progreso_secuencias_graficas || 0) + (s.progreso_secuencias_numericas || 0) + (s.progreso_lateral || 0) + (s.progreso_historia_final || 0)) / 4;
+          const avg4 = Math.round(((s.progreso_secuencias_graficas || 0) + (s.progreso_secuencias_numericas || 0) + (s.progreso_lateral || 0) + (s.progreso_historia_final || 0)) / 4);
           
           let currentProgress = avg1;
           if (selectedGalleryChapter === 2) currentProgress = avg2;

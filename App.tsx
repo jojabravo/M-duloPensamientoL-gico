@@ -271,7 +271,21 @@ const App: React.FC = () => {
         (studentData.progreso_mensaje_oculto || 0)
       ) / 4);
 
-      const performanceLevel = getPerformanceLevel(Math.max(avg1, avg2));
+      const avg3 = Math.round((
+        (studentData.progreso_transformaciones || 0) +
+        (studentData.progreso_mosaicos || 0) +
+        (studentData.progreso_conteocubos || 0) +
+        (studentData.progreso_cubosoma || 0)
+      ) / 4);
+
+      const avg4 = Math.round((
+        (studentData.progreso_secuencias_graficas || 0) +
+        (studentData.progreso_secuencias_numericas || 0) +
+        (studentData.progreso_lateral || 0) +
+        (studentData.progreso_historia_final || 0)
+      ) / 4);
+
+      const performanceLevel = getPerformanceLevel(Math.max(avg1, avg2, avg3, avg4));
 
       console.log(`Logging in: Updating metadata for ${studentData.Usuario}`);
       const now = new Date().toISOString();
@@ -280,7 +294,9 @@ const App: React.FC = () => {
         .update({ 
           ultima_conexion: now,
           nota_capitulo_1: avg1,
-          nota_capitulo_2: avg2
+          nota_capitulo_2: avg2,
+          nota_capitulo_3: avg3,
+          nota_capitulo_4: avg4
         })
         .eq('Usuario', studentData.Usuario);
 
@@ -293,6 +309,8 @@ const App: React.FC = () => {
         ultima_conexion: now,
         nota_capitulo_1: avg1,
         nota_capitulo_2: avg2,
+        nota_capitulo_3: avg3,
+        nota_capitulo_4: avg4,
         nivel_desempeno: performanceLevel
       };
 
@@ -378,10 +396,19 @@ const App: React.FC = () => {
       (updated.progreso_cubosoma || 0)
     ) / 4);
 
+    // Chapter 4 Calculations
+    const avg4 = Math.round((
+      (updated.progreso_secuencias_graficas || 0) +
+      (updated.progreso_secuencias_numericas || 0) +
+      (updated.progreso_lateral || 0) +
+      (updated.progreso_historia_final || 0)
+    ) / 4);
+
     updated.nota_capitulo_1 = avg1;
     updated.nota_capitulo_2 = avg2;
     updated.nota_capitulo_3 = avg3;
-    updated.nivel_desempeno = getPerformanceLevel(Math.max(avg1, avg2, avg3));
+    updated.nota_capitulo_4 = avg4;
+    updated.nivel_desempeno = getPerformanceLevel(Math.max(avg1, avg2, avg3, avg4));
 
     // Update state and local storage
     setStudent(updated);
@@ -400,6 +427,7 @@ const App: React.FC = () => {
           nota_capitulo_1: updated.nota_capitulo_1,
           nota_capitulo_2: updated.nota_capitulo_2,
           nota_capitulo_3: updated.nota_capitulo_3,
+          nota_capitulo_4: updated.nota_capitulo_4,
           ultima_conexion: updated.ultima_conexion
         })
         .filter('Usuario', 'ilike', userToUpdate)
@@ -419,6 +447,7 @@ const App: React.FC = () => {
             nota_capitulo_1: updated.nota_capitulo_1,
             nota_capitulo_2: updated.nota_capitulo_2,
             nota_capitulo_3: updated.nota_capitulo_3,
+            nota_capitulo_4: updated.nota_capitulo_4,
             ultima_conexion: updated.ultima_conexion
           })
           .eq('Usuario', updated.Usuario)

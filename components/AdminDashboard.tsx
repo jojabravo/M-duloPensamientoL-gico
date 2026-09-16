@@ -398,21 +398,21 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
       (student.progreso_piramides || 0)
     ) / 4;
 
-    const avg2 = Math.round(student.nota_capitulo_2 || (
+    const avg2 = Math.round((
       (student.progreso_criptogramas || 0) +
       (student.progreso_ecuaciones_graficas || 0) +
       block3Avg +
       (student.progreso_mensaje_oculto || 0)
     ) / 4);
 
-    const avg3 = Math.round(student.nota_capitulo_3 || (
+    const avg3 = Math.round((
       (student.progreso_transformaciones || 0) +
       (student.progreso_mosaicos || 0) +
       (student.progreso_conteocubos || 0) +
       (student.progreso_cubosoma || 0)
     ) / 4);
 
-    const avg4 = Math.round(student.nota_capitulo_4 || (
+    const avg4 = Math.round((
       (student.progreso_secuencias_graficas || 0) +
       (student.progreso_secuencias_numericas || 0) +
       (student.progreso_lateral || 0) +
@@ -495,21 +495,21 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
         (s.progreso_piramides || 0)
       ) / 4;
       
-      const avg2 = Math.round(s.nota_capitulo_2 || (
+      const avg2 = Math.round((
         (s.progreso_criptogramas || 0) +
         (s.progreso_ecuaciones_graficas || 0) +
         block3Avg +
         (s.progreso_mensaje_oculto || 0)
       ) / 4);
 
-      const avg3 = Math.round(s.nota_capitulo_3 || (
+      const avg3 = Math.round((
         (s.progreso_transformaciones || 0) +
         (s.progreso_mosaicos || 0) +
         (s.progreso_conteocubos || 0) +
         (s.progreso_cubosoma || 0)
       ) / 4);
 
-      const avg4 = Math.round(s.nota_capitulo_4 || (
+      const avg4 = Math.round((
         (s.progreso_secuencias_graficas || 0) +
         (s.progreso_secuencias_numericas || 0) +
         (s.progreso_lateral || 0) +
@@ -1349,21 +1349,21 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onViewAsStudent }) => {
                       (student.progreso_piramides || 0)
                     ) / 4;
 
-                    const avg2 = Math.round(student.nota_capitulo_2 || (
+                    const avg2 = Math.round((
                       (student.progreso_criptogramas || 0) +
                       (student.progreso_ecuaciones_graficas || 0) +
                       block3Avg +
                       (student.progreso_mensaje_oculto || 0)
                     ) / 4);
 
-                    const avg3 = Math.round(student.nota_capitulo_3 || (
+                    const avg3 = Math.round((
                       (student.progreso_transformaciones || 0) +
                       (student.progreso_mosaicos || 0) +
                       (student.progreso_conteocubos || 0) +
                       (student.progreso_cubosoma || 0)
                     ) / 4);
 
-                    const avg4 = Math.round(student.nota_capitulo_4 || (
+                    const avg4 = Math.round((
                       (student.progreso_secuencias_graficas || 0) +
                       (student.progreso_secuencias_numericas || 0) +
                       (student.progreso_lateral || 0) +
